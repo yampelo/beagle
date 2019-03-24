@@ -1,0 +1,13 @@
+dist: xenial
+language: python
+python:
+    - 3.6
+# command to install dependencies
+install:
+    - pip install pipenv
+    - pipenv install --skip-lock
+env:
+    - BEAGLE__STORAGE__DIR=data/ BEAGLE__STORAGE__DATABASE=sqlite:///$PWD/data/beagle.db
+# command to run tests
+script:
+    - mkdir -p data && pytest

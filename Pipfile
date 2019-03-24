@@ -1,0 +1,45 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+networkx = "*"
+loguru = "*"
+python-evtx = "*"
+lxml = "*"
+neo4j = "*"
+flask = "*"
+flask-sqlalchemy = "*"
+requests = "*"
+gunicorn = "*"
+future = "==0.16.0"
+rekall = "*"
+pydgraph = "*"
+pandas = "*"
+
+[dev-packages]
+"flake8" = "*"
+black = "*"
+"flake8-type-annotations" = "*"
+ipython = "*"
+grave = "*"
+matplotlib = "*"
+numpy = "*"
+scipy = "*"
+mypy = "*"
+requests = "*"
+pytest = "==4.0.0"
+sphinx = "*"
+recommonmark = "*"
+
+[requires]
+python_version = "3.6"
+
+[pipenv]
+allow_prereleases = true
+
+[scripts]
+web = "bash -c 'export FLASK_ENV=development FLASK_APP=beagle/web/server && flask run --port 8000 --host 0.0.0.0'"
+web_prod = "bash -c 'gunicorn --bind 0.0.0.0:8000 -w 12 beagle.web.wsgi:app"
+build_js = "bash -c 'cd ~/dev/beagle/beagle/web/static; npm run build'"
