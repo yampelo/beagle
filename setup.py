@@ -40,7 +40,7 @@ REQUIRED = [
     "flask-sqlalchemy==2.3.2",
     "flask==1.0.2",
     "future==0.16.0",
-    "grpcio==1.17.1",
+    "grpcio==1.19.0",
     "gunicorn==19.9.0",
     "hexdump==3.3",
     "html5lib==1.0.1",
@@ -62,7 +62,9 @@ REQUIRED = [
     "neobolt==1.7.4",
     "neotime==1.7.4",
     "networkx==2.2",
+    "numpy==1.16.2",
     "oauth2client==3.0.0",
+    "pandas==0.24.2",
     "parsedatetime==2.4",
     "parso==0.3.4",
     "pathlib==1.0.1",
@@ -80,7 +82,7 @@ REQUIRED = [
     "pyasn1==0.4.5",
     "pyblake2==0.9.3",
     "pycryptodome==3.4.7",
-    "pydgraph==1.0.1",
+    "pydgraph==1.0.3",
     "pyelftools==0.24",
     "pygments==2.3.1",
     "pyparsing==2.1.5",
@@ -112,7 +114,7 @@ REQUIRED = [
     "urllib3==1.21.1",
     "wcwidth==0.1.7",
     "webencodings==0.5.1",
-    "werkzeug==0.14.1",
+    "werkzeug==0.15.1",
 ]
 
 # The rest you shouldn't have to touch too much :)
