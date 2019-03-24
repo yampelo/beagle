@@ -30,6 +30,9 @@ class Graphistry(NetworkX):
 
         super().__init__(*args, **kwargs)
 
+        self.anonymize = anonymize
+        self.render = render
+
         logger.info("Initialized Graphistry Backend")
 
         self.key = self._get_key()
