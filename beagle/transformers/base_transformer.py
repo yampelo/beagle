@@ -2,7 +2,8 @@ import multiprocessing as mp
 from abc import ABCMeta, abstractmethod
 from queue import Queue
 from threading import Thread, current_thread
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Any
+
 
 from beagle.backends.networkx import NetworkX
 from beagle.common import logger
@@ -39,13 +40,25 @@ class Transformer(object, metaclass=ABCMeta):
         self.nodes: List[Node] = []
         self.errors: Dict[Thread, List[Exception]] = {}
 
-    def to_graph(self, backend=NetworkX) -> "Backend":
+    def to_graph(self, backend: "Backend" = NetworkX, *args, **kwargs) -> Any:
+        """Graphs the nodes created by :py:meth:`run`. If no backend is specific,
+        the default used is NetworkX.
+
+        Parameters
+        ----------
+        backend : [type], optional
+            [description] (the default is NetworkX, which [default_description])
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
+
         nodes = self.run()
 
-        backend = backend(nodes=nodes, metadata=self.datasource.metadata())
-        backend.graph()
-
-        return backend
+        backend = backend(nodes=nodes, metadata=self.datasource.metadata(), *args, **kwargs)
+        return backend.graph()
 
     def run(self) -> List[Node]:
         """Generates the list of nodes from the datasource.

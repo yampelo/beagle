@@ -46,7 +46,7 @@ The library can be used either as a sequence of functional calls.
 >>> graph = SysmonEVTX("malicious.evtx")
     .to_transformer()
     .to_graph(backend=NetworkX)
->>> graph.G
+>>> graph
 <networkx.classes.multidigraph.MultiDiGraph at 0x12700ee10>
 ```
 
@@ -286,11 +286,8 @@ Creating a graph requires chaining these together. This can be done functionally
 from beagle.datasources import HXTriage
 
 # By default, using the to_graph() class uses NetworkX
-backend = HXTriage('test.mans').to_transformer().to_graph()
-
-# The return of to_graph is the backend instance, in the NetworkX case
-# the Graph object can be accessed via the .G attribute
-backend.G
+G = HXTriage('test.mans').to_transformer().to_graph()
+<networkx.classes.multidigraph.MultiDiGraph at 0x12700ee10>
 ```
 
 Using the functional calls, you can also define which Backend you wish to usem for example, to send data to DGraph

@@ -1,6 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import TYPE_CHECKING, Generator
-
+from typing import TYPE_CHECKING, Any, Generator
 
 if TYPE_CHECKING:
     from beagle.transformer.base_transformer import Transformer
@@ -75,7 +74,8 @@ class DataSource(object, metaclass=ABCMeta):
         raise NotImplementedError()
 
     def to_transformer(self, transformer: "Transformer" = None) -> "Transformer":
-        """Allows the data source to be used as a functional API.
+        """Allows the data source to be used as a functional API. By default, uses the
+        first transformer in the `transformers` attribute.
 
         >>> graph = DataSource().to_transformer().to_graph()
 
@@ -90,6 +90,25 @@ class DataSource(object, metaclass=ABCMeta):
             transformer_cls = transformer
         return transformer_cls(self)
 
+    def to_graph(self, *args, **kwargs) -> Any:
+        """Allows to hop immediatly from a datasource to a graph.
+
+        Supports parameters for the to_graph() function of the transformer.
+
+        see :py:method:`beagle.transformers.base_transformer.Transformer.to_graph`
+
+        Examples
+        --------
+        >>> SysmonEVTX('data/sysmon/autoruns-sysmon.evtx').to_graph(Graphistry, render=True)
+
+        Returns
+        -------
+        Any
+            Returns the outuput of the Backends `.graph()` function.
+        """
+
+        return self.to_transformer(self.transformers[0]).to_graph(*args, **kwargs)  # type: ignore
+
 
 class ExternalDataSource(DataSource, metaclass=ABCMeta):
     """This class should be used when fetching data from exteranl sources before processing.
@@ -101,4 +120,3 @@ class ExternalDataSource(DataSource, metaclass=ABCMeta):
     --------
     See :py:class:`beagle.datasources.virustotal.generic_vt_sandbox_api.GenericVTSandboxAPI`
     """
-

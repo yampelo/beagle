@@ -33,6 +33,7 @@ requests = "*"
 pytest = "==4.0.0"
 sphinx = "*"
 recommonmark = "*"
+ipykernel = "*"
 
 [requires]
 python_version = "3.6"
