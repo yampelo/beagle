@@ -40,12 +40,9 @@ Beagle can be used directly as a python library, or through a provided web inter
 The library can be used either as a sequence of functional calls.
 
 ```python
->>> from beagle.backends import NetworkX
 >>> from beagle.datasources import SysmonEVTX
 
->>> graph = SysmonEVTX("malicious.evtx")
-    .to_transformer()
-    .to_graph(backend=NetworkX)
+>>> graph = SysmonEVTX("malicious.evtx").to_graph()
 >>> graph
 <networkx.classes.multidigraph.MultiDiGraph at 0x12700ee10>
 ```
@@ -280,25 +277,40 @@ The Python package can be installed via pip:
 pip install pybeagle
 ```
 
-Creating a graph requires chaining these together. This can be done functionally:
+Creating a graph requires chaining these together. This can be done for you using the `to_graph()` function.
 
 ```python
 from beagle.datasources import HXTriage
 
-# By default, using the to_graph() class uses NetworkX
-G = HXTriage('test.mans').to_transformer().to_graph()
+# By default, using the to_graph() class uses NetworkX and the first transformer.
+G = HXTriage('test.mans').to_graph()
 <networkx.classes.multidigraph.MultiDiGraph at 0x12700ee10>
 ```
 
-Using the functional calls, you can also define which Backend you wish to usem for example, to send data to DGraph
+It can also be done explicitly at each step. Using the functional calls, you can also define which Backend you wish to usem for example, to send data to DGraph
 
 ```python
 from beagle.datasources import HXTriage
 from beagle.backends import DGraph
+from beagle.transformers import FireEyeHXTransformer
 
 # The data will be sent to the DGraph instance configured in the
 # configuration file
-backend = HXTriage('test.mans').to_transformer().to_graph(backend=DGraph)
+backend = HXTriage('test.mans').to_graph(backend=DGraph)
+
+# Can also specify the transformer
+backend = HXTriage('test.mans').to_transformer(transformer=FireEyeHXTransformer).to_graph(backend=DGraph)
+
+```
+
+When calling the `to_graph` or `to_transformer` methods, you can pass in any arguments to those classes:
+
+```python
+from beagle.datasources import HXTriage
+from beagle.backends import Graphistry
+
+# Send the graphistry, anonymize the data first, and return the URL
+graphistry_url = HXTriage('test.mans').to_graph(backend=Graphistry, anonymize=True, render=False)
 
 ```
 

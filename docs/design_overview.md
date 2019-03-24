@@ -66,6 +66,7 @@ The following table lists all of the currently supported data sources. They all 
 | WinEVTX             | Windows event logs                                                                                                |
 | GenericVTSandboxAPI | Virustotal v3 API sandbox logs (accepts a hash rather <br/> than file and pulls via the api if a key is available |
 | WindowsMemory       | Raw windows memory images (Parsed using Rekall)                                                                   |
+| ProcmonCSV          | A procmon run file, exported to CSV                                                                               |
 
 ### Transformers
 
@@ -79,6 +80,7 @@ Each datasource has an array of supported transformer with at least one transfor
 | SysmonTransformer    | A transformer for SysMon logs                                                                                           |
 | GenericTransformer   | A generic transformer for datasources which output events that leverage the fieldnames in `beagle.constants.FieldNames` |
 | WinEVTXTransformer   | A transformer for windows event logs                                                                                    |
+| ProcmonTransformer   | A transformer for procmon events                                                                                        |
 
 ### Backends
 
