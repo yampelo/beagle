@@ -64,10 +64,11 @@ Or by strictly calling each intermediate step of the data source to graph proces
 >>> transformer = SysmonTransformer(datasource=datasource)
 >>> nodes = transformer.run()
 
-# Transformer output an array of nodes.
-[(<SysMonProc> process_guid="{0ad3e319-0c16-59c8-0000-0010d47d0000}"),
- (<File> host="DESKTOP-2C3IQHO" full_path="C:\Windows\System32\services.exe"),
- ...
+# Transformers output an array of nodes.
+[
+    (<SysMonProc> process_guid="{0ad3e319-0c16-59c8-0000-0010d47d0000}"),
+    (<File> host="DESKTOP-2C3IQHO" full_path="C:\Windows\System32\services.exe"),
+    ...
 ]
 
 # Backends take the nodes, and transform them into graphs
@@ -76,7 +77,7 @@ Or by strictly calling each intermediate step of the data source to graph proces
 <networkx.classes.multidigraph.MultiDiGraph at 0x126b887f0>
 ```
 
-Graphs are centered around the activity of individual **processes**, and is meant primarly to help analysts investigate activity on hosts, not between them.
+Graphs are centered around the activity of individual **processes**, and are meant primarly to help analysts investigate activity on hosts, not between them.
 
 ## Installation
 
