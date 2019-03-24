@@ -30,11 +30,21 @@ class NetworkX(Backend):
     ----------
     metadata : dict, optional
         The metadata from the datasource.
+    consolidate_edges: boolean, optional
+        Controls if edges are consolidated. That is, if the edge of type q from u to v happens N times,
+        should there be one edge from u to v with type q, or should there be N edges.
+
+    Notes
+    -------
+    Putting
     """
 
-    def __init__(self, metadata: dict = {}, *args, **kwargs) -> None:
+    def __init__(
+        self, metadata: dict = {}, consolidate_edges: bool = False, *args, **kwargs
+    ) -> None:
 
         self.metadata = metadata
+        self.consolidate_edges = consolidate_edges
         self.G = nx.MultiDiGraph(metadata=metadata)
         super().__init__(*args, **kwargs)
 
@@ -134,15 +144,29 @@ class NetworkX(Backend):
             # First time, make an array.
             self.G.add_node(v_id, data=v)
 
-        curr = self.G.get_edge_data(u=u_id, v=v_id, key=edge_name, default=None)
-        if curr is None:
+        # If we consolidate edges, the key is the edge name, and we update the data.
+        if self.consolidate_edges:
+            curr = self.G.get_edge_data(u=u_id, v=v_id, key=edge_name, default=None)
+            if curr is None:
+                self.G.add_edge(
+                    u_for_edge=u_id,
+                    v_for_edge=v_id,
+                    key=edge_name,
+                    data=([data] if data else []),
+                    edge_name=edge_name,
+                )
+            elif data:
+                curr = curr["data"]
+                curr.append(data)
+                nx.set_edge_attributes(
+                    self.G, {(u_id, v_id, edge_name): {"data": curr, "edge_name": edge_name}}
+                )
+
+        # Otherwise, they key is assigned from NetworkX, and we add the edge type as a label:
+        else:
             self.G.add_edge(
-                u_for_edge=u_id, v_for_edge=v_id, key=edge_name, data=([data] if data else [])
+                u_for_edge=u_id, v_for_edge=v_id, data=([data] if data else []), edge_name=edge_name
             )
-        elif data:
-            curr = curr["data"]
-            curr.append(data)
-            nx.set_edge_attributes(self.G, {(u_id, v_id, edge_name): {"data": curr}})
 
     def update_node(self, node: Node, node_id: int) -> None:
         """Update the attributes of a node. Since we may see the same Node in multiple events,
@@ -200,13 +224,13 @@ class NetworkX(Backend):
                 "_color": node.__color__,
             }
 
-        def edge_to_json(edge_id: int, u: int, v: int, edge_name: str, edge_data: dict) -> dict:
+        def edge_to_json(edge_id: int, u: int, v: int, edge_key: str, edge_props: dict) -> dict:
             return {
                 "id": edge_id,
                 "source": u,
                 "target": v,
-                "type": edge_name,
-                "properties": edge_data,
+                "type": edge_props["edge_name"],
+                "properties": edge_props["data"],
             }
 
         relationships = [
