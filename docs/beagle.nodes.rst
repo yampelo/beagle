@@ -26,8 +26,6 @@ beagle.nodes.edge module
 .. automodule:: beagle.nodes.edge
     :members:
     :undoc-members:
-    :special-members:
-    :private-members:
     :show-inheritance:
 
 beagle.nodes.file module
@@ -51,8 +49,6 @@ beagle.nodes.node module
 
 .. automodule:: beagle.nodes.node
     :members:
-    :special-members:
-    :private-members:
     :undoc-members:
     :show-inheritance:
 

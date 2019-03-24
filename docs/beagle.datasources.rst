@@ -28,6 +28,14 @@ beagle.datasources.hx\_triage module
     :undoc-members:
     :show-inheritance:
 
+beagle.datasources.procmon\_csv module
+--------------------------------------
+
+.. automodule:: beagle.datasources.procmon_csv
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 beagle.datasources.sysmon\_evtx module
 --------------------------------------
 

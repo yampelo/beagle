@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "dc95c71c37ae9891654179551230f17d928400b2b7317328612fa9baf24e9ec9"
+            "sha256": "8f73c30d7017ffeed6ccfb84b7e21809a0bb1313ca1c18dd97a0c17ea074ccc2"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -185,6 +185,17 @@
             ],
             "index": "pypi",
             "version": "==0.16.0"
+        },
+        "graphistry": {
+            "extras": [
+                "networkx"
+            ],
+            "hashes": [
+                "sha256:2b3706882504bf541429e5761289b8f8e30c64fbd7189aac7a366700b8ef1cef",
+                "sha256:61f97004be0674008ac86608e3f614e8fb145777a3304618d12ff4fa961ac29d"
+            ],
+            "index": "pypi",
+            "version": "==0.9.63"
         },
         "grpcio": {
             "hashes": [

@@ -17,6 +17,7 @@ future = "==0.16.0"
 rekall = "*"
 pydgraph = "*"
 pandas = "*"
+graphistry = {extras = ["networkx"],version = "==0.9.63"}
 
 [dev-packages]
 "flake8" = "*"
@@ -43,3 +44,4 @@ allow_prereleases = true
 web = "bash -c 'export FLASK_ENV=development FLASK_APP=beagle/web/server && flask run --port 8000 --host 0.0.0.0'"
 web_prod = "bash -c 'gunicorn --bind 0.0.0.0:8000 -w 12 beagle.web.wsgi:app"
 build_js = "bash -c 'cd ~/dev/beagle/beagle/web/static; npm run build'"
+build_docs = "bash -c 'sphinx-apidoc -o docs beagle/ -f ; cd docs ; make html'"

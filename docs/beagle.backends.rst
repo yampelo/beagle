@@ -20,6 +20,14 @@ beagle.backends.dgraph module
     :undoc-members:
     :show-inheritance:
 
+beagle.backends.graphistry module
+---------------------------------
+
+.. automodule:: beagle.backends.graphistry
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 beagle.backends.neo4j module
 ----------------------------
 

@@ -36,6 +36,14 @@ beagle.transformers.generic\_transformer module
     :undoc-members:
     :show-inheritance:
 
+beagle.transformers.procmon\_transformer module
+-----------------------------------------------
+
+.. automodule:: beagle.transformers.procmon_transformer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 beagle.transformers.sysmon\_transformer module
 ----------------------------------------------
 
