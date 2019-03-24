@@ -84,10 +84,11 @@ Each datasource has an array of supported transformer with at least one transfor
 
 Backends are where the generated data will live.
 
-| Backend  | Description                                                      |
-| -------- | ---------------------------------------------------------------- |
-| NetworkX | Runs on NetworkX, `DiGraph` object available via `.G` attributes |
-| DGraph   | Sends data to a [DGraph](https://dgraph.io) server               |
-| Neo4J    | Sents data to a [Neo4J](https://neo4j.com) server                |
+| Backend    | Description                                                      |
+| ---------- | ---------------------------------------------------------------- |
+| NetworkX   | Runs on NetworkX, `DiGraph` object available via `.G` attributes |
+| DGraph     | Sends data to a [DGraph](https://dgraph.io) server               |
+| Neo4J      | Sends data to a [Neo4J](https://neo4j.com) server                |
+| Graphistry | Sends data to a [Graphistry](https://graphistry.com) graph       |
 
 Using the web interface will automatically use the `NetworkX` backend and make JSON versions of the graphs available via the web interface.

@@ -1,6 +1,6 @@
 # Beagle
 
-[![Build Status](https://travis-ci.com/yampelo/beagle.svg?token=ecmfGYY44tZk69KamLJx&branch=master)](https://travis-ci.com/yampelo/beagle)
+[![Build Status](https://travis-ci.com/yampelo/beagle.svg?token=ecmfGYY44tZk69KamLJx&branch=master)](https://travis-ci.com/yampelo/beagle) [![Read The Docs](https://readthedocs.org/projects/beagle-graphs/badge/?version=latest)](https://beagle-graphs.readthedocs.io/en/latest/?badge=latest) [![Docker](https://img.shields.io/docker/build/yampelo/beagle.svg)](https://hub.docker.com/r/yampelo/beagle)
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=2 depthTo=4 orderedList=true} -->
 
@@ -93,7 +93,7 @@ docker run -v "data/beagle":"/data/beagle" -p 8000:8000 beagle
 
 ### Python Package
 
-It is also available as library.
+It is also available as library. Full API Documentation is available on [https://beagle-graphs.readthedocs.io](https://beagle-graphs.readthedocs.io)
 
 ```
 pip install pybeagle
@@ -333,3 +333,4 @@ Each data source defines the list of transformers it is compatible with, and thi
 -   [REST API Overview](docs/rest_api.md)
 -   [Configuration](docs/configuration.md)
 -   [Developement](docs/development.md)
+-   [Design Logic](docs/design_overview.md)
