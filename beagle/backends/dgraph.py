@@ -1,14 +1,14 @@
-import json
 import inspect
+import json
 import sys
-from typing import Union, DefaultDict, Dict
+from typing import DefaultDict, Dict, Union
 
 import pydgraph
 
 from beagle.backends.networkx import NetworkX
 from beagle.common import logger
 from beagle.config import Config
-from beagle.nodes import Node, Edge
+from beagle.nodes import Edge, Node
 
 
 class DGraph(NetworkX):
