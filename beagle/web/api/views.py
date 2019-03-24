@@ -14,6 +14,7 @@ import beagle.transformers  # noqa: F401
 from beagle.common import logger
 from beagle.config import Config
 from beagle.datasources.base_datasource import ExternalDataSource
+from beagle.backends import NetworkX
 from beagle.web.api.models import Graph
 from beagle.web.server import db
 
@@ -254,7 +255,11 @@ def new():
             logger.debug(f"ExternalDataSource params received {datasource_params}")
 
             # Generate the graph.
-            graph = datasource_cls(**datasource_params).to_transformer(transformer_cls).to_graph()
+            datasource = datasource_cls(**datasource_params)
+            transformer = datasource.to_transformer(transformer_cls)
+            graph = NetworkX(
+                metadata=datasource.metadata(), nodes=transformer.run(), consolidate_edges=True
+            )
 
         else:
             # Non-external is in the files, and gets saved to temporary files.
@@ -269,17 +274,21 @@ def new():
             logger.info(f"Saved uploaded files {tempfiles}")
 
             # Use the temporary files as a
-            graph = (
-                datasource_cls(
-                    **{param_name: tempfile.name for param_name, tempfile in tempfiles.items()}
-                )
-                .to_transformer(transformer_cls)
-                .to_graph()
+            datasource = datasource_cls(
+                **{param_name: tempfile.name for param_name, tempfile in tempfiles.items()}
+            )
+            transformer = datasource.to_transformer(transformer_cls)
+            graph = NetworkX(
+                metadata=datasource.metadata(), nodes=transformer.run(), consolidate_edges=True
             )
 
             # Clean up temporary files
             for _tempfile in tempfiles.values():
                 _tempfile.close()
+
+        # Make the graph
+        G = graph.graph()
+
     except Exception as e:
         logger.critical(f"Failure to generate graph {e}")
 
@@ -295,7 +304,7 @@ def new():
 
     logger.info("Finished generating graph")
 
-    if len(graph.G.nodes()) == 0:
+    if len(G.nodes()) == 0:
         return make_response(jsonify({"message": f"Graph generation resulted in 0 nodes. "}), 400)
 
     # Take the SHA256 of the contents of the graph.

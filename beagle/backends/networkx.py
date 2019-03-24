@@ -230,7 +230,7 @@ class NetworkX(Backend):
                 "source": u,
                 "target": v,
                 "type": edge_props["edge_name"],
-                "properties": edge_props["data"],
+                "properties": {"data": edge_props["data"]},
             }
 
         relationships = [

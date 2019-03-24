@@ -8,7 +8,7 @@ from setuptools import find_packages, setup, Command
 
 
 # Package meta-data.
-NAME = "Beagle"
+NAME = "pybeagle"
 DESCRIPTION = "Beagle is an incident response and digital forensics tool which transforms data sources and logs into graphs"
 URL = "https://github.com/yampelo/beagle"
 AUTHOR = "yampelo"

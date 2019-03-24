@@ -10,7 +10,7 @@ from beagle.nodes import Process
 @pytest.fixture()
 def nx() -> Callable[..., NetworkX]:
     def _backend(*args, **kwargs) -> networkx.Graph:
-        return NetworkX(*args, **kwargs).graph()
+        return NetworkX(*args, consolidate_edges=True, **kwargs).graph()
 
     return _backend
 
