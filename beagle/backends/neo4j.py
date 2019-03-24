@@ -109,12 +109,6 @@ class Neo4J(NetworkX):
 
         for edge_type, edges in edges_by_type:
 
-            # TODO: Remove
-            if edge_type == "Wrote":
-                continue
-            else:
-                print(edge_type)
-
             edges = list(map(self._edge_as_cypher, edges))
 
             logger.debug(f"Inserting {len(edges)} {edge_type} edges into Neo4J")

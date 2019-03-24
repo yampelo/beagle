@@ -92,8 +92,6 @@ class ProcmonTransformer(Transformer):
         dest_addr = event["path"].split("->")[-1].lstrip()
         ip_addr, port = dest_addr.split(":")
 
-        print(dest_addr)
-
         addr = IPAddress(ip_addr)
         proc.connected_to[addr].append(
             timestamp=event["event_time"],

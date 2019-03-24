@@ -212,4 +212,4 @@ class WindowsMemory(DataSource):
         yield {}
 
         # for tcp_obj, _, _, _ in self.session.plugins.connscan().collect():
-        #     print(tcp_obj)
+        #     TOOD: Process

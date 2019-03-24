@@ -84,8 +84,6 @@ class NetworkX(Backend):
 
         for edge_dict in node.edges:
             for dest_node, edge_data in edge_dict.items():
-                if edge_data.__name__ == "Read Key":
-                    print(edge_data)
                 # If there's no data on the edges, insert at least one to represent
                 # the edge exists
                 if len(edge_data._events) == 0:
