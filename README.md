@@ -106,7 +106,7 @@ pip install pybeagle
 Any entry in the [configuration file](https://github.com/yampelo/beagle/blob/master/config/beagle_default.cfg) can be modified using enviroment variables that follow the following format; `BEAGLE__{SECTION}__{KEY}`. For example, in order to change the VirusTotal API Key used when using the docker image, you would use `-e` parameter and set the `BEAGLE__VIRUSTOTAL__API_KEY` variable:
 
 ```bash
-docker run -v "data/beagle":"/data/beagle" -p 8080:8080 -e "BEAGLE__VIRUSTOTAL__API_KEY=$API_KEY" beagle
+docker run -v "data/beagle":"/data/beagle" -p :80008000 -e "BEAGLE__VIRUSTOTAL__API_KEY=$API_KEY" beagle
 ```
 
 Enviroment variables and directories can be easily defined using docker compose
@@ -120,7 +120,7 @@ services:
         volumes:
             - /data/beagle:/data/beagle
         ports:
-            - "8080:8000"
+            - "8000:8000"
         environment:
             - BEAGLE__VIRUSTOTAL__API_KEY=$key$
 ```
