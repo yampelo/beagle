@@ -83,8 +83,16 @@ function filterForVisibleNodes(state: State) {
         _.includes(state.visibleNodeTypes, n._node_type)
     );
 
-    state.visibleEdges = state.visibleEdges.filter(e =>
-        _.includes(state.visibleEdgeTypes, e.label)
+    const idsToNodes = state.visibleNodes.reduce((accum: object, node: Node) => {
+        accum[node.id] = node;
+        return accum;
+    }, {});
+
+    state.visibleEdges = state.visibleEdges.filter(
+        e =>
+            _.includes(state.visibleEdgeTypes, e.label) &&
+            _.has(idsToNodes, e.from) &&
+            _.has(idsToNodes, e.to)
     );
 
     return state;
