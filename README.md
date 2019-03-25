@@ -85,7 +85,7 @@ Beagle is available as a docker file:
 ```bash
 docker pull yampelo/beagle
 mkdir -p data/beagle
-docker run -v "data/beagle":"/data/beagle" -p 8000:8000 beagle
+docker run -v "data/beagle":"/data/beagle" -p 8000:8000 yampelo/beagle
 ```
 
 ### Python Package
