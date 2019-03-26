@@ -74,7 +74,7 @@ Or by strictly calling each intermediate step of the data source to graph proces
 <networkx.classes.multidigraph.MultiDiGraph at 0x126b887f0>
 ```
 
-Graphs are centered around the activity of individual **processes**, and are meant primarly to help analysts investigate activity on hosts, not between them.
+Graphs are centered around the activity of individual **processes**, and are meant primarily to help analysts investigate activity on hosts, not between them.
 
 ## Installation
 
