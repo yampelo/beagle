@@ -66,7 +66,7 @@ def test_get_metadata(tmpdir):
 
     assert FireEyeAXReport(f).metadata() == {
         "hostname": "my_appliance",
-        "analyzed_on": "2018-06-04 05:59:56.339000",
+        "analyzed_on": "2018-06-03 21:59:56.339000",
         "severity": "MAJR",
         "alert_url": "https://foo",
     }

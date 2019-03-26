@@ -64,7 +64,7 @@ class FireEyeAXReport(DataSource):
     def metadata(self) -> dict:
         base_meta = {
             "hostname": self.appliance,
-            "analyzed_on": datetime.datetime.fromtimestamp(
+            "analyzed_on": datetime.datetime.utcfromtimestamp(
                 float(self.alert["occurred"]) / 1000
             ).strftime("%Y-%m-%d %H:%M:%S.%f"),
             "severity": self.alert["severity"],
