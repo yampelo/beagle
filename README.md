@@ -287,7 +287,7 @@ G = HXTriage('test.mans').to_graph()
 <networkx.classes.multidigraph.MultiDiGraph at 0x12700ee10>
 ```
 
-It can also be done explicitly at each step. Using the functional calls, you can also define which Backend you wish to usem for example, to send data to DGraph
+It can also be done explicitly at each step. Using the functional calls, you can also define which Backend you wish to use for example, to send data to DGraph
 
 ```python
 from beagle.datasources import HXTriage
