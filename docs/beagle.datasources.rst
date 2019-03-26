@@ -20,6 +20,14 @@ beagle.datasources.base\_datasource module
     :undoc-members:
     :show-inheritance:
 
+beagle.datasources.fireeye\_ax\_report module
+---------------------------------------------
+
+.. automodule:: beagle.datasources.fireeye_ax_report
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 beagle.datasources.hx\_triage module
 ------------------------------------
 
