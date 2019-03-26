@@ -145,7 +145,7 @@ Each data source will automatically extract metadata from the provided parameter
 
 ### Browsing Existing Graphs
 
-Clicking on a datasource on the sidebar renderes a table of all parsed graphs for that datasource.
+Clicking on a datasource on the sidebar renders a table of all parsed graphs for that datasource.
 
 <center>
 <img src="docs/imgs/existing_graphs_page.png">
