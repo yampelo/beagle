@@ -157,7 +157,7 @@ Viewing a graph in Beagle provides a web interface that allows analysts to quick
 
 The interface is split into two main parts, the left part which contains various perspectives of the graph (Graph, Tree, Table, etc), and the right part which allows you to filter nodes and edges by type, search for nodes, and expand a nodes properties. It also allows you to undo and redo operations you perform on the graph.
 
-Any element in the graph that has a divider above it is collapasble:
+Any element in the graph that has a divider above it is collapsible:
 
 <center>
 <img src="docs/imgs/collapsable.gif">
