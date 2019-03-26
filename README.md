@@ -344,7 +344,7 @@ Each data source defines the list of transformers it is compatible with, and thi
 
 By default, edges are not condensed, that means that if a process node `u` writes to a file node `v` 5000 times, you will have 5000 edges between those nodes. Sometimes, especially when trying to visualize the data, this may overwhelm an analyst.
 
-You can condense all 5000 edges into a single edge for that type of action (wrote in this case), by passing the backend class the `consolidate_edges=True` parameter, for exampe:
+You can condense all 5000 edges into a single edge for that type of action (wrote in this case), by passing the backend class the `consolidate_edges=True` parameter, for example:
 
 ```python
 SysmonEVTX("data/sysmon/autoruns-sysmon.evtx").to_graph(NetworkX, consolidate_edges=False)
