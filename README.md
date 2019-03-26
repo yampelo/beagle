@@ -74,7 +74,7 @@ Or by strictly calling each intermediate step of the data source to graph proces
 <networkx.classes.multidigraph.MultiDiGraph at 0x126b887f0>
 ```
 
-Graphs are centered around the activity of individual **processes**, and are meant primarly to help analysts investigate activity on hosts, not between them.
+Graphs are centered around the activity of individual **processes**, and are meant primarily to help analysts investigate activity on hosts, not between them.
 
 ## Installation
 
@@ -100,13 +100,13 @@ pip install pybeagle
 
 -   [Complete overview of each configuration entry](docs/configuration.md)
 
-Any entry in the [configuration file](https://github.com/yampelo/beagle/blob/master/config/beagle_default.cfg) can be modified using enviroment variables that follow the following format; `BEAGLE__{SECTION}__{KEY}`. For example, in order to change the VirusTotal API Key used when using the docker image, you would use `-e` parameter and set the `BEAGLE__VIRUSTOTAL__API_KEY` variable:
+Any entry in the [configuration file](https://github.com/yampelo/beagle/blob/master/config/beagle_default.cfg) can be modified using environment variables that follow the following format; `BEAGLE__{SECTION}__{KEY}`. For example, in order to change the VirusTotal API Key used when using the docker image, you would use `-e` parameter and set the `BEAGLE__VIRUSTOTAL__API_KEY` variable:
 
 ```bash
 docker run -v "data/beagle":"/data/beagle" -p :80008000 -e "BEAGLE__VIRUSTOTAL__API_KEY=$API_KEY" beagle
 ```
 
-Enviroment variables and directories can be easily defined using docker compose
+Environment variables and directories can be easily defined using docker compose
 
 ```docker
 version: "3"
@@ -145,7 +145,7 @@ Each data source will automatically extract metadata from the provided parameter
 
 ### Browsing Existing Graphs
 
-Clicking on a datasource on the sidebar renderes a table of all parsed graphs for that datasource.
+Clicking on a datasource on the sidebar renders a table of all parsed graphs for that datasource.
 
 <center>
 <img src="docs/imgs/existing_graphs_page.png">
@@ -157,7 +157,7 @@ Viewing a graph in Beagle provides a web interface that allows analysts to quick
 
 The interface is split into two main parts, the left part which contains various perspectives of the graph (Graph, Tree, Table, etc), and the right part which allows you to filter nodes and edges by type, search for nodes, and expand a nodes properties. It also allows you to undo and redo operations you perform on the graph.
 
-Any element in the graph that has a divider above it is collapasble:
+Any element in the graph that has a divider above it is collapsible:
 
 <center>
 <img src="docs/imgs/collapsable.gif">
@@ -208,7 +208,7 @@ Right clicking on a node exposes a context menu that allows you to run [graph mu
 
 Two extremely useful mutators are:
 
-1. Backtracking a node: Find the seqeunce of nodes and edges that led to the creation of this node.
+1. Backtracking a node: Find the sequence of nodes and edges that led to the creation of this node.
     - Backtracking a process node will show its process tree.
 2. Expanding all descendants: From the current node, show every node that has this node as an ancestor.
     - Expanding a process node will show every child process node it spawned, any file it may have touched, and pretty much every activity that happened as a result of this node.
@@ -223,7 +223,7 @@ Backtracking a node is extremely useful, and is similar to doing a root cause in
 
 ###### Expanding Node Descendants
 
-Expanding a node's descendants allows you to immediatly view everything that happened because of this node. This action reveals the subgraph rooted at the selecte node.
+Expanding a node's descendants allows you to immediately view everything that happened because of this node. This action reveals the subgraph rooted at the selected node.
 
 <center>
 <img src="docs/imgs/expand_descendants_node.gif">
@@ -241,7 +241,7 @@ Toggling a node type off prevents that node type to be used when using mutators,
 
 #### Undo/Redo Action and Reset
 
-Any action in the graph is immediatly reversable! Using the undo/redo buttons you can revert any action you perform. The reset button sets the graph state to when it loaded, saving you a refresh.
+Any action in the graph is immediately reversable! Using the undo/redo buttons you can revert any action you perform. The reset button sets the graph state to when it loaded, saving you a refresh.
 
 <center>
 <img src="docs/imgs/redo_undo.gif">
@@ -287,7 +287,7 @@ G = HXTriage('test.mans').to_graph()
 <networkx.classes.multidigraph.MultiDiGraph at 0x12700ee10>
 ```
 
-It can also be done explicitly at each step. Using the functional calls, you can also define which Backend you wish to usem for example, to send data to DGraph
+It can also be done explicitly at each step. Using the functional calls, you can also define which Backend you wish to use for example, to send data to DGraph
 
 ```python
 from beagle.datasources import HXTriage
@@ -344,7 +344,7 @@ Each data source defines the list of transformers it is compatible with, and thi
 
 By default, edges are not condensed, that means that if a process node `u` writes to a file node `v` 5000 times, you will have 5000 edges between those nodes. Sometimes, especially when trying to visualize the data, this may overwhelm an analyst.
 
-You can condense all 5000 edges into a single edge for that type of action (wrote in this case), by passing the backend class the `consolidate_edges=True` parameter, for exampe:
+You can condense all 5000 edges into a single edge for that type of action (wrote in this case), by passing the backend class the `consolidate_edges=True` parameter, for example:
 
 ```python
 SysmonEVTX("data/sysmon/autoruns-sysmon.evtx").to_graph(NetworkX, consolidate_edges=False)
