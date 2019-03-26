@@ -33,9 +33,9 @@ def test_no_data(tmpdir):
     [
         {},
         {"alert": []},
-        {"alert": [{"foo": []}]},
-        {"alert": [{"explanation": {}}]},
-        {"alert": [{"explanation": {"osChanges": []}}]},
+        {"alert": [{"occurred": 1, "foo": []}]},
+        {"alert": [{"occurred": 1, "explanation": {}}]},
+        {"alert": [{"occurred": 1, "explanation": {"osChanges": []}}]},
     ],
 )
 def test_no_events(data, tmpdir):
