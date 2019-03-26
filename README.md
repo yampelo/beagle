@@ -223,7 +223,7 @@ Backtracking a node is extremely useful, and is similar to doing a root cause in
 
 ###### Expanding Node Descendants
 
-Expanding a node's descendants allows you to immediatly view everything that happened because of this node. This action reveals the subgraph rooted at the selecte node.
+Expanding a node's descendants allows you to immediately view everything that happened because of this node. This action reveals the subgraph rooted at the selected node.
 
 <center>
 <img src="docs/imgs/expand_descendants_node.gif">
@@ -241,7 +241,7 @@ Toggling a node type off prevents that node type to be used when using mutators,
 
 #### Undo/Redo Action and Reset
 
-Any action in the graph is immediatly reversable! Using the undo/redo buttons you can revert any action you perform. The reset button sets the graph state to when it loaded, saving you a refresh.
+Any action in the graph is immediately reversable! Using the undo/redo buttons you can revert any action you perform. The reset button sets the graph state to when it loaded, saving you a refresh.
 
 <center>
 <img src="docs/imgs/redo_undo.gif">
