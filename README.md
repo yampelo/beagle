@@ -106,7 +106,7 @@ Any entry in the [configuration file](https://github.com/yampelo/beagle/blob/mas
 docker run -v "data/beagle":"/data/beagle" -p :80008000 -e "BEAGLE__VIRUSTOTAL__API_KEY=$API_KEY" beagle
 ```
 
-Enviroment variables and directories can be easily defined using docker compose
+Environment variables and directories can be easily defined using docker compose
 
 ```docker
 version: "3"
