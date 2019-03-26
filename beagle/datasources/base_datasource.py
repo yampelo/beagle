@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Any, Generator
+from beagle.constants import FieldNames
 
 if TYPE_CHECKING:
     from beagle.transformer.base_transformer import Transformer
@@ -108,6 +109,45 @@ class DataSource(object, metaclass=ABCMeta):
         """
 
         return self.to_transformer(self.transformers[0]).to_graph(*args, **kwargs)  # type: ignore
+
+    def _convert_to_parent_fields(self, process: dict) -> dict:
+        """Converts a process to represent a child process.
+
+        Parameters
+        ----------
+        process : dict
+            Expects an input of format::
+
+                {
+                    FieldNames.PROCESS_IMAGE: ...,
+                    FieldNames.PROCESS_ID: ...,
+                    FieldNames.COMMAND_LINE: ...,
+                    FieldNames.PROCESS_IMAGE_PATH: ...,
+                }
+
+        Returns
+        -------
+        dict
+            The same values, repesented as parent fields::
+
+                {
+                    FieldNames.PARENT_PROCESS_IMAGE
+                    FieldNames.PARENT_PROCESS_ID
+                    FieldNames.PARENT_COMMAND_LINE
+                    FieldNames.PARENT_PROCESS_IMAGE_PATH
+                }
+        """
+
+        output = {}
+        for left, right in [
+            (FieldNames.PROCESS_IMAGE, FieldNames.PARENT_PROCESS_IMAGE),
+            (FieldNames.PROCESS_ID, FieldNames.PARENT_PROCESS_ID),
+            (FieldNames.COMMAND_LINE, FieldNames.PARENT_COMMAND_LINE),
+            (FieldNames.PROCESS_IMAGE_PATH, FieldNames.PARENT_PROCESS_IMAGE_PATH),
+        ]:
+            output[right] = process[left]
+
+        return output
 
 
 class ExternalDataSource(DataSource, metaclass=ABCMeta):
