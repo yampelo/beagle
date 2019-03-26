@@ -208,7 +208,7 @@ Right clicking on a node exposes a context menu that allows you to run [graph mu
 
 Two extremely useful mutators are:
 
-1. Backtracking a node: Find the seqeunce of nodes and edges that led to the creation of this node.
+1. Backtracking a node: Find the sequence of nodes and edges that led to the creation of this node.
     - Backtracking a process node will show its process tree.
 2. Expanding all descendants: From the current node, show every node that has this node as an ancestor.
     - Expanding a process node will show every child process node it spawned, any file it may have touched, and pretty much every activity that happened as a result of this node.
