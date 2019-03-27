@@ -1,9 +1,9 @@
+import email
 from typing import Optional, Tuple, Union
 
 from beagle.common import split_path
 from beagle.constants import HashAlgos
-from beagle.nodes import Domain, File, Process
-from beagle.nodes.ip_address import IPAddress
+from beagle.nodes import URI, Domain, File, IPAddress, Process
 from beagle.transformers.base_transformer import Transformer
 
 
@@ -69,7 +69,8 @@ class FireEyeAXTransformer(Transformer):
                 return self.dns_events(event)
             elif event["mode"] == "connect":
                 return self.conn_events(event)
-
+            elif event["mode"] == "http_request":
+                return self.http_requests(event)
         return None
 
     def process_events(self, event: dict) -> Optional[Tuple[Process, File, Process, File]]:
@@ -245,3 +246,84 @@ class FireEyeAXTransformer(Transformer):
         )
 
         return (proc, proc_file, addr)
+
+    def http_requests(
+        self, event: dict
+    ) -> Union[
+        Tuple[Process, File, IPAddress, URI, Domain],
+        Tuple[Process, File, IPAddress, URI],
+        Tuple[Process, File, IPAddress],
+    ]:
+        """Transforms a single `http_request` network event. A typical event looks like::
+
+            {
+                "mode": "http_request",
+                "protocol_type": "tcp",
+                "ipaddress": "199.168.199.1",
+                "destination_port": 80,
+                "processinfo": {
+                    "imagepath": "c:\\Windows\\System32\\svchost.exe",
+                    "tainted": false,
+                    "md5sum": "1234",
+                    "pid": 1292
+                },
+                "http_request": "GET /some_route.crl HTTP/1.1~~Cache-Control: max-age = 900~~User-Agent: Microsoft-CryptoAPI/10.0~~Host: crl.microsoft.com~~~~",
+                "timestamp": 433750
+            }
+
+
+        Parameters
+        ----------
+        event : dict
+            The source `network` event with mode `http_request`
+
+        Returns
+        -------
+        Tuple[Node]
+            [description]
+        """
+
+        proc_info = event["processinfo"]
+        process_image, process_image_path = split_path(proc_info["imagepath"])
+
+        proc = Process(
+            process_id=int(proc_info["pid"]),
+            process_image=process_image,
+            process_image_path=process_image_path,
+        )
+
+        proc_file = proc.get_file_node()
+        proc_file.file_of[proc]
+
+        addr = IPAddress(event["ipaddress"])
+
+        proc.connected_to[addr].append(
+            timestamp=event["timestamp"],
+            protocol=event["protocol_type"],
+            port=event["destination_port"],
+        )
+
+        try:
+            url, header = event["http_request"].split("~~", 1)
+
+            method, uri_path, _ = url.split(" ")
+
+            uri = URI(uri_path)
+
+            headers = dict(email.message_from_string(header.replace("~~", "\n")).items())
+
+            proc.http_request_to[uri].append(timestamp=event["timestamp"], method=method)
+
+            if "Host" in headers:
+                domain = Domain(headers["Host"])  # type: ignore
+
+                domain.resolves_to[addr].append(timestamp=event["timestamp"])
+                uri.uri_of[domain]
+
+                return (proc, proc_file, addr, uri, domain)
+            else:
+                return (proc, proc_file, addr, uri)
+
+        except (ValueError, KeyError):
+            return (proc, proc_file, addr)
+

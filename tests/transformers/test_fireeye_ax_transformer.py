@@ -1,7 +1,7 @@
 import pytest
 
 from beagle.constants import HashAlgos
-from beagle.nodes import File, Process, Domain, IPAddress
+from beagle.nodes import File, Process, Domain, IPAddress, URI
 from beagle.transformers.fireeye_ax_transformer import FireEyeAXTransformer
 
 
@@ -166,3 +166,116 @@ def test_conn_event(transformer):
     assert ip_addr.ip_address == "199.168.199.123"
     assert {"timestamp": 27648, "port": 3333, "protocol": "tcp"} in proc.connected_to[ip_addr]
 
+
+def test_http_request(transformer):
+    input_event = {
+        "mode": "http_request",
+        "protocol_type": "tcp",
+        "event_type": "network",
+        "ipaddress": "199.168.199.123",
+        "destination_port": 3333,
+        "processinfo": {
+            "imagepath": "C:\\Users\\admin\\AppData\\Local\\Temp\\bar.exe",
+            "tainted": True,
+            "md5sum": "....",
+            "pid": 1700,
+        },
+        "timestamp": 27648,
+        "http_request": "GET /some_route.crl HTTP/1.1~~Cache-Control: max-age = 900~~User-Agent: Microsoft-CryptoAPI/10.0~~Host: crl.microsoft.com~~~~",
+    }
+
+    nodes = transformer.transform(input_event)
+
+    assert len(nodes) == 5
+
+    proc: Process = nodes[0]
+    proc_file: File = nodes[1]
+    ip_addr: IPAddress = nodes[2]
+    uri: URI = nodes[3]
+    domain: Domain = nodes[4]
+
+    assert proc.process_image == proc_file.file_name == "bar.exe"
+    assert (
+        proc.process_image_path == proc_file.file_path == "C:\\Users\\admin\\AppData\\Local\\Temp"
+    )
+    assert proc in proc_file.file_of
+
+    assert ip_addr.ip_address == "199.168.199.123"
+    assert {"timestamp": 27648, "port": 3333, "protocol": "tcp"} in proc.connected_to[ip_addr]
+
+    assert uri.uri == "/some_route.crl"
+    assert {"method": "GET", "timestamp": 27648} in proc.http_request_to[uri]
+    assert domain in uri.uri_of
+
+
+def test_http_request_no_headers(transformer):
+    input_event = {
+        "mode": "http_request",
+        "protocol_type": "tcp",
+        "event_type": "network",
+        "ipaddress": "199.168.199.123",
+        "destination_port": 3333,
+        "processinfo": {
+            "imagepath": "C:\\Users\\admin\\AppData\\Local\\Temp\\bar.exe",
+            "tainted": True,
+            "md5sum": "....",
+            "pid": 1700,
+        },
+        "timestamp": 27648,
+    }
+
+    nodes = transformer.transform(input_event)
+
+    assert len(nodes) == 3
+
+    proc: Process = nodes[0]
+    proc_file: File = nodes[1]
+    ip_addr: IPAddress = nodes[2]
+
+    assert proc.process_image == proc_file.file_name == "bar.exe"
+    assert (
+        proc.process_image_path == proc_file.file_path == "C:\\Users\\admin\\AppData\\Local\\Temp"
+    )
+    assert proc in proc_file.file_of
+
+    assert ip_addr.ip_address == "199.168.199.123"
+    assert {"timestamp": 27648, "port": 3333, "protocol": "tcp"} in proc.connected_to[ip_addr]
+
+
+def test_http_request_no_hostin_headers(transformer):
+    input_event = {
+        "mode": "http_request",
+        "protocol_type": "tcp",
+        "event_type": "network",
+        "ipaddress": "199.168.199.123",
+        "destination_port": 3333,
+        "processinfo": {
+            "imagepath": "C:\\Users\\admin\\AppData\\Local\\Temp\\bar.exe",
+            "tainted": True,
+            "md5sum": "....",
+            "pid": 1700,
+        },
+        "timestamp": 27648,
+        "http_request": "GET /some_route.crl HTTP/1.1~~Cache-Control: max-age = 900~~User-Agent: Microsoft-CryptoAPI/10.0",
+    }
+
+    nodes = transformer.transform(input_event)
+
+    assert len(nodes) == 4
+
+    proc: Process = nodes[0]
+    proc_file: File = nodes[1]
+    ip_addr: IPAddress = nodes[2]
+    uri: URI = nodes[3]
+
+    assert proc.process_image == proc_file.file_name == "bar.exe"
+    assert (
+        proc.process_image_path == proc_file.file_path == "C:\\Users\\admin\\AppData\\Local\\Temp"
+    )
+    assert proc in proc_file.file_of
+
+    assert ip_addr.ip_address == "199.168.199.123"
+    assert {"timestamp": 27648, "port": 3333, "protocol": "tcp"} in proc.connected_to[ip_addr]
+
+    assert uri.uri == "/some_route.crl"
+    assert {"method": "GET", "timestamp": 27648} in proc.http_request_to[uri]
