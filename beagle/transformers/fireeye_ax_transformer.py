@@ -71,6 +71,8 @@ class FireEyeAXTransformer(Transformer):
                 return self.conn_events(event)
             elif event["mode"] == "http_request":
                 return self.http_requests(event)
+        elif event_type == "file":
+            return self.file_events(event)
         return None
 
     def process_events(self, event: dict) -> Optional[Tuple[Process, File, Process, File]]:
@@ -327,3 +329,56 @@ class FireEyeAXTransformer(Transformer):
         except (ValueError, KeyError):
             return (proc, proc_file, addr)
 
+    def file_events(self, event: dict) -> Tuple[Process, File, File]:
+        """Transforms a file event
+
+        Example file event::
+
+            {
+                "mode": "created",
+                "fid": { "ads": "", "content": 2533274790555891 },
+                "processinfo": {
+                    "imagepath": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                    "md5sum": "eb32c070e658937aa9fa9f3ae629b2b8",
+                    "pid": 2956
+                },
+                "ntstatus": "0x0",
+                "value": "C:\\Users\\admin\\AppData\\Local\\Temp\\sy24ttkc.k25.ps1",
+                "CreateOptions": "0x400064",
+                "timestamp": 9494
+            }
+
+        Parameters
+        ----------
+        event : dict
+            The source event
+
+        Returns
+        -------
+        Tuple[Process, File, File]
+            The process, the process' image, and the file written.
+        """
+
+        proc_info = event["processinfo"]
+        process_image, process_image_path = split_path(proc_info["imagepath"])
+
+        proc = Process(
+            process_id=int(proc_info["pid"]),
+            process_image=process_image,
+            process_image_path=process_image_path,
+        )
+
+        proc_file = proc.get_file_node()
+        proc_file.file_of[proc]
+
+        file_name, file_path = split_path(event["value"])
+        file_node = File(file_name=file_name, file_path=file_path)
+
+        if event["mode"] == "created":
+            proc.wrote[file_node].append(timestamp=event["timestamp"])
+        elif event["mode"] == "deleted":
+            proc.deleted[file_node].append(timestamp=event["timestamp"])
+        else:
+            proc.accessed[file_node].append(timestamp=event["timestamp"])
+
+        return (proc, proc_file, file_node)

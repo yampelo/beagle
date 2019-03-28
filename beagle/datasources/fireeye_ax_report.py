@@ -84,7 +84,14 @@ class FireEyeAXReport(DataSource):
         else:
             for change_type, events in os_changes[0].items():
 
+                if not isinstance(events, list):
+                    events = [events]
+
                 for event in events:
+
+                    if not isinstance(event, dict):
+                        continue
+
                     event["event_type"] = change_type
                     if "timestamp" in event:
                         event["timestamp"] = float(event["timestamp"] + self.base_timestamp) / 1000
