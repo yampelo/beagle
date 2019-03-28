@@ -47,7 +47,7 @@ class FireEyeAXReport(DataSource):
     category = "FireEye AX"
     transformers = [FireEyeAXTransformer]
 
-    def __init__(self, ax_report: str, *args, **kwargs):
+    def __init__(self, ax_report: str):
 
         data = json.load(open(ax_report, "r"))
 
@@ -57,16 +57,18 @@ class FireEyeAXReport(DataSource):
             self.alert = {}  # type: ignore
         else:
             self.alert = data["alert"][0]
-            self.base_timestamp = self.alert["occurred"]
+            self.base_timestamp = int(
+                datetime.datetime.strptime(
+                    self.alert["occurred"], "%Y-%m-%d %H:%M:%S +0000"
+                ).strftime("%s")
+            )
 
         logger.info("Set up FireEyeAX Report")
 
     def metadata(self) -> dict:
         base_meta = {
             "hostname": self.appliance,
-            "analyzed_on": datetime.datetime.utcfromtimestamp(
-                float(self.alert["occurred"]) / 1000
-            ).strftime("%Y-%m-%d %H:%M:%S.%f"),
+            "analyzed_on": self.alert["occurred"],
             "severity": self.alert["severity"],
             "alert_url": self.alert["alertUrl"],
         }

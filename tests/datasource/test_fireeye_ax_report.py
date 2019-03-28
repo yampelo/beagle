@@ -33,9 +33,9 @@ def test_no_data(tmpdir):
     [
         {},
         {"alert": []},
-        {"alert": [{"occurred": 1, "foo": []}]},
-        {"alert": [{"occurred": 1, "explanation": {}}]},
-        {"alert": [{"occurred": 1, "explanation": {"osChanges": []}}]},
+        {"alert": [{"occurred": "2018-03-31 13:40:01 +0000", "foo": []}]},
+        {"alert": [{"occurred": "2018-03-31 13:40:01 +0000", "explanation": {}}]},
+        {"alert": [{"occurred": "2018-03-31 13:40:01 +0000", "explanation": {"osChanges": []}}]},
     ],
 )
 def test_no_events(data, tmpdir):
@@ -51,7 +51,7 @@ def test_get_metadata(tmpdir):
                     "src": {},
                     "alertUrl": "https://foo",
                     "action": "notified",
-                    "occurred": 1528063196339,
+                    "occurred": "2018-03-31 13:40:01 +0000",
                     "dst": {},
                     "id": 1234,
                     "name": "MALWARE_OBJECT",
@@ -66,7 +66,7 @@ def test_get_metadata(tmpdir):
 
     assert FireEyeAXReport(f).metadata() == {
         "hostname": "my_appliance",
-        "analyzed_on": "2018-06-03 21:59:56.339000",
+        "analyzed_on": "2018-03-31 13:40:01 +0000",
         "severity": "MAJR",
         "alert_url": "https://foo",
     }
