@@ -90,7 +90,12 @@ class ProcmonTransformer(Transformer):
         proc = Process(process_id=int(event["process_id"]), process_image=event["process_name"])
 
         dest_addr = event["path"].split("->")[-1].lstrip()
-        ip_addr, port = dest_addr.split(":")
+        colons = dest_addr.split(":")
+        if len(colons) > 2:
+            ip_addr = ":".join(colons[:-1])
+            port = colons[-1]
+        else:
+            ip_addr, port = colons
 
         addr = IPAddress(ip_addr)
         proc.connected_to[addr].append(
