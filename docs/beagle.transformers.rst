@@ -20,6 +20,14 @@ beagle.transformers.evtx\_transformer module
     :undoc-members:
     :show-inheritance:
 
+beagle.transformers.fireeye\_ax\_transformer module
+---------------------------------------------------
+
+.. automodule:: beagle.transformers.fireeye_ax_transformer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 beagle.transformers.fireeye\_hx\_transformer module
 ---------------------------------------------------
 
