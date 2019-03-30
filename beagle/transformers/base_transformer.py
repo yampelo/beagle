@@ -139,6 +139,7 @@ class Transformer(object, metaclass=ABCMeta):
                 logger.warning(f"Error when parsing event, recieved exception {e}")
                 logger.debug(event)
                 self.errors[current_thread()].append(e)
+                nodes = []
 
             if nodes:
                 self.nodes += nodes
