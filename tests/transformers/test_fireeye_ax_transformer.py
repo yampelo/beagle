@@ -279,3 +279,43 @@ def test_http_request_no_hostin_headers(transformer):
 
     assert uri.uri == "/some_route.crl"
     assert {"method": "GET", "timestamp": 27648} in proc.http_request_to[uri]
+
+
+@pytest.mark.parametrize(
+    "mode,edge", [("created", "wrote"), ("deleted", "deleted"), ("accessed", "accessed")]
+)
+def test_file_events(transformer, mode, edge):
+    input_event = {
+        "mode": mode,
+        "event_type": "file",
+        "fid": {"ads": "", "content": 2533274790555891},
+        "processinfo": {
+            "imagepath": "C:\\Users\\admin\\AppData\\Local\\Temp\\bar.exe",
+            "tainted": True,
+            "md5sum": "....",
+            "pid": 1700,
+        },
+        "ntstatus": "0x0",
+        "value": "C:\\Users\\admin\\AppData\\Local\\Temp\\sy24ttkc.k25.ps1",
+        "CreateOptions": "0x400064",
+        "timestamp": 9494,
+    }
+
+    nodes = transformer.transform(input_event)
+
+    assert len(nodes) == 3
+
+    proc: Process = nodes[0]
+    proc_file: File = nodes[1]
+    file_node: File = nodes[2]
+
+    assert proc.process_image == proc_file.file_name == "bar.exe"
+    assert (
+        proc.process_image_path == proc_file.file_path == "C:\\Users\\admin\\AppData\\Local\\Temp"
+    )
+    assert proc in proc_file.file_of
+
+    assert file_node.file_name == "sy24ttkc.k25.ps1"
+    assert file_node.extension == "ps1"
+
+    assert {"timestamp": 9494} in getattr(proc, edge)[file_node]

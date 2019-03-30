@@ -48,6 +48,7 @@ def test_get_metadata(tmpdir):
         data={
             "alert": [
                 {
+                    "explanation": {"malwareDetected": {"malware": [{"name": "Stuxnet"}]}},
                     "src": {},
                     "alertUrl": "https://foo",
                     "action": "notified",
@@ -68,6 +69,7 @@ def test_get_metadata(tmpdir):
         "hostname": "my_appliance",
         "analyzed_on": "2018-03-31 13:40:01 +0000",
         "severity": "MAJR",
+        "alert": "Stuxnet",
         "alert_url": "https://foo",
     }
 
