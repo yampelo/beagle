@@ -71,6 +71,9 @@ class FireEyeAXReport(DataSource):
             "analyzed_on": self.alert["occurred"],
             "severity": self.alert["severity"],
             "alert_url": self.alert["alertUrl"],
+            "alert": self.alert["explanation"]["malwareDetected"]["malware"][0]["name"]
+            if self.alert != {}
+            else "",
         }
 
         return base_meta
