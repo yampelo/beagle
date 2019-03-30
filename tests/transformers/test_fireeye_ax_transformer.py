@@ -357,7 +357,7 @@ def test_file_copy_events(transformer):
     assert file_node.file_name == "sy24ttkc.k25.ps1"
     assert file_node.extension == "ps1"
 
-    assert src_node.file_name == "123456roc.ps1"
+    assert src_node.file_name == "123456.ps1"
     assert src_node.extension == "ps1"
     assert {"timestamp": 9494} in proc.copied[src_node]
     assert {"timestamp": 9494} in src_node.copied_to[file_node]
