@@ -322,6 +322,47 @@ def test_file_events(transformer, mode, edge):
     assert {"timestamp": 9494} in getattr(proc, edge)[file_node]
 
 
+def test_file_copy_events(transformer):
+    input_event = {
+        "mode": "CopyFile",
+        "event_type": "file",
+        "fid": {"ads": "", "content": 2533274790555891},
+        "processinfo": {
+            "imagepath": "C:\\Users\\admin\\AppData\\Local\\Temp\\bar.exe",
+            "tainted": True,
+            "md5sum": "....",
+            "pid": 1700,
+        },
+        "ntstatus": "0x0",
+        "value": "C:\\Users\\admin\\AppData\\Local\\Temp\\sy24ttkc.k25.ps1",
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\123456.ps1",
+        "CreateOptions": "0x400064",
+        "timestamp": 9494,
+    }
+
+    nodes = transformer.transform(input_event)
+
+    assert len(nodes) == 4
+
+    proc: Process = nodes[0]
+    proc_file: File = nodes[1]
+    file_node: File = nodes[2]
+    src_node: File = nodes[3]
+    assert proc.process_image == proc_file.file_name == "bar.exe"
+    assert (
+        proc.process_image_path == proc_file.file_path == "C:\\Users\\admin\\AppData\\Local\\Temp"
+    )
+    assert proc in proc_file.file_of
+
+    assert file_node.file_name == "sy24ttkc.k25.ps1"
+    assert file_node.extension == "ps1"
+
+    assert src_node.file_name == "123456roc.ps1"
+    assert src_node.extension == "ps1"
+    assert {"timestamp": 9494} in proc.copied[src_node]
+    assert {"timestamp": 9494} in src_node.copied_to[file_node]
+
+
 def test_reg_key_no_value(transformer):
     input_event = {
         "mode": "queryvalue",

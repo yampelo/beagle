@@ -332,7 +332,9 @@ class FireEyeAXTransformer(Transformer):
         except (ValueError, KeyError):
             return (proc, proc_file, addr)
 
-    def file_events(self, event: dict) -> Tuple[Process, File, File]:
+    def file_events(
+        self, event: dict
+    ) -> Union[Tuple[Process, File, File], Tuple[Process, File, File, File]]:
         """Transforms a file event
 
         Example file event::
@@ -382,6 +384,17 @@ class FireEyeAXTransformer(Transformer):
             proc.wrote[file_node].append(timestamp=event["timestamp"])
         elif event["mode"] == "deleted":
             proc.deleted[file_node].append(timestamp=event["timestamp"])
+        elif event["mode"] == "CopyFile":
+            src_name, src_path = split_path(event["source"])
+            src_file = File(file_name=src_name, file_path=src_path)
+            src_file.set_extension()
+
+            src_file.copied_to[file_node].append(timestamp=event["timestamp"])
+
+            proc.copied[src_file].append(timestamp=event["timestamp"])
+
+            return (proc, proc_file, file_node, src_file)
+
         else:
             proc.accessed[file_node].append(timestamp=event["timestamp"])
 

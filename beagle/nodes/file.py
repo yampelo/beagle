@@ -15,6 +15,11 @@ class FileOf(Edge):
 class CopiedTo(Edge):
     __name__ = "Copied To"
 
+    timestamp: int
+
+    def __init__(self) -> None:
+        super().__init__()
+
 
 class File(Node):
     __name__ = "File"
