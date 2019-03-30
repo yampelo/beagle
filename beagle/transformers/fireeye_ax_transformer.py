@@ -1,9 +1,10 @@
 import email
+import re
 from typing import Optional, Tuple, Union
 
 from beagle.common import split_path
 from beagle.constants import HashAlgos
-from beagle.nodes import URI, Domain, File, IPAddress, Process
+from beagle.nodes import URI, Domain, File, IPAddress, Process, RegistryKey
 from beagle.transformers.base_transformer import Transformer
 
 
@@ -73,6 +74,8 @@ class FireEyeAXTransformer(Transformer):
                 return self.http_requests(event)
         elif event_type == "file":
             return self.file_events(event)
+        elif event_type == "regkey":
+            return self.regkey_events(event)
         return None
 
     def process_events(self, event: dict) -> Optional[Tuple[Process, File, Process, File]]:
@@ -373,6 +376,7 @@ class FireEyeAXTransformer(Transformer):
 
         file_name, file_path = split_path(event["value"])
         file_node = File(file_name=file_name, file_path=file_path)
+        file_node.set_extension()
 
         if event["mode"] == "created":
             proc.wrote[file_node].append(timestamp=event["timestamp"])
@@ -382,3 +386,68 @@ class FireEyeAXTransformer(Transformer):
             proc.accessed[file_node].append(timestamp=event["timestamp"])
 
         return (proc, proc_file, file_node)
+
+    def regkey_events(self, event: dict) -> Tuple[Process, File, RegistryKey]:
+        """Transforms a single registry key event
+
+        Example event::
+
+            {
+                "mode": "queryvalue",
+                "processinfo": {
+                    "imagepath": "C:\\Users\\admin\\AppData\\Local\\Temp\\bar.exe",
+                    "tainted": True,
+                    "md5sum": "....",
+                    "pid": 1700,
+                },
+                "value": "\\REGISTRY\\USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\\"ProxyOverride\"",
+                "timestamp": 6203
+            },
+
+        Parameters
+        ----------
+        event : dict
+            source regkey event
+
+        Returns
+        -------
+        Tuple[Process, File, RegistrKey]
+            Process and its image, and the registry key.
+        """
+        proc_info = event["processinfo"]
+        process_image, process_image_path = split_path(proc_info["imagepath"])
+
+        proc = Process(
+            process_id=int(proc_info["pid"]),
+            process_image=process_image,
+            process_image_path=process_image_path,
+        )
+
+        proc_file = proc.get_file_node()
+        proc_file.file_of[proc]
+
+        path, key_contents = re.match(r"(.*)\\\"(.*)", event["value"]).groups()  # type: ignore
+
+        key_contents = key_contents[:-1]  # remove last quote.
+
+        hive, reg_key_path = path.replace("\\REGISTRY\\", "").split("\\", 1)
+
+        if '" = ' in key_contents:
+            key, value = key_contents.split('" = ')
+        else:
+            key = key_contents
+            value = None
+
+        regkey = RegistryKey(hive=hive, key=key, key_path=reg_key_path, value=value)
+
+        if event["mode"] == "added":
+            proc.created_key[regkey].append(timestamp=event["timestamp"], value=value)
+        elif event["mode"] == "setval":
+            proc.changed_value[regkey].append(timestamp=event["timestamp"], value=value)
+        elif event["mode"] in ["deleteval", "deleted"]:
+            proc.deleted_key[regkey].append(timestamp=event["timestamp"], value=value)
+        else:
+            proc.read_key[regkey].append(timestamp=event["timestamp"], value=value)
+
+        return (proc, proc_file, regkey)
+

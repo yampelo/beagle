@@ -1,7 +1,8 @@
 import pytest
 
 from beagle.constants import HashAlgos
-from beagle.nodes import File, Process, Domain, IPAddress, URI
+from beagle.nodes import URI, Domain, File, IPAddress, Process
+from beagle.nodes.registry import RegistryKey
 from beagle.transformers.fireeye_ax_transformer import FireEyeAXTransformer
 
 
@@ -319,3 +320,106 @@ def test_file_events(transformer, mode, edge):
     assert file_node.extension == "ps1"
 
     assert {"timestamp": 9494} in getattr(proc, edge)[file_node]
+
+
+def test_reg_key_no_value(transformer):
+    input_event = {
+        "mode": "queryvalue",
+        "event_type": "regkey",
+        "processinfo": {
+            "imagepath": "C:\\Users\\admin\\AppData\\Local\\Temp\\bar.exe",
+            "tainted": True,
+            "md5sum": "....",
+            "pid": 1700,
+        },
+        "value": '\\REGISTRY\\USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\"ProxyOverride"',
+        "timestamp": 6203,
+    }
+
+    nodes = transformer.transform(input_event)
+
+    assert len(nodes) == 3
+
+    proc: Process = nodes[0]
+    proc_file: File = nodes[1]
+    regkey: RegistryKey = nodes[2]
+
+    assert proc.process_image == proc_file.file_name == "bar.exe"
+    assert (
+        proc.process_image_path == proc_file.file_path == "C:\\Users\\admin\\AppData\\Local\\Temp"
+    )
+    assert proc in proc_file.file_of
+
+    assert regkey.key == "ProxyOverride"
+    assert regkey.hive == "USER"
+    assert regkey.key_path == "Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings"
+    assert regkey.value == None
+    assert regkey in proc.read_key
+
+
+def test_reg_key_value(transformer):
+    input_event = {
+        "mode": "queryvalue",
+        "event_type": "regkey",
+        "processinfo": {
+            "imagepath": "C:\\Users\\admin\\AppData\\Local\\Temp\\bar.exe",
+            "tainted": True,
+            "md5sum": "....",
+            "pid": 1700,
+        },
+        "value": '\\REGISTRY\\USER\\Software\\Microsoft\\Internet Explorer\\Main\\"FullScreen" = no"',
+        "timestamp": 6203,
+    }
+
+    nodes = transformer.transform(input_event)
+
+    assert len(nodes) == 3
+
+    proc: Process = nodes[0]
+    regkey: RegistryKey = nodes[2]
+
+    assert regkey.key == "FullScreen"
+    assert regkey.hive == "USER"
+    assert regkey.key_path == "Software\\Microsoft\\Internet Explorer\\Main"
+    assert regkey.value == "no"
+    assert {"timestamp": 6203, "value": "no"} in proc.read_key[regkey]
+
+
+@pytest.mark.parametrize(
+    "mode,edge",
+    [
+        ("added", "created_key"),
+        ("setval", "changed_value"),
+        ("deleteval", "deleted_key"),
+        ("deleted", "deleted_key"),
+        ("queryvalue", "read_key"),
+    ],
+)
+def test_reg_key_edge_types(transformer, mode, edge):
+    input_event = {
+        "mode": mode,
+        "event_type": "regkey",
+        "processinfo": {
+            "imagepath": "C:\\Users\\admin\\AppData\\Local\\Temp\\bar.exe",
+            "tainted": True,
+            "md5sum": "....",
+            "pid": 1700,
+        },
+        "value": '\\REGISTRY\\USER\\Software\\Microsoft\\Internet Explorer\\Main\\"FullScreen" = no"',
+        "timestamp": 6203,
+    }
+
+    nodes = transformer.transform(input_event)
+
+    assert len(nodes) == 3
+
+    proc: Process = nodes[0]
+    regkey: RegistryKey = nodes[2]
+
+    assert regkey.key == "FullScreen"
+    assert regkey.hive == "USER"
+    assert regkey.key_path == "Software\\Microsoft\\Internet Explorer\\Main"
+    assert regkey.value == "no"
+
+    assert {"timestamp": 6203, "value": "no"} in getattr(proc, edge)[regkey]
+
