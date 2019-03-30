@@ -55,7 +55,7 @@ class Edge(object):
         for key, value in data.items():
             if key not in self.__annotations__:
                 raise RuntimeError(
-                    f"{key} is not a valid field for {self.__class__.__name__} edge. "
+                    f"{key} is not a valid field for a {self.__class__.__name__} edge. "
                     + f"Valid fields are {self.__annotations__}"
                 )
 
@@ -85,7 +85,7 @@ class Edge(object):
         for key, value in kwargs.items():
             if key not in self.__annotations__:
                 raise RuntimeError(
-                    f"{key} is not a valid field for Launched edge."
+                    f"{key} is not a valid field for a {self.__class__.__name__} edge."
                     + f"Valid fields are {self.__annotations__}"
                 )
 
