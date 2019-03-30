@@ -115,16 +115,17 @@ class FireEyeAXTransformer(Transformer):
         process_image, process_image_path = split_path(event["value"])
         parent_image, parent_image_path = split_path(event["parentname"])
 
+        hashes = {
+            HashAlgos.MD5: event.get("md5sum"),
+            HashAlgos.SHA1: event.get("sha1sum"),
+            HashAlgos.SHA256: event.get("sha256sum"),
+        }
         proc = Process(
             process_image=process_image,
             process_image_path=process_image_path,
             command_line=event["cmdline"],
             process_id=int(event["pid"]),
-            hashes={
-                HashAlgos.MD5: event["md5sum"],
-                HashAlgos.SHA1: event["sha1sum"],
-                HashAlgos.SHA256: event["sha256sum"],
-            },
+            hashes={h: k for h, k in hashes.items() if k},
         )
 
         proc_file = proc.get_file_node()

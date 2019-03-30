@@ -97,6 +97,6 @@ class FireEyeAXReport(DataSource):
 
                     event["event_type"] = change_type
                     if "timestamp" in event:
-                        event["timestamp"] = float(event["timestamp"] + self.base_timestamp) / 1000
+                        event["timestamp"] = float(event["timestamp"] + self.base_timestamp)
 
                     yield event
