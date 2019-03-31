@@ -44,7 +44,7 @@ def create_app(*args):
         # Import models
         from .api.models import Graph  # noqa
 
-        if not os.path.isfile(app.config["SQLALCHEMY_DATABASE_URI"]):
+        if not os.path.isfile(db.engine.url.database):
             db.create_all()
             db.session.commit()
 

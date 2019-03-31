@@ -43,6 +43,6 @@ allow_prereleases = true
 
 [scripts]
 web = "bash -c 'export FLASK_ENV=development FLASK_APP=beagle/web/server && flask run --port 8000 --host 0.0.0.0'"
-web_prod = "bash -c 'gunicorn --bind 0.0.0.0:8000 -w 12 beagle.web.wsgi:app"
+web_prod = "bash -c 'gunicorn --bind 0.0.0.0:8000 -w 1 beagle.web.wsgi:app'"
 build_js = "bash -c 'cd ~/dev/beagle/beagle/web/static; npm run build'"
 build_docs = "bash -c 'sphinx-apidoc -o docs beagle/ -f ; cd docs ; make html'"
