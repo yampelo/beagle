@@ -2,6 +2,7 @@ class Protocols:
     HTTP = "HTTP"
     TCP = "TCP"
     UDP = "UDP"
+    ICMP = "ICMP"
 
 
 class HashAlgos:
