@@ -82,7 +82,8 @@ class CuckooReport(DataSource):
 
         self.processes: Dict[int, dict] = self.identify_processes()
 
-        yield {}
+        for func in [self.process_tree]:
+            yield from func()
 
     def identify_processes(self) -> Dict[int, dict]:
         """The `generic` tab contains an array of processes. We can iterate over it to quickly generate

@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 
-
 from .base_transformer import Transformer  # noqa
 from .evtx_transformer import WinEVTXTransformer  # noqa
 from .fireeye_ax_transformer import FireEyeAXTransformer  # noqa
