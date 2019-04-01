@@ -1,7 +1,9 @@
 import json
 
+import pytest
+
+from beagle.constants import EventTypes, FieldNames
 from beagle.datasources.cuckoo_report import CuckooReport
-from beagle.constants import FieldNames, EventTypes
 
 
 def make_tmp_file(data: dict, tmpdir):
@@ -278,3 +280,139 @@ def test_process_tree(tmpdir):
         },
     ]:
         assert json.dumps(entry, sort_keys=True) in process_events
+
+
+@pytest.mark.parametrize(
+    "dictkey,eventtype",
+    [
+        ("file_deleted", EventTypes.FILE_DELETED),
+        ("file_opened", EventTypes.FILE_OPENED),
+        ("file_failed", EventTypes.FILE_OPENED),
+        ("file_read", EventTypes.FILE_OPENED),
+        ("file_written", EventTypes.FILE_WRITTEN),
+        ("dll_loaded", EventTypes.LOADED_MODULE),
+        ("file_attribute_changed", EventTypes.FILE_OPENED),
+    ],
+)
+def test_basic_file_events(dictkey, eventtype, tmpdir):
+    f = make_tmp_file(
+        data={
+            "behavior": {
+                "generic": [
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2548,
+                        "first_seen": 1553811204.703125,
+                        "ppid": 2460,
+                        "summary": {},
+                    },
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2460,
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                        "summary": {dictkey: ["C:\\Users\\desktop.ini"]},
+                    },
+                ],
+                "processtree": [
+                    {
+                        "track": True,
+                        "pid": 2460,
+                        "process_name": "It6QworVAgY.exe",
+                        "command_line": '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                        "children": [
+                            {
+                                "track": True,
+                                "pid": 2548,
+                                "process_name": "It6QworVAgY.exe",
+                                "command_line": "--39dd5ff7",
+                                "first_seen": 1553811204.703125,
+                                "ppid": 2460,
+                                "children": [],
+                            }
+                        ],
+                    }
+                ],
+            }
+        },
+        tmpdir=tmpdir,
+    )
+    report = CuckooReport(f)
+    report.processes = report.identify_processes()
+
+    events = [json.dumps(e, sort_keys=True) for e in report.events()]
+    assert (
+        json.dumps(
+            {
+                FieldNames.PROCESS_ID: 2460,
+                FieldNames.PROCESS_IMAGE: "It6QworVAgY.exe",
+                FieldNames.PROCESS_IMAGE_PATH: "C:\\Users\\Administrator\\AppData\\Local\\Temp",
+                FieldNames.COMMAND_LINE: '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+                FieldNames.EVENT_TYPE: eventtype,
+                FieldNames.FILE_NAME: "desktop.ini",
+                FieldNames.FILE_PATH: "C:\\Users",
+            },
+            sort_keys=True,
+        )
+        in events
+    )
+
+
+def test_basicfile_skips_folders(tmpdir):
+    f = make_tmp_file(
+        data={
+            "behavior": {
+                "generic": [
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2548,
+                        "first_seen": 1553811204.703125,
+                        "ppid": 2460,
+                        "summary": {},
+                    },
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2460,
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                        "summary": {"file_opened": ["C:\\Users\\"]},
+                    },
+                ],
+                "processtree": [
+                    {
+                        "track": True,
+                        "pid": 2460,
+                        "process_name": "It6QworVAgY.exe",
+                        "command_line": '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                        "children": [
+                            {
+                                "track": True,
+                                "pid": 2548,
+                                "process_name": "It6QworVAgY.exe",
+                                "command_line": "--39dd5ff7",
+                                "first_seen": 1553811204.703125,
+                                "ppid": 2460,
+                                "children": [],
+                            }
+                        ],
+                    }
+                ],
+            }
+        },
+        tmpdir=tmpdir,
+    )
+    report = CuckooReport(f)
+    report.processes = report.identify_processes()
+
+    events = [json.dumps(e, sort_keys=True) for e in report.events()]
+    # Should have no events, only two for the processes.
+    assert len(events) == 2
+
