@@ -250,6 +250,7 @@ def test_process_tree(tmpdir):
             FieldNames.PARENT_PROCESS_ID: 380,
             FieldNames.PARENT_PROCESS_IMAGE: "Unknown",
             FieldNames.PARENT_PROCESS_IMAGE_PATH: "\\",
+            FieldNames.PARENT_COMMAND_LINE: "",
         },
         {
             FieldNames.PROCESS_ID: 2460,
@@ -261,6 +262,7 @@ def test_process_tree(tmpdir):
             FieldNames.PARENT_PROCESS_ID: 1272,
             FieldNames.PARENT_PROCESS_IMAGE: "Unknown",
             FieldNames.PARENT_PROCESS_IMAGE_PATH: "\\",
+            FieldNames.PARENT_COMMAND_LINE: "",
         },
         {
             FieldNames.PROCESS_ID: 1260,
@@ -272,6 +274,7 @@ def test_process_tree(tmpdir):
             FieldNames.PARENT_PROCESS_ID: 1184,
             FieldNames.PARENT_PROCESS_IMAGE: "Unknown",
             FieldNames.PARENT_PROCESS_IMAGE_PATH: "\\",
+            FieldNames.PARENT_COMMAND_LINE: "",
         },
     ]:
         assert json.dumps(entry, sort_keys=True) in process_events

@@ -127,6 +127,7 @@ class CuckooReport(DataSource):
                     FieldNames.PARENT_PROCESS_ID: entry["ppid"],
                     FieldNames.PARENT_PROCESS_IMAGE: "Unknown",
                     FieldNames.PARENT_PROCESS_IMAGE_PATH: "\\",
+                    FieldNames.PARENT_COMMAND_LINE: "",
                     **current_proc,
                 }
 
