@@ -292,6 +292,7 @@ def test_process_tree(tmpdir):
         ("file_written", EventTypes.FILE_WRITTEN),
         ("dll_loaded", EventTypes.LOADED_MODULE),
         ("file_attribute_changed", EventTypes.FILE_OPENED),
+        ("file_exists", EventTypes.FILE_OPENED),
     ],
 )
 def test_basic_file_events(dictkey, eventtype, tmpdir):
@@ -415,4 +416,295 @@ def test_basicfile_skips_folders(tmpdir):
     events = [json.dumps(e, sort_keys=True) for e in report.events()]
     # Should have no events, only two for the processes.
     assert len(events) == 2
+
+
+@pytest.mark.parametrize("connects_type", ["connects_host", "connects_ip"])
+def test_connections(connects_type, tmpdir):
+    f = make_tmp_file(
+        data={
+            "behavior": {
+                "generic": [
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2548,
+                        "first_seen": 1553811204.703125,
+                        "ppid": 2460,
+                        "summary": {},
+                    },
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2460,
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                        "summary": {connects_type: ["domain.com"]},
+                    },
+                ],
+                "processtree": [
+                    {
+                        "track": True,
+                        "pid": 2460,
+                        "process_name": "It6QworVAgY.exe",
+                        "command_line": '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                        "children": [
+                            {
+                                "track": True,
+                                "pid": 2548,
+                                "process_name": "It6QworVAgY.exe",
+                                "command_line": "--39dd5ff7",
+                                "first_seen": 1553811204.703125,
+                                "ppid": 2460,
+                                "children": [],
+                            }
+                        ],
+                    }
+                ],
+            }
+        },
+        tmpdir=tmpdir,
+    )
+    report = CuckooReport(f)
+    report.processes = report.identify_processes()
+
+    events = [json.dumps(e, sort_keys=True) for e in report.events()]
+    # Should have no events, only two for the processes.
+    assert (
+        json.dumps(
+            {
+                FieldNames.PROCESS_ID: 2460,
+                FieldNames.PROCESS_IMAGE: "It6QworVAgY.exe",
+                FieldNames.PROCESS_IMAGE_PATH: "C:\\Users\\Administrator\\AppData\\Local\\Temp",
+                FieldNames.COMMAND_LINE: '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+                FieldNames.EVENT_TYPE: EventTypes.CONNECTION,
+                FieldNames.IP_ADDRESS: "domain.com",
+            },
+            sort_keys=True,
+        )
+        in events
+    )
+
+
+def test_dnslookup(tmpdir):
+    f = make_tmp_file(
+        data={
+            "behavior": {
+                "generic": [
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2548,
+                        "first_seen": 1553811204.703125,
+                        "ppid": 2460,
+                        "summary": {},
+                    },
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2460,
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                        "summary": {"resolves_host": ["domain.com"]},
+                    },
+                ],
+                "processtree": [
+                    {
+                        "track": True,
+                        "pid": 2460,
+                        "process_name": "It6QworVAgY.exe",
+                        "command_line": '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                        "children": [
+                            {
+                                "track": True,
+                                "pid": 2548,
+                                "process_name": "It6QworVAgY.exe",
+                                "command_line": "--39dd5ff7",
+                                "first_seen": 1553811204.703125,
+                                "ppid": 2460,
+                                "children": [],
+                            }
+                        ],
+                    }
+                ],
+            }
+        },
+        tmpdir=tmpdir,
+    )
+    report = CuckooReport(f)
+    report.processes = report.identify_processes()
+
+    events = [json.dumps(e, sort_keys=True) for e in report.events()]
+    # Should have no events, only two for the processes.
+    assert (
+        json.dumps(
+            {
+                FieldNames.PROCESS_ID: 2460,
+                FieldNames.PROCESS_IMAGE: "It6QworVAgY.exe",
+                FieldNames.PROCESS_IMAGE_PATH: "C:\\Users\\Administrator\\AppData\\Local\\Temp",
+                FieldNames.COMMAND_LINE: '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+                FieldNames.EVENT_TYPE: EventTypes.DNS_LOOKUP,
+                FieldNames.HTTP_HOST: "domain.com",
+            },
+            sort_keys=True,
+        )
+        in events
+    )
+
+
+@pytest.mark.parametrize("url_type", ["fetches_url", "downloads_file"])
+def test_url_events(url_type, tmpdir):
+    f = make_tmp_file(
+        data={
+            "behavior": {
+                "generic": [
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2548,
+                        "first_seen": 1553811204.703125,
+                        "ppid": 2460,
+                        "summary": {},
+                    },
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2460,
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                        "summary": {url_type: ["http://domain.com/foobar"]},
+                    },
+                ],
+                "processtree": [
+                    {
+                        "track": True,
+                        "pid": 2460,
+                        "process_name": "It6QworVAgY.exe",
+                        "command_line": '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                        "children": [
+                            {
+                                "track": True,
+                                "pid": 2548,
+                                "process_name": "It6QworVAgY.exe",
+                                "command_line": "--39dd5ff7",
+                                "first_seen": 1553811204.703125,
+                                "ppid": 2460,
+                                "children": [],
+                            }
+                        ],
+                    }
+                ],
+            }
+        },
+        tmpdir=tmpdir,
+    )
+    report = CuckooReport(f)
+    report.processes = report.identify_processes()
+
+    events = [json.dumps(e, sort_keys=True) for e in report.events()]
+    # Should have no events, only two for the processes.
+    assert (
+        json.dumps(
+            {
+                FieldNames.PROCESS_ID: 2460,
+                FieldNames.PROCESS_IMAGE: "It6QworVAgY.exe",
+                FieldNames.PROCESS_IMAGE_PATH: "C:\\Users\\Administrator\\AppData\\Local\\Temp",
+                FieldNames.COMMAND_LINE: '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+                FieldNames.EVENT_TYPE: EventTypes.HTTP_REQUEST,
+                FieldNames.HTTP_METHOD: "GET",
+                FieldNames.HTTP_HOST: "domain.com",
+                FieldNames.URI: "/foobar",
+            },
+            sort_keys=True,
+        )
+        in events
+    )
+
+
+@pytest.mark.parametrize(
+    "event_type,edge_type",
+    [
+        ("regkey_written", EventTypes.REG_KEY_SET),
+        ("regkey_deleted", EventTypes.REG_KEY_DELETED),
+        ("regkey_opened", EventTypes.REG_KEY_OPENED),
+        ("regkey_read", EventTypes.REG_KEY_OPENED),
+    ],
+)
+def test_regevents(event_type, edge_type, tmpdir):
+    f = make_tmp_file(
+        data={
+            "behavior": {
+                "generic": [
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2548,
+                        "first_seen": 1553811204.703125,
+                        "ppid": 2460,
+                        "summary": {},
+                    },
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2460,
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                        "summary": {
+                            event_type: [
+                                "HKEY_USERS\\S-1\\Software\\Microsoft\\Internet Explorer\\Toolbar\\Locked"
+                            ]
+                        },
+                    },
+                ],
+                "processtree": [
+                    {
+                        "track": True,
+                        "pid": 2460,
+                        "process_name": "It6QworVAgY.exe",
+                        "command_line": '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                        "children": [
+                            {
+                                "track": True,
+                                "pid": 2548,
+                                "process_name": "It6QworVAgY.exe",
+                                "command_line": "--39dd5ff7",
+                                "first_seen": 1553811204.703125,
+                                "ppid": 2460,
+                                "children": [],
+                            }
+                        ],
+                    }
+                ],
+            }
+        },
+        tmpdir=tmpdir,
+    )
+    report = CuckooReport(f)
+    report.processes = report.identify_processes()
+
+    events = [json.dumps(e, sort_keys=True) for e in report.events()]
+    # Should have no events, only two for the processes.
+    assert (
+        json.dumps(
+            {
+                FieldNames.PROCESS_ID: 2460,
+                FieldNames.PROCESS_IMAGE: "It6QworVAgY.exe",
+                FieldNames.PROCESS_IMAGE_PATH: "C:\\Users\\Administrator\\AppData\\Local\\Temp",
+                FieldNames.COMMAND_LINE: '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+                FieldNames.EVENT_TYPE: edge_type,
+                FieldNames.HIVE: "HKEY_USERS",
+                FieldNames.REG_KEY_PATH: "S-1\\Software\\Microsoft\\Internet Explorer\\Toolbar",
+                FieldNames.REG_KEY: "Locked",
+            },
+            sort_keys=True,
+        )
+        in events
+    )
 

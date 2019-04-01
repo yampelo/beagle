@@ -1,9 +1,10 @@
 import json
 from typing import Dict, Generator
+from urllib import parse
 
-from beagle.common import split_path
+from beagle.common import split_path, split_reg_path
 from beagle.common.logging import logger
-from beagle.constants import FieldNames, EventTypes
+from beagle.constants import EventTypes, FieldNames, HTTPMethods
 from beagle.datasources.base_datasource import DataSource
 from beagle.transformers import GenericTransformer
 
@@ -46,7 +47,10 @@ class CuckooReport(DataSource):
 
     Notes
     ---------
-    It's impossible to associate network traffic with a specific process.
+    This is based on the output of the following reporting module:
+    https://github.com/cuckoosandbox/cuckoo/blob/master/cuckoo/processing/platform/windows.py
+
+
 
     Parameters
     ----------
@@ -91,8 +95,12 @@ class CuckooReport(DataSource):
             # get the parent
             process = self.processes[int(process_summary["pid"])]
 
-            # Yieled strucutred events.
-            for func in [self._basic_file_events]:
+            # Yield strucutred events.
+            for func in [
+                self._basic_file_events,
+                self._summary_network_connections,
+                self._regkey_events,
+            ]:
                 yield from func(process_summary["summary"], process)
 
     def identify_processes(self) -> Dict[int, dict]:
@@ -175,6 +183,7 @@ class CuckooReport(DataSource):
             "file_written": EventTypes.FILE_WRITTEN,
             "dll_loaded": EventTypes.LOADED_MODULE,
             "file_attribute_changed": EventTypes.FILE_OPENED,
+            "file_exists": EventTypes.FILE_OPENED,
         }
 
         for entry_key, event_type in event_type_mappings.items():
@@ -191,5 +200,67 @@ class CuckooReport(DataSource):
                     FieldNames.FILE_NAME: file_name,
                     FieldNames.FILE_PATH: file_path,
                     FieldNames.EVENT_TYPE: event_type,
+                    **process,
+                }
+
+    def _summary_network_connections(
+        self, process_summary: dict, process: dict
+    ) -> Generator[dict, None, None]:
+
+        for dest_hostname in process_summary.get("connects_host", []):
+
+            yield {
+                FieldNames.IP_ADDRESS: dest_hostname,
+                FieldNames.EVENT_TYPE: EventTypes.CONNECTION,
+                **process,
+            }
+
+        for ip_address in process_summary.get("connects_ip", []):
+
+            yield {
+                FieldNames.IP_ADDRESS: ip_address,
+                FieldNames.EVENT_TYPE: EventTypes.CONNECTION,
+                **process,
+            }
+
+        for domain in process_summary.get("resolves_host", []):
+
+            yield {
+                FieldNames.HTTP_HOST: domain,
+                FieldNames.EVENT_TYPE: EventTypes.DNS_LOOKUP,
+                **process,
+            }
+
+        for key in ["fetches_url", "downloads_file"]:
+            for url in process_summary.get(key, []):
+
+                yield {
+                    FieldNames.EVENT_TYPE: EventTypes.HTTP_REQUEST,
+                    FieldNames.HTTP_METHOD: HTTPMethods.GET,
+                    FieldNames.HTTP_HOST: parse.urlparse(url).netloc,
+                    FieldNames.URI: parse.urlparse(url).path,
+                    **process,
+                }
+
+    def _regkey_events(self, process_summary: dict, process: dict) -> Generator[dict, None, None]:
+
+        mapping = {
+            "regkey_written": EventTypes.REG_KEY_SET,
+            "regkey_deleted": EventTypes.REG_KEY_DELETED,
+            "regkey_opened": EventTypes.REG_KEY_OPENED,
+            "regkey_read": EventTypes.REG_KEY_OPENED,
+        }
+
+        for key, event_type in mapping.items():
+            for reg_path in process_summary.get(key, []):
+
+                # RegistryKey Node Creation
+                hive, reg_key_path, reg_key = split_reg_path(reg_path)
+
+                yield {
+                    FieldNames.EVENT_TYPE: event_type,
+                    FieldNames.HIVE: hive,
+                    FieldNames.REG_KEY_PATH: reg_key,
+                    FieldNames.REG_KEY: reg_key_path,
                     **process,
                 }
