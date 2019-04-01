@@ -482,8 +482,123 @@ def test_alert_creation():
         },
         "_threat_data": {
             "_id": "threat_id_uid",
-            "uri_name": "Some.Alert.Name",
+            "uri_name": None,
             "display_name": "Some.Alert.Name",
+            "sub_type": None,
+            "signature": "malware-object",
+            "intel_version": None,
+            "meta": None,
+            "active_since": "2016-01-01T13:18:24.266Z",
+            "update_time": "2016-01-01T20:30:23.957Z",
+            "create_text": "1234",
+            "create_actor_id": 1,
+            "pending_changes": 0,
+            "_revision": "1234",
+            "input_type": "local",
+            "category_id": 5,
+            "update_actor_id": 1,
+            "description": None,
+            "supports_win": True,
+            "supports_osx": False,
+            "tags": None,
+            "supports_linux": False,
+            "category": "FireEye-CMS",
+            "create_actor": "fireeye",
+            "update_actor": "fireeye",
+            "origin": "1234",
+        },
+        "event_time": 1_527_195_775,
+    }
+
+    transformer = FireEyeHXTransformer(datasource=None)
+    nodes = transformer.transform(input_event)
+
+    alert: Alert = nodes[0]
+
+    assert alert.alert_name == "Some.Alert.Name"
+
+    try:
+        assert alert.alert_data == input_event
+    except AssertionError:
+        assert alert.alert_data == "No data"
+
+    # Since this is a file event. We should have 3 additional nodes.
+
+    assert len(nodes) == 4  # alert + 3 nodes
+
+    file_node: File = nodes[1]
+
+    assert file_node.__name__ == "File"
+    assert file_node.full_path == "C:\\Users\\abcd.txt"
+    assert file_node.extension == "txt"
+    assert file_node.hashes["md5"] == "not_a_real_md5"
+
+    proc_node = nodes[2]
+    proc_file_node: File = nodes[3]
+
+    assert proc_node.__name__ == "Process"
+    assert (
+        proc_node.process_image_path
+        == proc_file_node.file_path
+        == "C:\\Program Files\\Microsoft Office 15\\root\\office15"
+    )
+    assert proc_node.process_id == 8060
+
+    for node in [file_node, proc_node, proc_file_node]:
+        assert {"timestamp": 1_527_195_775} in alert.alerted_on[node]
+
+
+def test_alert_creation_uri_only():
+
+    input_event = {
+        "_id": 1234,
+        "event_type": "alertEvent",
+        "agent_id": "1234",
+        "condition_id": "1234==",
+        "threat_id": "threat_id_uid",
+        "marker": "2",
+        "match_hash": "1",
+        "event_at": "2018-06-28T07:54:40.741Z",
+        "matched_at": "2018-06-28T07:54:55.000Z",
+        "reported_at": "2018-06-28T07:55:05.800Z",
+        "deleted": False,
+        "source": "IOC",
+        "resolution": "ALERT",
+        "data": {
+            "values": {
+                "fullPath": "C:\\Users\\abcd.txt",
+                "filePath": "Users\\",
+                "drive": "C",
+                "fileName": "abcd.txt",
+                "fileExtension": "txt",
+                "devicePath": "\\Device\\HarddiskVolume3",
+                "pid": "8060",
+                "process": "outlook.exe",
+                "processPath": "C:\\Program Files\\Microsoft Office 15\\root\\office15",
+                "writes": "290",
+                "numBytesSeenWritten": "25602",
+                "lowestFileOffsetSeen": "5684961",
+                "dataAtLowestOffset": "VmFsdWVFcnJvcjogd3JhcHBlcigpIHJlcXVpcmVzIGEgY29kZQ==",
+                "textAtLowestOffset": "ValueError: wrapper() requires a code",
+                "closed": "false",
+                "size": "0",
+                "username": "Bob\\Schmob",
+                "event_type": "fileWriteEvent",
+                "event_time": 1_527_195_775,
+                "md5": "not_a_real_md5",
+            },
+            "key": {
+                "event_id": 1234,
+                "indicator_id": "1234",
+                "match_timestamp": "2018-06-28T07:54:55Z",
+                "event_type": "fileWriteEvent",
+                "condition_id": "1234",
+            },
+        },
+        "_threat_data": {
+            "_id": "threat_id_uid",
+            "uri_name": "Some.Alert.Name",
+            "display_name": None,
             "sub_type": None,
             "signature": "malware-object",
             "intel_version": None,

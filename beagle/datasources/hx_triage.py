@@ -347,7 +347,10 @@ class HXTriage(DataSource):
 
                 if "hit" in metadata:
                     threats = metadata["hit"].get("threats", [{}])
-                    alert_name = threats[0].get("display_name", "Unknown Alert Name")
+
+                    display_name = threats[0].get("display_name")
+                    uri_name = threats[0].get("uri_name")
+                    alert_name = display_name or uri_name or "Unknown Alert Name"
                 else:
                     alert_name = "No Alert"
 

@@ -461,9 +461,10 @@ class FireEyeHXTransformer(Transformer):
         if "_threat_data" not in event:
             alert_name = event["match_hash"]
         else:
-            alert_name = event["_threat_data"].get(
-                "display_name", event["_threat_data"]["uri_name"]
-            )
+            uri_name = event["_threat_data"].get("uri_name")
+            display_name = event["_threat_data"].get("display_name")
+
+            alert_name = uri_name or display_name
 
         alert = Alert(alert_name=alert_name, alert_data="No data")
 
