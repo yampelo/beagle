@@ -13,6 +13,7 @@ def make_tmp_file(data: dict, tmpdir):
 def test_metadata(tmpdir):
     f = make_tmp_file(
         data={
+            "behavior": {},
             "info": {
                 "added": 1553807600.200415,
                 "started": 1553810186.098672,
