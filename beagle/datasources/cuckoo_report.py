@@ -82,8 +82,18 @@ class CuckooReport(DataSource):
 
         self.processes: Dict[int, dict] = self.identify_processes()
 
-        for func in [self.process_tree]:
-            yield from func()
+        # First, do process launching.
+        yield from self.process_tree()
+
+        # for each process, iterate over it's summary
+        for process_summary in self.behavior["generic"]:
+
+            # get the parent
+            process = self.processes[int(process_summary["pid"])]
+
+            # Yieled strucutred events.
+            for func in [self._basic_file_events]:
+                yield from func(process_summary["summary"], process)
 
     def identify_processes(self) -> Dict[int, dict]:
         """The `generic` tab contains an array of processes. We can iterate over it to quickly generate
@@ -153,3 +163,33 @@ class CuckooReport(DataSource):
         for entry in self.behavior.get("processtree", []):
             yield from process_single_entry(entry)
 
+    def _basic_file_events(
+        self, process_summary: dict, process: dict
+    ) -> Generator[dict, None, None]:
+
+        event_type_mappings = {
+            "file_deleted": EventTypes.FILE_DELETED,
+            "file_opened": EventTypes.FILE_OPENED,
+            "file_failed": EventTypes.FILE_OPENED,
+            "file_read": EventTypes.FILE_OPENED,
+            "file_written": EventTypes.FILE_WRITTEN,
+            "dll_loaded": EventTypes.LOADED_MODULE,
+            "file_attribute_changed": EventTypes.FILE_OPENED,
+        }
+
+        for entry_key, event_type in event_type_mappings.items():
+
+            for file_path in process_summary.get(entry_key, []):
+
+                # Ignore directorys
+                if file_path.endswith("\\"):
+                    continue
+
+                file_name, file_path = split_path(file_path)
+
+                yield {
+                    FieldNames.FILE_NAME: file_name,
+                    FieldNames.FILE_PATH: file_path,
+                    FieldNames.EVENT_TYPE: event_type,
+                    **process,
+                }
