@@ -1,5 +1,7 @@
 import json
+
 from beagle.datasources.cuckoo_report import CuckooReport
+from beagle.constants import FieldNames, EventTypes
 
 
 def make_tmp_file(data: dict, tmpdir):
@@ -68,3 +70,207 @@ def test_metadata(tmpdir):
         "name": "It6QworVAgY.exe",
         "type": "PE32 executable (GUI) Intel 80386, for MS Windows",
     }
+
+
+def test_identify_processes(tmpdir):
+    f = make_tmp_file(
+        data={
+            "behavior": {
+                "generic": [
+                    {
+                        "process_path": "C:\\Windows\\System32\\lsass.exe",
+                        "process_name": "lsass.exe",
+                        "pid": 488,
+                        "first_seen": 1553811201.859375,
+                        "ppid": 380,
+                    },
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2548,
+                        "first_seen": 1553811204.703125,
+                        "ppid": 2460,
+                    },
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2460,
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                    },
+                    {
+                        "process_path": "C:\\Windows\\explorer.exe",
+                        "process_name": "explorer.exe",
+                        "pid": 1260,
+                        "first_seen": 1553811213.8125,
+                        "ppid": 1184,
+                    },
+                ]
+            }
+        },
+        tmpdir=tmpdir,
+    )
+
+    report = CuckooReport(f)
+    report.processes = report.identify_processes()
+
+    # Proc dicts are values.
+    json_procs = [json.dumps(proc, sort_keys=True) for proc in report.processes.values()]
+
+    for entry in [
+        {
+            FieldNames.PROCESS_ID: 488,
+            FieldNames.PROCESS_IMAGE: "lsass.exe",
+            FieldNames.PROCESS_IMAGE_PATH: "C:\\Windows\\System32",
+        },
+        {
+            FieldNames.PROCESS_ID: 2548,
+            FieldNames.PROCESS_IMAGE: "It6QworVAgY.exe",
+            FieldNames.PROCESS_IMAGE_PATH: "C:\\Users\\Administrator\\AppData\\Local\\Temp",
+        },
+        {
+            FieldNames.PROCESS_ID: 2460,
+            FieldNames.PROCESS_IMAGE: "It6QworVAgY.exe",
+            FieldNames.PROCESS_IMAGE_PATH: "C:\\Users\\Administrator\\AppData\\Local\\Temp",
+        },
+        {
+            FieldNames.PROCESS_ID: 1260,
+            FieldNames.PROCESS_IMAGE: "explorer.exe",
+            FieldNames.PROCESS_IMAGE_PATH: "C:\\Windows",
+        },
+    ]:
+        assert json.dumps(entry, sort_keys=True) in json_procs
+
+
+def test_process_tree(tmpdir):
+    f = make_tmp_file(
+        data={
+            "behavior": {
+                "generic": [
+                    {
+                        "process_path": "C:\\Windows\\System32\\lsass.exe",
+                        "process_name": "lsass.exe",
+                        "pid": 488,
+                        "first_seen": 1553811201.859375,
+                        "ppid": 380,
+                    },
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2548,
+                        "first_seen": 1553811204.703125,
+                        "ppid": 2460,
+                    },
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2460,
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                    },
+                    {
+                        "process_path": "C:\\Windows\\explorer.exe",
+                        "process_name": "explorer.exe",
+                        "pid": 1260,
+                        "first_seen": 1553811213.8125,
+                        "ppid": 1184,
+                    },
+                ],
+                "processtree": [
+                    {
+                        "track": False,
+                        "pid": 488,
+                        "process_name": "lsass.exe",
+                        "command_line": "C:\\Windows\\system32\\lsass.exe",
+                        "first_seen": 1553811201.859375,
+                        "ppid": 380,
+                        "children": [],
+                    },
+                    {
+                        "track": True,
+                        "pid": 2460,
+                        "process_name": "It6QworVAgY.exe",
+                        "command_line": '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                        "children": [
+                            {
+                                "track": True,
+                                "pid": 2548,
+                                "process_name": "It6QworVAgY.exe",
+                                "command_line": "--39dd5ff7",
+                                "first_seen": 1553811204.703125,
+                                "ppid": 2460,
+                                "children": [],
+                            }
+                        ],
+                    },
+                    {
+                        "track": True,
+                        "pid": 1260,
+                        "process_name": "explorer.exe",
+                        "command_line": "C:\\Windows\\Explorer.EXE",
+                        "first_seen": 1553811213.8125,
+                        "ppid": 1184,
+                        "children": [],
+                    },
+                ],
+            }
+        },
+        tmpdir=tmpdir,
+    )
+
+    report = CuckooReport(f)
+    report.processes = report.identify_processes()
+
+    process_events = [json.dumps(proc, sort_keys=True) for proc in report.process_tree()]
+
+    for entry in [
+        # This is the only one that has a real parent, all other ones we only know hte PID
+        {
+            FieldNames.PARENT_PROCESS_ID: 2460,
+            FieldNames.PARENT_PROCESS_IMAGE: "It6QworVAgY.exe",
+            FieldNames.PARENT_PROCESS_IMAGE_PATH: "C:\\Users\\Administrator\\AppData\\Local\\Temp",
+            FieldNames.PARENT_COMMAND_LINE: '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+            FieldNames.PROCESS_ID: 2548,
+            FieldNames.PROCESS_IMAGE: "It6QworVAgY.exe",
+            FieldNames.PROCESS_IMAGE_PATH: "C:\\Users\\Administrator\\AppData\\Local\\Temp",
+            FieldNames.COMMAND_LINE: "--39dd5ff7",
+            FieldNames.TIMESTAMP: 1553811204.703125,
+            FieldNames.EVENT_TYPE: EventTypes.PROCESS_LAUNCHED,
+        },
+        {
+            FieldNames.PROCESS_ID: 488,
+            FieldNames.PROCESS_IMAGE: "lsass.exe",
+            FieldNames.PROCESS_IMAGE_PATH: "C:\\Windows\\System32",
+            FieldNames.COMMAND_LINE: "C:\\Windows\\system32\\lsass.exe",
+            FieldNames.TIMESTAMP: 1553811201.859375,
+            FieldNames.EVENT_TYPE: EventTypes.PROCESS_LAUNCHED,
+            FieldNames.PARENT_PROCESS_ID: 380,
+            FieldNames.PARENT_PROCESS_IMAGE: "Unknown",
+            FieldNames.PARENT_PROCESS_IMAGE_PATH: "\\",
+        },
+        {
+            FieldNames.PROCESS_ID: 2460,
+            FieldNames.PROCESS_IMAGE: "It6QworVAgY.exe",
+            FieldNames.PROCESS_IMAGE_PATH: "C:\\Users\\Administrator\\AppData\\Local\\Temp",
+            FieldNames.COMMAND_LINE: '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+            FieldNames.TIMESTAMP: 1553811202.765625,
+            FieldNames.EVENT_TYPE: EventTypes.PROCESS_LAUNCHED,
+            FieldNames.PARENT_PROCESS_ID: 1272,
+            FieldNames.PARENT_PROCESS_IMAGE: "Unknown",
+            FieldNames.PARENT_PROCESS_IMAGE_PATH: "\\",
+        },
+        {
+            FieldNames.PROCESS_ID: 1260,
+            FieldNames.PROCESS_IMAGE: "explorer.exe",
+            FieldNames.PROCESS_IMAGE_PATH: "C:\\Windows",
+            FieldNames.COMMAND_LINE: "C:\\Windows\\Explorer.EXE",
+            FieldNames.TIMESTAMP: 1553811213.8125,
+            FieldNames.EVENT_TYPE: EventTypes.PROCESS_LAUNCHED,
+            FieldNames.PARENT_PROCESS_ID: 1184,
+            FieldNames.PARENT_PROCESS_IMAGE: "Unknown",
+            FieldNames.PARENT_PROCESS_IMAGE_PATH: "\\",
+        },
+    ]:
+        assert json.dumps(entry, sort_keys=True) in process_events
