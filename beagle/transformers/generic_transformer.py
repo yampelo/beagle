@@ -209,9 +209,16 @@ class GenericTransformer(Transformer):
 
         addr = IPAddress(ip_address=event[FieldNames.IP_ADDRESS])
 
-        process.connected_to[addr].append(
-            port=int(event[FieldNames.PORT]), protocol=event[FieldNames.PROTOCOL]
-        )
+        if FieldNames.PORT in event and FieldNames.PROTOCOL in event:
+            process.connected_to[addr].append(
+                port=int(event[FieldNames.PORT]), protocol=event[FieldNames.PROTOCOL]
+            )
+        elif FieldNames.PORT in event:
+            process.connected_to[addr].append(port=int(event[FieldNames.PORT]))
+        elif FieldNames.PROTOCOL in event:
+            process.connected_to[addr].append(protocol=event[FieldNames.PROTOCOL])
+        else:
+            process.connected_to[addr]
 
         return (process, proc_file, addr)
 
