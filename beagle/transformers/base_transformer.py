@@ -85,7 +85,11 @@ class Transformer(object, metaclass=ABCMeta):
 
         logger.debug("Started producer thread")
 
-        for i in range(_THREAD_COUNT - 1):
+        consumer_count = _THREAD_COUNT - 1
+        if consumer_count == 0:
+            consumer_count = 1
+
+        for i in range(consumer_count):
             t = Thread(target=self._consumer_thread)
             self.errors[t] = []
             t.start()
@@ -98,7 +102,7 @@ class Transformer(object, metaclass=ABCMeta):
         self._queue.join()
 
         # Stop the threads
-        for i in range(_THREAD_COUNT - 1):
+        for i in range(consumer_count):
             self._queue.put(_SENTINEL)
 
         for thread in threads:
