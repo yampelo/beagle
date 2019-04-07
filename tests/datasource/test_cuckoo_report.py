@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from beagle.constants import EventTypes, FieldNames
+from beagle.constants import EventTypes, FieldNames, Protocols
 from beagle.datasources.cuckoo_report import CuckooReport
 
 
@@ -702,6 +702,431 @@ def test_regevents(event_type, edge_type, tmpdir):
                 FieldNames.HIVE: "HKEY_USERS",
                 FieldNames.REG_KEY_PATH: "S-1\\Software\\Microsoft\\Internet Explorer\\Toolbar",
                 FieldNames.REG_KEY: "Locked",
+            },
+            sort_keys=True,
+        )
+        in events
+    )
+
+
+@pytest.mark.parametrize("key,conn_type", [("udp", Protocols.UDP), ("tcp", Protocols.TCP)])
+def test_global_connection(key, conn_type, tmpdir):
+    f = make_tmp_file(
+        data={
+            "target": {"file": {"name": "It6QworVAgY.exe"}},
+            "behavior": {
+                "generic": [
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2460,
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                        "summary": {},
+                    },
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2548,
+                        "first_seen": 1553811204.703125,
+                        "ppid": 2460,
+                        "summary": {},
+                    },
+                ],
+                "processtree": [
+                    {
+                        "track": True,
+                        "pid": 2460,
+                        "process_name": "It6QworVAgY.exe",
+                        "command_line": '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                        "children": [
+                            {
+                                "track": True,
+                                "pid": 2548,
+                                "process_name": "It6QworVAgY.exe",
+                                "command_line": "--39dd5ff7",
+                                "first_seen": 1553811204.703125,
+                                "ppid": 2460,
+                                "children": [],
+                            }
+                        ],
+                    }
+                ],
+            },
+            "network": {
+                key: [
+                    {
+                        "src": "192.168.168.201",
+                        "dst": "192.168.168.205",
+                        "offset": 24,
+                        "time": 0.0,
+                        "dport": 52884,
+                        "sport": 5355,
+                    }
+                ]
+            },
+        },
+        tmpdir=tmpdir,
+    )
+    report = CuckooReport(f)
+    report.processes = report.identify_processes()
+
+    events = [json.dumps(e, sort_keys=True) for e in report.events()]
+
+    assert (
+        json.dumps(
+            {
+                FieldNames.PROCESS_ID: 2460,
+                FieldNames.PROCESS_IMAGE: "It6QworVAgY.exe",
+                FieldNames.PROCESS_IMAGE_PATH: "C:\\Users\\Administrator\\AppData\\Local\\Temp",
+                FieldNames.COMMAND_LINE: '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+                FieldNames.EVENT_TYPE: EventTypes.CONNECTION,
+                FieldNames.IP_ADDRESS: "192.168.168.205",
+                FieldNames.PROTOCOL: conn_type,
+                FieldNames.PORT: 52884,
+            },
+            sort_keys=True,
+        )
+        in events
+    )
+
+
+def test_icmp_connection(tmpdir):
+    f = make_tmp_file(
+        data={
+            "target": {"file": {"name": "It6QworVAgY.exe"}},
+            "behavior": {
+                "generic": [
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2460,
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                        "summary": {},
+                    },
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2548,
+                        "first_seen": 1553811204.703125,
+                        "ppid": 2460,
+                        "summary": {},
+                    },
+                ],
+                "processtree": [
+                    {
+                        "track": True,
+                        "pid": 2460,
+                        "process_name": "It6QworVAgY.exe",
+                        "command_line": '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                        "children": [
+                            {
+                                "track": True,
+                                "pid": 2548,
+                                "process_name": "It6QworVAgY.exe",
+                                "command_line": "--39dd5ff7",
+                                "first_seen": 1553811204.703125,
+                                "ppid": 2460,
+                                "children": [],
+                            }
+                        ],
+                    }
+                ],
+            },
+            "network": {"icmp": [{"src": "192.168.168.201", "dst": "192.168.168.205", "type": 3}]},
+        },
+        tmpdir=tmpdir,
+    )
+    report = CuckooReport(f)
+    report.processes = report.identify_processes()
+
+    events = [json.dumps(e, sort_keys=True) for e in report.events()]
+
+    assert (
+        json.dumps(
+            {
+                FieldNames.PROCESS_ID: 2460,
+                FieldNames.PROCESS_IMAGE: "It6QworVAgY.exe",
+                FieldNames.PROCESS_IMAGE_PATH: "C:\\Users\\Administrator\\AppData\\Local\\Temp",
+                FieldNames.COMMAND_LINE: '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+                FieldNames.EVENT_TYPE: EventTypes.CONNECTION,
+                FieldNames.IP_ADDRESS: "192.168.168.205",
+                FieldNames.PROTOCOL: Protocols.ICMP,
+            },
+            sort_keys=True,
+        )
+        in events
+    )
+
+
+def test_dnslookup_no_answer_connection(tmpdir):
+    f = make_tmp_file(
+        data={
+            "target": {"file": {"name": "It6QworVAgY.exe"}},
+            "behavior": {
+                "generic": [
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2460,
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                        "summary": {},
+                    },
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2548,
+                        "first_seen": 1553811204.703125,
+                        "ppid": 2460,
+                        "summary": {},
+                    },
+                ],
+                "processtree": [
+                    {
+                        "track": True,
+                        "pid": 2460,
+                        "process_name": "It6QworVAgY.exe",
+                        "command_line": '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                        "children": [
+                            {
+                                "track": True,
+                                "pid": 2548,
+                                "process_name": "It6QworVAgY.exe",
+                                "command_line": "--39dd5ff7",
+                                "first_seen": 1553811204.703125,
+                                "ppid": 2460,
+                                "children": [],
+                            }
+                        ],
+                    }
+                ],
+            },
+            "network": {"dns": [{"request": "pastebin.com", "type": "A", "answers": []}]},
+        },
+        tmpdir=tmpdir,
+    )
+    report = CuckooReport(f)
+    report.processes = report.identify_processes()
+
+    events = [json.dumps(e, sort_keys=True) for e in report.events()]
+
+    assert (
+        json.dumps(
+            {
+                FieldNames.PROCESS_ID: 2460,
+                FieldNames.PROCESS_IMAGE: "It6QworVAgY.exe",
+                FieldNames.PROCESS_IMAGE_PATH: "C:\\Users\\Administrator\\AppData\\Local\\Temp",
+                FieldNames.COMMAND_LINE: '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+                FieldNames.EVENT_TYPE: EventTypes.DNS_LOOKUP,
+                FieldNames.HTTP_HOST: "pastebin.com",
+            },
+            sort_keys=True,
+        )
+        in events
+    )
+
+
+def test_dnslookup_answers_connection(tmpdir):
+    f = make_tmp_file(
+        data={
+            "target": {"file": {"name": "It6QworVAgY.exe"}},
+            "behavior": {
+                "generic": [
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2460,
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                        "summary": {},
+                    },
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2548,
+                        "first_seen": 1553811204.703125,
+                        "ppid": 2460,
+                        "summary": {},
+                    },
+                ],
+                "processtree": [
+                    {
+                        "track": True,
+                        "pid": 2460,
+                        "process_name": "It6QworVAgY.exe",
+                        "command_line": '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                        "children": [
+                            {
+                                "track": True,
+                                "pid": 2548,
+                                "process_name": "It6QworVAgY.exe",
+                                "command_line": "--39dd5ff7",
+                                "first_seen": 1553811204.703125,
+                                "ppid": 2460,
+                                "children": [],
+                            }
+                        ],
+                    }
+                ],
+            },
+            "network": {
+                "dns": [
+                    {
+                        "request": "pastebin.com",
+                        "type": "A",
+                        "answers": [
+                            {"data": "1.1.1.1", "type": "A"},
+                            {"data": "2.2.2.2", "type": "A"},
+                        ],
+                    }
+                ]
+            },
+        },
+        tmpdir=tmpdir,
+    )
+    report = CuckooReport(f)
+    report.processes = report.identify_processes()
+
+    events = [json.dumps(e, sort_keys=True) for e in report.events()]
+
+    assert (
+        json.dumps(
+            {
+                FieldNames.PROCESS_ID: 2460,
+                FieldNames.PROCESS_IMAGE: "It6QworVAgY.exe",
+                FieldNames.PROCESS_IMAGE_PATH: "C:\\Users\\Administrator\\AppData\\Local\\Temp",
+                FieldNames.COMMAND_LINE: '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+                FieldNames.EVENT_TYPE: EventTypes.DNS_LOOKUP,
+                FieldNames.HTTP_HOST: "pastebin.com",
+                FieldNames.IP_ADDRESS: "1.1.1.1",
+            },
+            sort_keys=True,
+        )
+        in events
+    )
+
+    # Both answers need to be in there.
+    assert (
+        json.dumps(
+            {
+                FieldNames.PROCESS_ID: 2460,
+                FieldNames.PROCESS_IMAGE: "It6QworVAgY.exe",
+                FieldNames.PROCESS_IMAGE_PATH: "C:\\Users\\Administrator\\AppData\\Local\\Temp",
+                FieldNames.COMMAND_LINE: '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+                FieldNames.EVENT_TYPE: EventTypes.DNS_LOOKUP,
+                FieldNames.HTTP_HOST: "pastebin.com",
+                FieldNames.IP_ADDRESS: "2.2.2.2",
+            },
+            sort_keys=True,
+        )
+        in events
+    )
+
+
+def test_http_ex_requests(tmpdir):
+    f = make_tmp_file(
+        data={
+            "target": {"file": {"name": "It6QworVAgY.exe"}},
+            "behavior": {
+                "generic": [
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2460,
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                        "summary": {},
+                    },
+                    {
+                        "process_path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe",
+                        "process_name": "It6QworVAgY.exe",
+                        "pid": 2548,
+                        "first_seen": 1553811204.703125,
+                        "ppid": 2460,
+                        "summary": {},
+                    },
+                ],
+                "processtree": [
+                    {
+                        "track": True,
+                        "pid": 2460,
+                        "process_name": "It6QworVAgY.exe",
+                        "command_line": '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+                        "first_seen": 1553811202.765625,
+                        "ppid": 1272,
+                        "children": [
+                            {
+                                "track": True,
+                                "pid": 2548,
+                                "process_name": "It6QworVAgY.exe",
+                                "command_line": "--39dd5ff7",
+                                "first_seen": 1553811204.703125,
+                                "ppid": 2460,
+                                "children": [],
+                            }
+                        ],
+                    }
+                ],
+            },
+            "network": {
+                "http_ex": [
+                    {
+                        "status": 200,
+                        "src": "192.168.168.205",
+                        "resp": {
+                            "path": "/srv/cuckoo/cwd/storage/analyses/944094/network/33bf88d5b82df3723d5863c7d23445e345828904",
+                            "sha1": "33bf88d5b82df3723d5863c7d23445e345828904",
+                            "md5": "cd5a4d3fdd5bffc16bf959ef75cf37bc",
+                        },
+                        "sha1": "33bf88d5b82df3723d5863c7d23445e345828904",
+                        "protocol": "http",
+                        "dst": "92.122.190.16",
+                        "req": {
+                            "path": "/srv/cuckoo/cwd/storage/analyses/944094/network/da39a3ee5e6b4b0d3255bfef95601890afd80709",
+                            "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+                            "md5": "d41d8cd98f00b204e9800998ecf8427e",
+                        },
+                        "request": "GET /ncsi.txt HTTP/1.1\r\nConnection: Close\r\nUser-Agent: Microsoft NCSI\r\nHost: www.msftncsi.com",
+                        "uri": "/ncsi.txt",
+                        "response": "HTTP/1.1 200 OK\r\nContent-Length: 14\r\nDate: Mon, 25 Feb 2019 17:31:25 GMT\r\nConnection: close\r\nContent-Type: text/plain\r\nCache-Control: max-age=30, must-revalidate",
+                        "host": "www.msftncsi.com",
+                        "dport": 80,
+                        "path": "/srv/cuckoo/cwd/storage/analyses/944094/network/33bf88d5b82df3723d5863c7d23445e345828904",
+                        "sport": 49159,
+                        "method": "GET",
+                        "md5": "cd5a4d3fdd5bffc16bf959ef75cf37bc",
+                    }
+                ]
+            },
+        },
+        tmpdir=tmpdir,
+    )
+    report = CuckooReport(f)
+    report.processes = report.identify_processes()
+
+    events = [json.dumps(e, sort_keys=True) for e in report.events()]
+
+    assert (
+        json.dumps(
+            {
+                FieldNames.PROCESS_ID: 2460,
+                FieldNames.PROCESS_IMAGE: "It6QworVAgY.exe",
+                FieldNames.PROCESS_IMAGE_PATH: "C:\\Users\\Administrator\\AppData\\Local\\Temp",
+                FieldNames.COMMAND_LINE: '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
+                FieldNames.EVENT_TYPE: EventTypes.HTTP_REQUEST,
+                FieldNames.HTTP_HOST: "www.msftncsi.com",
+                FieldNames.HTTP_METHOD: "GET",
+                FieldNames.URI: "/ncsi.txt",
             },
             sort_keys=True,
         )

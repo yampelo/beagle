@@ -4,7 +4,7 @@ from urllib import parse
 
 from beagle.common import split_path, split_reg_path
 from beagle.common.logging import logger
-from beagle.constants import EventTypes, FieldNames, HTTPMethods
+from beagle.constants import EventTypes, FieldNames, HTTPMethods, Protocols
 from beagle.datasources.base_datasource import DataSource
 from beagle.transformers import GenericTransformer
 
@@ -102,6 +102,9 @@ class CuckooReport(DataSource):
                 self._regkey_events,
             ]:
                 yield from func(process_summary["summary"], process)
+
+        # Finall, yield from global process events:
+        yield from self.global_network_events()
 
     def identify_processes(self) -> Dict[int, dict]:
         """The `generic` tab contains an array of processes. We can iterate over it to quickly generate
@@ -264,3 +267,89 @@ class CuckooReport(DataSource):
                     FieldNames.REG_KEY: reg_key_path,
                     **process,
                 }
+
+    def global_network_events(self) -> Generator[dict, None, None]:
+
+        root_proc_name = self.report.get("target", {}).get("file", {"name": ""})["name"]
+        root_proc = None
+        if root_proc_name:
+            process_entries = self.processes.values()
+
+            # Get the submitted sample to match to the network events.
+            root_proc = next(
+                filter(lambda x: x[FieldNames.PROCESS_IMAGE] == root_proc_name, process_entries)
+            )
+
+        if not root_proc_name or not root_proc:
+            root_proc = list(self.processes.values())[0]
+
+        network_connections = self.report.get("network", {})
+
+        # Connections
+        # Example entry:
+        # {
+        #     "src": "192.168.168.201",
+        #     "dst": "192.168.168.229",
+        #     "offset": 299,
+        #     "time": 11.827166080474854,
+        #     "dport": 55494,
+        #     "sport": 5355,
+        # },
+        for udp_conn in network_connections.get("udp", []):
+
+            yield {
+                FieldNames.IP_ADDRESS: udp_conn["dst"],
+                FieldNames.PORT: udp_conn["dport"],
+                FieldNames.EVENT_TYPE: EventTypes.CONNECTION,
+                FieldNames.PROTOCOL: Protocols.UDP,
+                **root_proc,
+            }
+
+        # tcp connections
+        for tcp_conn in network_connections.get("tcp", []):
+
+            yield {
+                FieldNames.IP_ADDRESS: tcp_conn["dst"],
+                FieldNames.PORT: tcp_conn["dport"],
+                FieldNames.EVENT_TYPE: EventTypes.CONNECTION,
+                FieldNames.PROTOCOL: Protocols.TCP,
+                **root_proc,
+            }
+
+        # icmp connections
+        for icmp_conn in network_connections.get("icmp", []):
+
+            yield {
+                FieldNames.IP_ADDRESS: icmp_conn["dst"],
+                FieldNames.EVENT_TYPE: EventTypes.CONNECTION,
+                FieldNames.PROTOCOL: Protocols.ICMP,
+                **root_proc,
+            }
+
+        for dns_request in network_connections.get("dns", []):
+
+            # If answers, this will make the resolved to edge from the generic transformer.
+            if "answers" in dns_request and dns_request["answers"]:
+                for answer in dns_request["answers"]:
+                    yield {
+                        FieldNames.HTTP_HOST: dns_request["request"],
+                        FieldNames.EVENT_TYPE: EventTypes.DNS_LOOKUP,
+                        FieldNames.IP_ADDRESS: answer["data"],
+                        **root_proc,
+                    }
+            else:
+                # Otherwise, only add the DNS request
+                yield {
+                    FieldNames.HTTP_HOST: dns_request["request"],
+                    FieldNames.EVENT_TYPE: EventTypes.DNS_LOOKUP,
+                    **root_proc,
+                }
+
+        for http_request in network_connections.get("http_ex", []):
+            yield {
+                FieldNames.EVENT_TYPE: EventTypes.HTTP_REQUEST,
+                FieldNames.HTTP_METHOD: http_request["method"],
+                FieldNames.HTTP_HOST: http_request["host"],
+                FieldNames.URI: http_request["uri"],
+                **root_proc,
+            }
