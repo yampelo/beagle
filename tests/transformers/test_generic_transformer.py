@@ -234,6 +234,34 @@ def test_make_http(transformer):
     assert {"method": "GET"} in process.http_request_to[uri]
 
 
+def test_make_http_with_ip_address(transformer):
+    input_event = {
+        FieldNames.HTTP_HOST: "google.com",
+        FieldNames.IP_ADDRESS: "127.0.0.1",
+        FieldNames.URI: "/",
+        FieldNames.HTTP_METHOD: "GET",
+        FieldNames.PROCESS_IMAGE: "<PATH_SAMPLE.EXE>",
+        FieldNames.PROCESS_IMAGE_PATH: "\\",
+        FieldNames.PROCESS_ID: "1748",
+        FieldNames.COMMAND_LINE: "",
+        FieldNames.EVENT_TYPE: EventTypes.HTTP_REQUEST,
+    }
+    nodes = transformer.transform(input_event)
+
+    assert nodes is not None
+
+    assert len(nodes) == 5
+
+    process: Process = nodes[0]
+    uri: URI = nodes[2]
+    domain: Domain = nodes[3]
+    ip_address: IPAddress = nodes[4]
+
+    assert {"method": "GET"} in process.http_request_to[uri]
+    assert ip_address in domain.resolves_to
+    assert ip_address in process.connected_to
+
+
 def test_dnslookup(transformer):
 
     input_event = {
