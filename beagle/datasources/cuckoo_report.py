@@ -273,12 +273,13 @@ class CuckooReport(DataSource):
         root_proc_name = self.report.get("target", {}).get("file", {"name": ""})["name"]
         root_proc = None
         if root_proc_name:
-            process_entries = self.processes.values()
+            process_entries = list(self.processes.values())
 
             # Get the submitted sample to match to the network events.
-            root_proc = next(
-                filter(lambda x: x[FieldNames.PROCESS_IMAGE] == root_proc_name, process_entries)
-            )
+            for proc in process_entries:
+                if proc[FieldNames.PROCESS_IMAGE] == root_proc_name:
+                    root_proc = proc
+                    break
 
         if not root_proc_name or not root_proc:
             root_proc = list(self.processes.values())[0]
