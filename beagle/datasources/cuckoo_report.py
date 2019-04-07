@@ -283,6 +283,8 @@ class CuckooReport(DataSource):
         if not root_proc_name or not root_proc:
             root_proc = list(self.processes.values())[0]
 
+        logger.debug(f"Found root process as {root_proc}")
+
         network_connections = self.report.get("network", {})
 
         # Connections
@@ -350,6 +352,7 @@ class CuckooReport(DataSource):
                 FieldNames.EVENT_TYPE: EventTypes.HTTP_REQUEST,
                 FieldNames.HTTP_METHOD: http_request["method"],
                 FieldNames.HTTP_HOST: http_request["host"],
+                FieldNames.IP_ADDRESS: http_request["dst"],
                 FieldNames.URI: http_request["uri"],
                 **root_proc,
             }
