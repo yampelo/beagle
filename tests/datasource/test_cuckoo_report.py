@@ -1125,6 +1125,7 @@ def test_http_ex_requests(tmpdir):
                 FieldNames.COMMAND_LINE: '"C:\\Users\\Administrator\\AppData\\Local\\Temp\\It6QworVAgY.exe" ',
                 FieldNames.EVENT_TYPE: EventTypes.HTTP_REQUEST,
                 FieldNames.HTTP_HOST: "www.msftncsi.com",
+                FieldNames.IP_ADDRESS: "92.122.190.16",
                 FieldNames.HTTP_METHOD: "GET",
                 FieldNames.URI: "/ncsi.txt",
             },

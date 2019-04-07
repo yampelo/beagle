@@ -259,6 +259,7 @@ def test_make_http_with_ip_address(transformer):
 
     assert {"method": "GET"} in process.http_request_to[uri]
     assert ip_address in domain.resolves_to
+    assert ip_address in process.connected_to
 
 
 def test_dnslookup(transformer):

@@ -245,6 +245,7 @@ class GenericTransformer(Transformer):
         if FieldNames.IP_ADDRESS in event:
             ip = IPAddress(event[FieldNames.IP_ADDRESS])
             dom.resolves_to[ip]
+            process.connected_to[ip]
             return (process, proc_file, uri, dom, ip)
         else:
             return (process, proc_file, uri, dom)
