@@ -222,7 +222,9 @@ class GenericTransformer(Transformer):
 
         return (process, proc_file, addr)
 
-    def make_http_req(self, event: dict) -> Tuple[Process, File, URI, Domain]:
+    def make_http_req(
+        self, event: dict
+    ) -> Union[Tuple[Process, File, URI, Domain], Tuple[Process, File, URI, Domain, IPAddress]]:
         process = Process(
             process_image=event[FieldNames.PROCESS_IMAGE],
             process_image_path=event[FieldNames.PROCESS_IMAGE_PATH],
@@ -240,7 +242,12 @@ class GenericTransformer(Transformer):
 
         process.http_request_to[uri].append(method=event[FieldNames.HTTP_METHOD])
 
-        return (process, proc_file, uri, dom)
+        if FieldNames.IP_ADDRESS in event:
+            ip = IPAddress(event[FieldNames.IP_ADDRESS])
+            dom.resolves_to[ip]
+            return (process, proc_file, uri, dom, ip)
+        else:
+            return (process, proc_file, uri, dom)
 
     def make_dnslookup(
         self, event: dict
