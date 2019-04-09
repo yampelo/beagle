@@ -42,11 +42,13 @@ matrix:
       python: 3.6
       language: sh
       install: pip3 install --user -e ".[rekall]"
+      script: mkdir -p data && $(python3 -m site --user-base)/bin/pytest
 
     - name: "MacOSX Python 3.7"
       os: osx
       python: 3.7
       language: sh
       install: pip3 install --user -e .
+      script: mkdir -p data && $(python3 -m site --user-base)/bin/pytest
 
 script: mkdir -p data && pytest
