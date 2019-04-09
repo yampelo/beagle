@@ -18,11 +18,7 @@ RUN apt-get update && apt-get install -y \
 
 RUN mkdir -p /opt/beagle/beagle/web/static
 
-COPY Pipfile Pipfile.lock /opt/beagle/
-
 WORKDIR /opt/beagle
-
-RUN pip install ".[rekall]"
 
 COPY beagle/web/static/package.json beagle/web/static/package-lock.json /opt/beagle/beagle/web/static/
 
@@ -31,6 +27,8 @@ WORKDIR /opt/beagle/beagle/web/static
 RUN npm install  && npm audit fix
 
 COPY . /opt/beagle
+
+RUN pip install ".[rekall]"
 
 WORKDIR /opt/beagle/beagle/web/static
 
