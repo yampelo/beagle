@@ -83,7 +83,7 @@ class FireEyeAXReport(DataSource):
         os_changes = self.alert.get("explanation", {}).get("osChanges", [{}])
 
         if (len(os_changes)) == 0:
-            raise StopIteration()
+            return
         else:
             for change_type, events in os_changes[0].items():
 
