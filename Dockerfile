@@ -38,7 +38,7 @@ RUN npm run build
 
 WORKDIR /opt/beagle
 
-RUN mkdir -p /data/beagle && python setup.py install
+RUN mkdir -p /data/beagle && pip install ".[rekall]"
 
 EXPOSE 8000
 
