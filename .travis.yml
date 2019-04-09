@@ -18,6 +18,7 @@ matrix:
     - name: "Linux Python 3.7"
       os: linux
       python: 3.7
+      dist: xenial
       install: pip install .
 
     - name: "Windows Python 3.5"
@@ -25,7 +26,7 @@ matrix:
       language: sh
       install: pip install ".[rekall]"
       before_install:
-      - choco install python3 --version 3.5.6
+      - choco install python3 --version 3.5.4
       - export PATH="/c/Python35:/c/Python35/Scripts:$PATH"
 
     - name: "Windows Python 3.6"
@@ -41,7 +42,7 @@ matrix:
       language: sh
       install: pip install .
       before_install:
-          - choco install python3 --version 3.7.0
+          - choco install python3 --version 3.7.3
           - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
 
     - name: "MacOSX Python 3.6"
