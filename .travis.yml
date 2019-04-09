@@ -45,6 +45,12 @@ matrix:
           - choco install python3 --version 3.7.3
           - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
 
+    - name: "MacOSX Python 3.5"
+      os: osx
+      python: 3.5
+      language: sh
+      install: pip3 install -e ".[rekall]"
+
     - name: "MacOSX Python 3.6"
       os: osx
       python: 3.6
