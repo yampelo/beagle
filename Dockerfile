@@ -22,7 +22,7 @@ COPY Pipfile Pipfile.lock /opt/beagle/
 
 WORKDIR /opt/beagle
 
-RUN pip install pipenv && pipenv install --system --skip-lock
+RUN pip install ".[rekall]"
 
 COPY beagle/web/static/package.json beagle/web/static/package-lock.json /opt/beagle/beagle/web/static/
 
@@ -38,7 +38,7 @@ RUN npm run build
 
 WORKDIR /opt/beagle
 
-RUN mkdir -p /data/beagle && pip install ".[rekall]"
+RUN mkdir -p /data/beagle
 
 EXPOSE 8000
 

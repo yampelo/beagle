@@ -49,12 +49,12 @@ matrix:
       os: osx
       python: 3.6
       language: sh
-      install: pip3 install -e .[tests]
+      install: pip3 install -e ".[rekall]"
 
     - name: "MacOSX Python 3.7"
       os: osx
       python: 3.7
       language: sh
-      install: pip3 install -e .[tests]
+      install: pip3 install -e ".[rekall]"
 
 script: mkdir -p data && pytest
