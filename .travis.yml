@@ -1,13 +1,54 @@
-dist: xenial
 language: python
-python:
-    - 3.6
-# command to install dependencies
-install:
-    - pip install pipenv
-    - pipenv install --skip-lock
+group: travis_latest
+
 env:
-    - BEAGLE__STORAGE__DIR=data/ BEAGLE__STORAGE__DATABASE=sqlite:///$PWD/data/beagle.db
-# command to run tests
-script:
-    - mkdir -p data && pytest
+    - BEAGLE__STORAGE__DIR=data/ BEAGLE__STORAGE__DATABASE=sqlite:///beagle.db
+
+cache: pip
+
+matrix:
+    include:
+    - name: "Linux Python 3.6"
+      os: linux
+      python: 3.6
+      install: pip install ".[rekall]"
+
+    - name: "Linux Python 3.7"
+      os: linux
+      python: 3.7
+      dist: xenial
+      install: pip install .
+
+    - name: "Windows Python 3.6"
+      os: windows
+      language: sh
+      install: pip install .
+      before_install:
+        - choco install python3 --version 3.6.8
+        - export PATH="/c/Python36:/c/Python36/Scripts:$PATH"
+        - pip install setuptools wheel
+
+    - name: "Windows Python 3.7"
+      os: windows
+      language: sh
+      install: pip install .
+      before_install:
+          - choco install python3 --version 3.7.3
+          - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
+          - pip install setuptools wheel
+
+    - name: "MacOSX Python 3.6"
+      os: osx
+      python: 3.6
+      language: sh
+      install: pip3 install --user -e ".[rekall]"
+      script: mkdir -p data && $(python3 -m site --user-base)/bin/pytest
+
+    - name: "MacOSX Python 3.7"
+      os: osx
+      python: 3.7
+      language: sh
+      install: pip3 install --user -e .
+      script: mkdir -p data && $(python3 -m site --user-base)/bin/pytest
+
+script: mkdir -p data && pytest

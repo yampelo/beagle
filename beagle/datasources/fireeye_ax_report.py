@@ -59,8 +59,8 @@ class FireEyeAXReport(DataSource):
             self.alert = data["alert"][0]
             self.base_timestamp = int(
                 datetime.datetime.strptime(
-                    self.alert["occurred"], "%Y-%m-%d %H:%M:%S +0000"
-                ).strftime("%s")
+                    self.alert["occurred"].replace(" +0000", ""), "%Y-%m-%d %H:%M:%S"
+                ).timestamp()
             )
 
         logger.info("Set up FireEyeAX Report")
@@ -83,7 +83,7 @@ class FireEyeAXReport(DataSource):
         os_changes = self.alert.get("explanation", {}).get("osChanges", [{}])
 
         if (len(os_changes)) == 0:
-            raise StopIteration()
+            return
         else:
             for change_type, events in os_changes[0].items():
 

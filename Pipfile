@@ -14,10 +14,10 @@ flask-sqlalchemy = "*"
 requests = "*"
 gunicorn = "*"
 future = "==0.16.0"
-rekall = "*"
 pydgraph = "*"
 pandas = "*"
 graphistry = {extras = ["networkx"],version = "==0.9.63"}
+pybeagle = {editable = true,extras = ["rekall"],path = "."}
 
 [dev-packages]
 "flake8" = "*"
@@ -29,7 +29,6 @@ matplotlib = "*"
 numpy = "*"
 scipy = "*"
 mypy = "*"
-requests = "*"
 pytest = "==4.0.0"
 sphinx = "*"
 recommonmark = "*"
