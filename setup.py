@@ -12,7 +12,7 @@ NAME = "pybeagle"
 DESCRIPTION = "Beagle is an incident response and digital forensics tool which transforms data sources and logs into graphs"
 URL = "https://github.com/yampelo/beagle"
 AUTHOR = "yampelo"
-REQUIRES_PYTHON = ">=3.5.0"
+REQUIRES_PYTHON = ">=3.6.0"
 VERSION = "1.0.2"
 EMAIL = None
 
@@ -152,7 +152,6 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Topic :: Software Development :: Libraries",
