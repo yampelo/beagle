@@ -1,6 +1,5 @@
 language: python
 group: travis_latest
-dist: xenial
 
 cache: pip
 
