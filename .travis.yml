@@ -26,7 +26,7 @@ matrix:
       before_install:
         - choco install python3 --version 3.6.8
         - export PATH="/c/Python36:/c/Python36/Scripts:$PATH"
-        - pip install setuptools
+        - pip install setuptools wheel
 
     - name: "Windows Python 3.7"
       os: windows
@@ -35,7 +35,7 @@ matrix:
       before_install:
           - choco install python3 --version 3.7.3
           - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
-          - pip install setuptools
+          - pip install setuptools wheel
 
     - name: "MacOSX Python 3.6"
       os: osx
