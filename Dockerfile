@@ -28,13 +28,13 @@ RUN npm install  && npm audit fix
 
 COPY . /opt/beagle
 
-RUN pip install ".[rekall]"
-
 WORKDIR /opt/beagle/beagle/web/static
 
 RUN npm run build
 
 WORKDIR /opt/beagle
+
+RUN pip install ".[rekall]"
 
 RUN mkdir -p /data/beagle
 
