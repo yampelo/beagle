@@ -1,6 +1,9 @@
 language: python
 group: travis_latest
 
+env:
+    - BEAGLE__STORAGE__DIR=data/ BEAGLE__STORAGE__DATABASE=sqlite:///$PWD/data/beagle.db
+
 cache: pip
 
 matrix:
