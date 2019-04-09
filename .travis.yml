@@ -1,13 +1,43 @@
-dist: xenial
 language: python
-python:
-    - 3.6
-# command to install dependencies
+group: travis_latest
+dist: xenial
+
+cache: pip
+
+
+
 install:
-    - pip install pipenv
-    - pipenv install --skip-lock
-env:
-    - BEAGLE__STORAGE__DIR=data/ BEAGLE__STORAGE__DATABASE=sqlite:///$PWD/data/beagle.db
-# command to run tests
-script:
-    - mkdir -p data && pytest
+    - pip install .
+
+matrix:
+    include:
+        - os: linux
+            - python: 3.5
+            setup: pip install ".[rekall]"
+        - os: linux
+            - python: 3.6
+            setup: pip install ".[rekall]"
+        - os: linux
+            - python: 3.7
+            setup: pip install ".[rekall]"
+
+        - os: windows
+          language: sh
+          setup: pip install ".[rekall]"
+          before_install:
+              - choco install python3 --version 3.5.6
+              - export PATH="/c/Python35:/c/Python35/Scripts:$PATH"
+        - os: windows
+          language: sh
+          setup: pip install .
+          before_install:
+              - choco install python3 --version 3.6.8
+              - export PATH="/c/Python36:/c/Python36/Scripts:$PATH"
+        - os: windows
+          language: sh
+          setup: pip install .
+          before_install:
+              - choco install python3 --version 3.7.0
+              - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
+
+script: mkdir -p data && pytest
