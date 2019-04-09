@@ -62,7 +62,7 @@ class GenericVTSandbox(DataSource):
 
     def __init__(self, behaviour_report_file: str, hash_metadata_file: str = None) -> None:
 
-        behaviour_report = json.load(open(behaviour_report_file, "r"))
+        behaviour_report = json.load(open(behaviour_report_file, "r", encoding="utf8"))
 
         if "attributes" not in behaviour_report:
             raise AttributeError(f"Supplied behaviour report does not contain any data")
