@@ -377,7 +377,7 @@ Returns a list of available datasources, which transformers they work with, as w
 
 ### List Categories `/api/categories`
 
-Returns a list of all categories, their names and their ids.
+Returns a list of all categories, their names and ids.
 
 -   **URL**
 
