@@ -248,7 +248,7 @@ Returns a list of available datasources, which transformers they work with, as w
 
 -   **Error Response:**
 
-    This endpoint returns 404 if there does not exist.
+    This endpoint returns 404 if one does not exist.
 
     -   **Code:** 404 - Graph not found <br />
         **Example:** `{ message : "Graph not found" }`
@@ -344,7 +344,7 @@ Returns a list of available datasources, which transformers they work with, as w
 
 -   **Error Response:**
 
-    This endpoint returns 404 if there does not exist.
+    This endpoint returns 404 if one does not exist.
 
     -   **Code:** 404 - Graph not found <br />
         **Example:** `{ message : "Graph not found" }`
@@ -377,7 +377,7 @@ Returns a list of available datasources, which transformers they work with, as w
 
 ### List Categories `/api/categories`
 
-Returns a list of all categories, their names and ids.
+Returns a list of all categories, their names and their ids.
 
 -   **URL**
 
