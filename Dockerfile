@@ -40,5 +40,5 @@ RUN mkdir -p /data/beagle
 
 EXPOSE 8000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "-w", "12", "--timeout", "500", "beagle.web.wsgi:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "-w", "12", "--timeout", "3000", "beagle.web.wsgi:app"]
 
