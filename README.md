@@ -95,7 +95,7 @@ It is also available as library. Full API Documentation is available on [https:/
 ```
 pip install pybeagle
 ```
-*Note: Only Python 3.6 is currently supported.*
+*Note: Only Python 3.6+ is currently supported.*
 
 Rekall is not automatically installed. To install Rekall execute the following command instead:
 ```
