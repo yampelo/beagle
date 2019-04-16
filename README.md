@@ -95,12 +95,19 @@ It is also available as library. Full API Documentation is available on [https:/
 ```
 pip install pybeagle
 ```
+*Note: Only Python 3.6+ is currently supported.*
+
+Rekall is not automatically installed. To install Rekall execute the following command instead:
+```
+pip install pybeagle[rekall]
+```
+
 
 ### Configuration
 
 -   [Complete overview of each configuration entry](docs/configuration.md)
 
-Any entry in the [configuration file](https://github.com/yampelo/beagle/blob/master/config/beagle_default.cfg) can be modified using environment variables that follow the following format; `BEAGLE__{SECTION}__{KEY}`. For example, in order to change the VirusTotal API Key used when using the docker image, you would use `-e` parameter and set the `BEAGLE__VIRUSTOTAL__API_KEY` variable:
+Any entry in the [configuration file](https://github.com/yampelo/beagle/blob/master/config/beagle_default.cfg) can be modified using environment variables that follow the following format: `BEAGLE__{SECTION}__{KEY}`. For example, in order to change the VirusTotal API Key used when using the docker image, you would use `-e` parameter and set the `BEAGLE__VIRUSTOTAL__API_KEY` variable:
 
 ```bash
 docker run -v "data/beagle":"/data/beagle" -p 8000:8000 -e "BEAGLE__VIRUSTOTAL__API_KEY=$API_KEY" beagle
@@ -137,7 +144,7 @@ The upload form wraps around the graph creation process, and automatically uses 
 -   VT API Sandbox Report asks for the hash to graph.
 -   FireEye HX requires the HX triage.
 
-Any graph created is stored locally in the folder defined under the `dir` key from the `storage` section in the configuration. This can be modified by setting the `BEAGLE__STORAGE__DIR` enviroment variable.
+Any graph created is stored locally in the folder defined under the `dir` key from the `storage` section in the configuration. This can be modified by setting the `BEAGLE__STORAGE__DIR` environment variable.
 
 Optionally, a comment can be added to any graph to better help describe it.
 
@@ -155,7 +162,7 @@ Clicking on a datasource on the sidebar renders a table of all parsed graphs for
 
 Viewing a graph in Beagle provides a web interface that allows analysts to quickly pivot around an incident.
 
-The interface is split into two main parts, the left part which contains various perspectives of the graph (Graph, Tree, Table, etc), and the right part which allows you to filter nodes and edges by type, search for nodes, and expand a nodes properties. It also allows you to undo and redo operations you perform on the graph.
+The interface is split into two main parts, the left part which contains various perspectives of the graph (Graph, Tree, Table, etc), and the right part which allows you to filter nodes and edges by type, search for nodes, and expand a node's properties. It also allows you to undo and redo operations you perform on the graph.
 
 Any element in the graph that has a divider above it is collapsible:
 
@@ -165,7 +172,7 @@ Any element in the graph that has a divider above it is collapsible:
 
 #### Inspecting Nodes and Edges
 
-Nodes in the graph display the first 15 characters of their a specific field. For example, for a process node, this will be the process name.
+Nodes in the graph display the first 15 characters of a specific field. For example, for a process node, this will be the process name.
 
 Edges simply show the edge type.
 
@@ -185,7 +192,7 @@ A **single** click on a node or edge will focus that node and display its inform
 
 #### Expanding Neighbours
 
-A **double click** on a node will pull in any neighbouring nodes. A neighbouring node is any node connected to the clicked on node by an edge. If there are no neighbors to be pulled in, no change will be seen in the graph.
+A **double click** on a node will pull in any neighbouring nodes. A neighbouring node is any node connected to the clicked-on node by an edge. If there are no neighbors to be pulled in, no change will be seen in the graph.
 
 -   This is regardless of direction. That means that a parent process or a child process could be pulled in when double clicking on a node.
 -   Beagle will only pull in **25** nodes at a time.
@@ -215,7 +222,7 @@ Two extremely useful mutators are:
 
 ###### Backtracking a node
 
-Backtracking a node is extremely useful, and is similar to doing a root cause infection in log files.
+Backtracking a node is extremely useful and is similar to doing a root cause infection in log files.
 
 <center>
 <img src="docs/imgs/backtrack_node.gif">
@@ -241,7 +248,7 @@ Toggling a node type off prevents that node type to be used when using mutators,
 
 #### Undo/Redo Action and Reset
 
-Any action in the graph is immediately reversable! Using the undo/redo buttons you can revert any action you perform. The reset button sets the graph state to when it loaded, saving you a refresh.
+Any action in the graph is immediately reversible! Using the undo/redo buttons you can revert any action you perform. The reset button sets the graph state to when it loaded, saving you a refresh.
 
 <center>
 <img src="docs/imgs/redo_undo.gif">
@@ -249,7 +256,7 @@ Any action in the graph is immediately reversable! Using the undo/redo buttons y
 
 #### Graph Perspectives
 
-As you change the graphs current state using the above action, you might also want to view the current set of visible node and edges in a different perspective. The tabs at the top of the graph screen allow you to transform the data into a variety of views:
+As you change the graph's current state using the above action, you might also want to view the current set of visible node and edges in a different perspective. The tabs at the top of the graph screen allow you to transform the data into a variety of views:
 
 -   Graph (Default perspective)
 -   Tree
@@ -265,10 +272,10 @@ Each of the perspectives supports focusing on nodes by clicking on them.
 
 ## Python Library
 
-The graph generation process can be performed programatically using the python library. The graph generation process is made up of three steps:
+The graph generation process can be performed programmatically using the python library. The graph generation process is made up of three steps:
 
 1. `DataSource` classes parse and yield events one by one.
-2. `Transformer` classes take those inputs, and transform them into various `Node` classes such as `Process`.
+2. `Transformer` classes take those inputs and transform them into various `Node` classes such as `Process`.
 3. `Backend` classes take the array of nodes, place them into a graph structure, and send them to a desired location.
 
 The Python package can be installed via pip:

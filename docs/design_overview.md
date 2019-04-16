@@ -67,7 +67,8 @@ The following table lists all of the currently supported data sources. They all 
 | GenericVTSandboxAPI | Virustotal v3 API sandbox logs (accepts a hash rather <br/> than file and pulls via the api if a key is available |
 | WindowsMemory       | Raw windows memory images (Parsed using Rekall)                                                                   |
 | ProcmonCSV          | A procmon run file, exported to CSV                                                                               |
-
+| CuckooSandboxReport | Cuckoo Sandbox Reports												  |
+| FireEyeAXReport     | FireEye AX Reports												  |
 ### Transformers
 
 Transformers take the events provided by the above data sources and convert them into `Node` objects.
@@ -81,6 +82,7 @@ Each datasource has an array of supported transformer with at least one transfor
 | GenericTransformer   | A generic transformer for datasources which output events that leverage the fieldnames in `beagle.constants.FieldNames` |
 | WinEVTXTransformer   | A transformer for windows event logs                                                                                    |
 | ProcmonTransformer   | A transformer for procmon events                                                                                        |
+| FireEyeAXTransformer | A transformer for FireEye AX events											 |
 
 ### Backends
 
