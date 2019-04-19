@@ -1,6 +1,6 @@
 # Beagle
 
-[![Build Status](https://travis-ci.com/yampelo/beagle.svg?token=ecmfGYY44tZk69KamLJx&branch=master)](https://travis-ci.com/yampelo/beagle) [![Read The Docs](https://readthedocs.org/projects/beagle-graphs/badge/?version=latest)](https://beagle-graphs.readthedocs.io/en/latest/?badge=latest) [![Docker](https://img.shields.io/docker/cloud/build/yampelo/beagle.svg)](https://hub.docker.com/r/yampelo/beagle) [![PyPI](https://img.shields.io/pypi/v/pybeagle.svg?style=flat-square)](https://pypi.org/project/pybeagle/) [![Slack](https://img.shields.io/badge/slack-open-blue.svg)][https://join.slack.com/t/beaglegraph/shared_invite/enQtNjE1MzQyNTE3NTI3LTUzMGNhMzcwN2M5ODg3NGRmNzVmM2ZjMmU0NDk3ODEwMmRkZjEyZWIxYzU5NmM3MWMxOWU4MjVhNWEyNWVkNTI]
+[![Build Status](https://travis-ci.com/yampelo/beagle.svg?token=ecmfGYY44tZk69KamLJx&branch=master)](https://travis-ci.com/yampelo/beagle) [![Read The Docs](https://readthedocs.org/projects/beagle-graphs/badge/?version=latest)](https://beagle-graphs.readthedocs.io/en/latest/?badge=latest) [![Docker](https://img.shields.io/docker/cloud/build/yampelo/beagle.svg)](https://hub.docker.com/r/yampelo/beagle) [![PyPI](https://img.shields.io/pypi/v/pybeagle.svg?style=flat-square)](https://pypi.org/project/pybeagle/) [![Slack](https://img.shields.io/badge/slack-open-blue.svg)](https://join.slack.com/t/beaglegraph/shared_invite/enQtNjE1MzQyNTE3NTI3LTUzMGNhMzcwN2M5ODg3NGRmNzVmM2ZjMmU0NDk3ODEwMmRkZjEyZWIxYzU5NmM3MWMxOWU4MjVhNWEyNWVkNTI)
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=2 depthTo=4 orderedList=true} -->
 
