@@ -1,6 +1,6 @@
 # Development
 
-Development primarly involves creating a datasource and transformer. For backend creation, see the existing `Neo4J` and `DGraph` classes for how to leverage `NetworkX` to transform a created graph.
+Development primarily involves creating a datasource and transformer. For backend creation, see the existing `Neo4J` and `DGraph` classes for how to leverage `NetworkX` to transform a created graph.
 
 Developing a datasource mainly involves forwarding events from it one by one into a transformer. This section will be split into two different approaches, one using a specific Transformer, and one using the `GenericTransformer`.
 
@@ -96,7 +96,7 @@ class ChangedValue(Edge):
 
 ### Using Edge Classes
 
-Once an edge class is defined, and is set as an attribute on a node class. Adding the edge can be done by inserting the target node into the defaultdict, and optionally adding data to that instance:
+Once an edge class is defined, it is set as an attribute on a node class. Adding the edge can be done by inserting the target node into the defaultdict, and optionally adding data to that instance as shown below:
 
 Let's say we want to add a `ChangeValue` edge from a `Process` to a `RegistryKey`, and that the edge `defaultdict` is defined on `changed_value` attribute:
 
@@ -322,4 +322,4 @@ def transform(self, event: dict) -> Optional[Tuple]:
         return None
 ```
 
-That's it! now the transformer and datasource can work together to yeild nodes to be placed into a graph by the backends.
+That's it! now the transformer and datasource can work together to yield nodes to be placed into a graph by the backends.
