@@ -1,6 +1,6 @@
 # Configuration
 
-All configuration entries can be modified by setting enviroment variables that follow the following format (double underscores):
+All configuration entries can be modified by setting environment variables that follow the following format (double underscores):
 
 ```
 BEAGLE__{SECTION}__{KEY}
@@ -21,7 +21,7 @@ Each section below represents a single entry in the configuration file:
     -   For example `bolt://localhost:7687`
 -   `username`: Username to authenticate with
 -   `password`: Password for the username
--   `batch_size`: Number of items to send to Neo4J at once using UNWIND querys.
+-   `batch_size`: Number of items to send to Neo4J at once using UNWIND queries.
     -   Default value is `1000`
 
 ### `dgraph`
