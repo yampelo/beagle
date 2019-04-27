@@ -44,7 +44,7 @@ The following is a list of currently support Node Types
 | Deleted       | Process     | File        | A process deleted this file                                                               |
 | Copied        | Process     | File        | A process copied this file (the copied file will have a `CopiedTo` edge to the dest file) |
 | Loaded        | Process     | File        | A process loaded a function from this file.                                               |
-| ConnectedTo   | Process     | IPAddress   | A process initated a network connection to this address                                   |
+| ConnectedTo   | Process     | IPAddress   | A process initiated a network connection to this address                                   |
 | HTTPRequestTo | Process     | URI         | A process made a HTTP Request to this URI                                                 |
 | DNSQueryFor   | Process     | Domain      | A process performed a DNS request for this domain.                                        |
 | ChangedValue  | Process     | RegistryKey | A process changed the value of this registry key                                          |
