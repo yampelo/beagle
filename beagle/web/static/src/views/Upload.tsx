@@ -129,20 +129,16 @@ export default class Upload extends React.Component<{}, UploadState> {
     };
 
     public onSubmit = () => {
-        if (
-            Object.keys(this.state.formParams).length !==
-            this.state.params.filter(param => param.required === true).length
-        ) {
-            const missing = this.state.params
-                .filter(
-                    param =>
-                        param.required === true &&
-                        !Object.keys(this.state.formParams).includes(param.name)
-                )
-                .map(s => snakeToSpaced(s.name.replace("_file", "")));
+        const missing = this.state.params.filter(
+            param =>
+                param.required === true && !Object.keys(this.state.formParams).includes(param.name)
+        );
+
+        if (missing.length > 0) {
+            const missingNames = missing.map(s => snakeToSpaced(s.name.replace("_file", "")));
 
             this.setState({
-                errorMessage: `The following parameters are required: ${missing.join(", ")}`,
+                errorMessage: `The following parameters are required: ${missingNames.join(", ")}`,
                 graphRoute: "",
                 processing: false,
                 steps: {
