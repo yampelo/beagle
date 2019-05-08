@@ -73,3 +73,24 @@ def test_get_metadata(tmpdir):
         "alert_url": "https://foo",
     }
 
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        {"alert": [{"occurred": "2018-03-31 13:40:01 +0000", "foo": []}]},
+        {"alert": [{"occurred": "2018-03-31T13:40:01Z +0000", "foo": []}]},
+        {"alert": [{"occurred": "2018-03-31T13:40:01Z", "foo": []}]},
+    ],
+)
+def test_multiple_time_formats(data, tmpdir):
+    f = make_tmp_file(data=data, tmpdir=tmpdir)
+    assert 1522518001.0 == FireEyeAXReport(f).base_timestamp
+
+
+def test_invalid_time_format(tmpdir):
+
+    # invalid raises value error.
+    data = {"alert": [{"occurred": "2018/03/31 13:40:01 +0000", "foo": []}]}
+    f = make_tmp_file(data=data, tmpdir=tmpdir)
+    with pytest.raises(ValueError):
+        assert 1522518001.0 == FireEyeAXReport(f).base_timestamp

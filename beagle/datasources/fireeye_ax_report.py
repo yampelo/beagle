@@ -57,11 +57,23 @@ class FireEyeAXReport(DataSource):
             self.alert = {}  # type: ignore
         else:
             self.alert = data["alert"][0]
-            self.base_timestamp = int(
-                datetime.datetime.strptime(
-                    self.alert["occurred"].replace(" +0000", ""), "%Y-%m-%d %H:%M:%S"
-                ).timestamp()
-            )
+
+            occured = self.alert["occurred"].replace(" +0000", "")
+            # Multiple possible timestamp string.
+            for fmt_string in ["%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%SZ"]:
+                try:
+                    self.base_timestamp = int(
+                        datetime.datetime.strptime(occured, fmt_string).timestamp()
+                    )
+                    break  # break if succesfully parsed.
+                except ValueError:
+                    continue
+
+            # If break not reached.
+            else:
+                raise ValueError(
+                    f"{self.alert['occurred']} did not match any known time format strings for AX"
+                )
 
         logger.info("Set up FireEyeAX Report")
 
