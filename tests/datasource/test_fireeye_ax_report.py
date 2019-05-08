@@ -84,7 +84,7 @@ def test_get_metadata(tmpdir):
 )
 def test_multiple_time_formats(data, tmpdir):
     f = make_tmp_file(data=data, tmpdir=tmpdir)
-    assert 1522518001.0 == FireEyeAXReport(f).base_timestamp
+    assert isinstance(FireEyeAXReport(f).base_timestamp, int)
 
 
 def test_invalid_time_format(tmpdir):
@@ -93,4 +93,4 @@ def test_invalid_time_format(tmpdir):
     data = {"alert": [{"occurred": "2018/03/31 13:40:01 +0000", "foo": []}]}
     f = make_tmp_file(data=data, tmpdir=tmpdir)
     with pytest.raises(ValueError):
-        assert 1522518001.0 == FireEyeAXReport(f).base_timestamp
+        assert 1522503601 == FireEyeAXReport(f).base_timestamp
