@@ -51,7 +51,7 @@ class FireEyeAXReport(DataSource):
 
         data = json.load(open(ax_report, "r"))
 
-        self.version: str = data["version"]
+        self.version: str = data.get("version", "8.1.0")
 
         self.appliance = data.get("appliance", "Unknown")
 
@@ -110,11 +110,14 @@ class FireEyeAXReport(DataSource):
             # os-changes is a dict in 8.2
             os_changes = self.alert.get("explanation", {}).get("os-changes", {})
         else:
-            os_changes = self.alert.get("explanation", {}).get("osChanges", [{}])[0]
+            os_changes = self.alert.get("explanation", {}).get("osChanges", [{}])
 
         if (len(os_changes)) == 0:
             return
         else:
+            if isinstance(os_changes, list):
+                os_changes = os_changes[0]
+
             for change_type, events in os_changes.items():
 
                 if not isinstance(events, list):

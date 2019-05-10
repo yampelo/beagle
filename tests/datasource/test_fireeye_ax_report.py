@@ -18,7 +18,7 @@ def make_tmp_file(data: dict, tmpdir):
 
 def make_default_file(tmpdir):
     p = tmpdir.mkdir("ax").join("data.json")
-    p.write(json.dumps({"alert": [{"explanation": {"osChanges": [{}]}}]}))
+    p.write(json.dumps({"version": "8.1.0", "alert": [{"explanation": {"osChanges": [{}]}}]}))
     return p
 
 
@@ -32,10 +32,18 @@ def test_no_data(tmpdir):
     "data",
     [
         {},
-        {"alert": []},
-        {"alert": [{"occurred": "2018-03-31 13:40:01 +0000", "foo": []}]},
-        {"alert": [{"occurred": "2018-03-31 13:40:01 +0000", "explanation": {}}]},
-        {"alert": [{"occurred": "2018-03-31 13:40:01 +0000", "explanation": {"osChanges": []}}]},
+        {"version": "8.1.0", "alert": []},
+        {"version": "8.1.0", "alert": [{"occurred": "2018-03-31 13:40:01 +0000", "foo": []}]},
+        {
+            "version": "8.1.0",
+            "alert": [{"occurred": "2018-03-31 13:40:01 +0000", "explanation": {}}],
+        },
+        {
+            "version": "8.1.0",
+            "alert": [
+                {"occurred": "2018-03-31 13:40:01 +0000", "explanation": {"osChanges": [{}]}}
+            ],
+        },
     ],
 )
 def test_no_events(data, tmpdir):
@@ -46,6 +54,7 @@ def test_no_events(data, tmpdir):
 def test_get_metadata(tmpdir):
     f = make_tmp_file(
         data={
+            "version": "8.1.0",
             "alert": [
                 {
                     "explanation": {"malwareDetected": {"malware": [{"name": "Stuxnet"}]}},
@@ -77,9 +86,9 @@ def test_get_metadata(tmpdir):
 @pytest.mark.parametrize(
     "data",
     [
-        {"alert": [{"occurred": "2018-03-31 13:40:01 +0000", "foo": []}]},
-        {"alert": [{"occurred": "2018-03-31T13:40:01Z +0000", "foo": []}]},
-        {"alert": [{"occurred": "2018-03-31T13:40:01Z", "foo": []}]},
+        {"version": "8.1.0", "alert": [{"occurred": "2018-03-31 13:40:01 +0000", "foo": []}]},
+        {"version": "8.1.0", "alert": [{"occurred": "2018-03-31T13:40:01Z +0000", "foo": []}]},
+        {"version": "8.1.0", "alert": [{"occurred": "2018-03-31T13:40:01Z", "foo": []}]},
     ],
 )
 def test_multiple_time_formats(data, tmpdir):
@@ -90,7 +99,7 @@ def test_multiple_time_formats(data, tmpdir):
 def test_invalid_time_format(tmpdir):
 
     # invalid raises value error.
-    data = {"alert": [{"occurred": "2018/03/31 13:40:01 +0000", "foo": []}]}
+    data = {"version": "8.1.0", "alert": [{"occurred": "2018/03/31 13:40:01 +0000", "foo": []}]}
     f = make_tmp_file(data=data, tmpdir=tmpdir)
     with pytest.raises(ValueError):
         assert 1522503601 == FireEyeAXReport(f).base_timestamp
