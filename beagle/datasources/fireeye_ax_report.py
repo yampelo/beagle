@@ -51,6 +51,8 @@ class FireEyeAXReport(DataSource):
 
         data = json.load(open(ax_report, "r"))
 
+        self.version: str = data["version"]
+
         self.appliance = data.get("appliance", "Unknown")
 
         if "alert" not in data or len(data["alert"]) == 0:
@@ -78,26 +80,42 @@ class FireEyeAXReport(DataSource):
         logger.info("Set up FireEyeAX Report")
 
     def metadata(self) -> dict:
-        base_meta = {
-            "hostname": self.appliance,
-            "analyzed_on": self.alert["occurred"],
-            "severity": self.alert["severity"],
-            "alert_url": self.alert["alertUrl"],
-            "alert": self.alert["explanation"]["malwareDetected"]["malware"][0]["name"]
-            if self.alert != {}
-            else "",
-        }
+
+        if self.version.startswith("8.2.0"):
+            base_meta = {
+                "hostname": self.appliance,
+                "analyzed_on": self.alert["occurred"],
+                "severity": self.alert["severity"],
+                "alert_url": self.alert.get("alertUrl"),
+                "alert": self.alert["explanation"]["malware-detected"]["malware"][0]["name"]
+                if self.alert != {}
+                else "",
+            }
+        else:
+            base_meta = {
+                "hostname": self.appliance,
+                "analyzed_on": self.alert["occurred"],
+                "severity": self.alert["severity"],
+                "alert_url": self.alert.get("alertUrl"),
+                "alert": self.alert["explanation"]["malwareDetected"]["malware"][0]["name"]
+                if self.alert != {}
+                else "",
+            }
 
         return base_meta
 
     def events(self) -> Generator[dict, None, None]:
 
-        os_changes = self.alert.get("explanation", {}).get("osChanges", [{}])
+        if self.version.startswith("8.2.0"):
+            # os-changes is a dict in 8.2
+            os_changes = self.alert.get("explanation", {}).get("os-changes", {})
+        else:
+            os_changes = self.alert.get("explanation", {}).get("osChanges", [{}])[0]
 
         if (len(os_changes)) == 0:
             return
         else:
-            for change_type, events in os_changes[0].items():
+            for change_type, events in os_changes.items():
 
                 if not isinstance(events, list):
                     events = [events]
@@ -109,6 +127,6 @@ class FireEyeAXReport(DataSource):
 
                     event["event_type"] = change_type
                     if "timestamp" in event:
-                        event["timestamp"] = float(event["timestamp"] + self.base_timestamp)
+                        event["timestamp"] = float(int(event["timestamp"]) + self.base_timestamp)
 
                     yield event
