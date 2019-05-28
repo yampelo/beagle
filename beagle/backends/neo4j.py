@@ -35,16 +35,15 @@ class Neo4J(NetworkX):
 
         logger.info(f"Connecting to neo4j server at {uri}")
 
-        self.neo4j = GraphDatabase(uri, auth=(username, password))
+        self.neo4j = GraphDatabase.driver(uri, auth=(username, password))
 
         super().__init__(*args, **kwargs)
 
         logger.info("Initialized Neo4j Backend")
-        self.batch_size = Config.get("neo4j", "batch_size")
+        self.batch_size = int(Config.get("neo4j", "batch_size"))
 
     def graph(self) -> None:
 
-        self.batch_size = Config.get("neo4j", "batch_size")
         logger.info(f"Generating graph using NetworkX")
 
         nx_graph = super().graph()
@@ -76,21 +75,21 @@ class Neo4J(NetworkX):
 
         for node_type, nodes in nodes_by_type:
 
-            if node_type != "Process":
-                continue
+            # remove whitespaces
+            node_type = node_type.replace(" ", "_")
 
             self._create_constraint(node_type)
 
-            nodes = list(map(self._node_as_cypher, nodes))
+            cypher_nodes = list(map(self._node_as_cypher, nodes))
 
-            logger.debug(f"Inserting {len(nodes)} {node_type} nodes into Neo4J")
+            logger.debug(f"Inserting {len(cypher_nodes)} {node_type} nodes into Neo4J")
 
-            for i in range(0, len(nodes), self.batch_szie):
+            for i in range(0, len(cypher_nodes), self.batch_size):
 
                 start = i
-                end = i + self.batch_szie
+                end = i + self.batch_size
 
-                cypher = f"UNWIND [{', '.join(nodes[start: end])}] as row\n"
+                cypher = f"UNWIND [{', '.join(cypher_nodes[start: end])}] as row\n"
 
                 cypher += f"CREATE (node:{node_type} {{_key: row._key}}) SET node = row"
 
@@ -103,22 +102,27 @@ class Neo4J(NetworkX):
 
         logger.info("Grouping Edges by type")
 
-        sorted_edges = sorted(source_graph.edges(data=True, keys=True), key=lambda edge: edge[2])
+        sorted_edges = sorted(
+            source_graph.edges(data=True, keys=True), key=lambda edge: edge[3]["edge_name"]
+        )
 
-        edges_by_type = itertools.groupby(sorted_edges, key=lambda edge: edge[2])
+        edges_by_type = itertools.groupby(sorted_edges, key=lambda edge: edge[3]["edge_name"])
 
         for edge_type, edges in edges_by_type:
 
-            edges = list(map(self._edge_as_cypher, edges))
+            # Remove white spaces
+            edge_type = edge_type.replace(" ", "_")
 
-            logger.debug(f"Inserting {len(edges)} {edge_type} edges into Neo4J")
+            cypher_edges = list(map(self._edge_as_cypher, edges))
 
-            for i in range(0, len(edges), self.batch_szie):
+            logger.debug(f"Inserting {len(cypher_edges)} {edge_type} edges into Neo4J")
+
+            for i in range(0, len(cypher_edges), self.batch_size):
 
                 start = i
-                end = i + self.batch_szie
+                end = i + self.batch_size
 
-                cypher = f"UNWIND [{', '.join(edges[start: end])}] as row\n"
+                cypher = f"UNWIND [{', '.join(cypher_edges[start: end])}] as row\n"
                 cypher += "MATCH (src {_key: row.src}), (dst {_key: row.dst})"
                 cypher += f" CREATE (src)-[:`{edge_type}`]->(dst)"
 
@@ -131,7 +135,8 @@ class Neo4J(NetworkX):
         constraint_format = "CREATE CONSTRAINT ON (n:{name}) ASSERT n._key is UNIQUE"
 
         logger.debug(f"Creating _key constraint for {node_type}")
-        self.neo4j.run(constraint_format.format(name=node_type))
+        with self.neo4j.session() as session:
+            session.run(constraint_format.format(name=node_type))
 
     def _node_as_cypher(self, node: Node) -> str:
 
