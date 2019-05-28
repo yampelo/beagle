@@ -354,6 +354,12 @@ class FireEyeAXTransformer(Transformer):
                 "timestamp": 9494
             }
 
+        In 8.2.0 the `value` field became a dictionary when the mode is `failed`::
+
+            "values": {
+                "value": "C:\\Users\\admin\\AppData\\Local\\Temp\\sy24ttkc.k25.ps1""
+            }
+
         Parameters
         ----------
         event : dict
@@ -377,7 +383,14 @@ class FireEyeAXTransformer(Transformer):
         proc_file = proc.get_file_node()
         proc_file.file_of[proc]
 
-        file_name, file_path = split_path(event["value"])
+        # 8.2.0 changes.
+        if "values" in event:
+            full_path = event["values"]["value"]
+        else:
+            full_path = event["value"]
+
+        file_name, file_path = split_path(full_path)
+
         file_node = File(file_name=file_name, file_path=file_path)
         file_node.set_extension()
 
@@ -395,7 +408,6 @@ class FireEyeAXTransformer(Transformer):
             proc.copied[src_file].append(timestamp=event["timestamp"])
 
             return (proc, proc_file, file_node, src_file)
-
         else:
             proc.accessed[file_node].append(timestamp=event["timestamp"])
 
@@ -464,4 +476,3 @@ class FireEyeAXTransformer(Transformer):
             proc.read_key[regkey].append(timestamp=event["timestamp"], value=value)
 
         return (proc, proc_file, regkey)
-
