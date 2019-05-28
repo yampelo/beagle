@@ -86,7 +86,7 @@ class FireEyeAXReport(DataSource):
                 "hostname": self.appliance,
                 "analyzed_on": self.alert["occurred"],
                 "severity": self.alert["severity"],
-                "alert_url": self.alert.get("alertUrl"),
+                "alert_url": self.alert.get("alert-url"),
                 "alert": self.alert["explanation"]["malware-detected"]["malware"][0]["name"]
                 if self.alert != {}
                 else "",
