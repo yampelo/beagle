@@ -35,7 +35,7 @@ class Neo4J(NetworkX):
 
         logger.info(f"Connecting to neo4j server at {uri}")
 
-        self.neo4j = GraphDatabase(uri, auth=(username, password))
+        self.neo4j = GraphDatabase.driver(uri, auth=(username, password))
 
         super().__init__(*args, **kwargs)
 
