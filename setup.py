@@ -13,7 +13,7 @@ DESCRIPTION = "Beagle is an incident response and digital forensics tool which t
 URL = "https://github.com/yampelo/beagle"
 AUTHOR = "yampelo"
 REQUIRES_PYTHON = ">=3.6.0"
-VERSION = "1.0.4"
+VERSION = "1.0.5"
 EMAIL = None
 
 
