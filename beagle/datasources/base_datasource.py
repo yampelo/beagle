@@ -1,5 +1,8 @@
+import inspect
+import json
 from abc import ABCMeta, abstractmethod
-from typing import TYPE_CHECKING, Any, Generator
+from typing import TYPE_CHECKING, Any, Dict, Generator, List
+
 from beagle.constants import FieldNames
 
 if TYPE_CHECKING:
@@ -35,7 +38,7 @@ class DataSource(object, metaclass=ABCMeta):
         """
 
         # Don't want this to trigger on abstract classes.
-        if "ExternalDataSource" in str(cls):
+        if inspect.isabstract(cls):
             return
 
         if "name" not in cls.__dict__:
@@ -160,3 +163,17 @@ class ExternalDataSource(DataSource, metaclass=ABCMeta):
     --------
     See :py:class:`beagle.datasources.virustotal.generic_vt_sandbox_api.GenericVTSandboxAPI`
     """
+
+
+class JSONDataSource(DataSource, metaclass=ABCMeta):
+    """A generic data source which returns events from a JSON file.
+    """
+
+    def __init__(self, file_path: str) -> None:
+        self.file_path = file_path
+
+    def events(self) -> Generator[dict, None, None]:
+        data: List[Dict] = json.load(open(self.file_path))
+
+        for event in data:
+            yield event
