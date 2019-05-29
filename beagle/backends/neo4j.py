@@ -22,6 +22,8 @@ class Neo4J(NetworkX):
         Neo4J Username (the default is Config.get("neo4j", "username"), which pulls from the configuration file)
     password : str, optional
         Neo4J Password (the default is Config.get("neo4j", "password"), which pulls from the configuration file)
+    clear_database: bool, optional
+        Should the database be cleared before populating? (the default is False)
     """
 
     def __init__(
@@ -29,6 +31,7 @@ class Neo4J(NetworkX):
         uri: str = Config.get("neo4j", "host"),
         username: str = Config.get("neo4j", "username"),
         password: str = Config.get("neo4j", "password"),
+        clear_database: bool = False,
         *args,
         **kwargs,
     ):
@@ -41,6 +44,11 @@ class Neo4J(NetworkX):
 
         logger.info("Initialized Neo4j Backend")
         self.batch_size = int(Config.get("neo4j", "batch_size"))
+
+        if clear_database:
+            logger.info("Wiping database")
+            with self.neo4j.session() as session:
+                session.write_transaction(lambda tx: tx.run("MATCH (n) DETACH DELETE n"))
 
     def graph(self) -> None:
 
