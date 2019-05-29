@@ -11,5 +11,9 @@ class DARPATCJson(JSONDataSource):
     transformers = [DRAPATCTransformer]
     category = "Darpa TC3"
 
+    def __init__(self, file_path: str) -> None:
+        self.file_path = file_path
+        super().__init__(self.file_path, new_line_seperated=True)
+
     def metadata(self) -> dict:
         return {"filename": os.path.basename(self.file_path)}

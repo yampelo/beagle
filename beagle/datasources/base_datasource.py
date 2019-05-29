@@ -169,11 +169,16 @@ class JSONDataSource(DataSource, metaclass=ABCMeta):
     """A generic data source which returns events from a JSON file.
     """
 
-    def __init__(self, file_path: str) -> None:
+    def __init__(self, file_path: str, new_line_seperated: bool = False) -> None:
         self.file_path = file_path
+        self.new_line_seperated = new_line_seperated
 
     def events(self) -> Generator[dict, None, None]:
-        data: List[Dict] = json.load(open(self.file_path))
+        if self.new_line_seperated:
+            for line in open(self.file_path).readlines():
+                yield json.loads(line)
+        else:
+            data: List[Dict] = json.load(open(self.file_path))
 
-        for event in data:
-            yield event
+            for event in data:
+                yield event
