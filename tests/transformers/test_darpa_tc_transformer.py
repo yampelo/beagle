@@ -168,3 +168,35 @@ def test_make_file_no_properties(transformer):
     assert fnode.full_path == ""
     assert fnode.file_name is None
     assert fnode.file_path is None
+
+
+def test_make_registry(transformer):
+    test_event = {
+        "event_type": "registrykeyobject",
+        "uuid": "736F96AB-F043-4ED4-A456-D6F6DC3365FC",
+        "baseObject": {
+            "hostId": "47923ED7-29D4-4E65-ABA2-F70A4E74DCCD",
+            "permission": None,
+            "epoch": None,
+            "properties": None,
+        },
+        "key": "\\REGISTRY\\USER\\S-1-5-21-231540947-922634896-4161786520-1001\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager\\Subscriptions\\280810",
+        "value": {
+            "com.bbn.tc.schema.avro.cdm18.Value": {
+                "size": -1,
+                "type": "VALUE_TYPE_SRC",
+                "valueDataType": "VALUE_DATA_TYPE_LONG",
+                "isNone": False,
+                "name": {"string": "AccelerateCacheRefreshLastDetected"},
+                "runtimeDataType": None,
+                "valueBytes": {"bytes": "0000000000000000"},
+                "provenance": None,
+                "tag": None,
+                "components": None,
+            }
+        },
+        "size": None,
+    }
+
+    nodes = transformer.transform(test_event)
+    assert len(nodes) == 1

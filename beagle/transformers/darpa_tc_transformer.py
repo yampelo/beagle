@@ -1,7 +1,7 @@
 from typing import List, Optional, Tuple, Union
 
-from beagle.common import logger, split_path
-from beagle.nodes import File, Process
+from beagle.common import logger, split_path, split_reg_path
+from beagle.nodes import File, Process, RegistryKey
 from beagle.transformers.base_transformer import Transformer
 
 
@@ -16,6 +16,15 @@ class TCProcess(Process):
 
 
 class TCFile(File):
+    key_fields: List[str] = ["uuid"]
+    uuid: Optional[str]
+
+    def __init__(self, uuid: str = None, *args, **kwargs) -> None:
+        self.uuid = uuid
+        super().__init__(*args, **kwargs)
+
+
+class TCRegistryKey(RegistryKey):
     key_fields: List[str] = ["uuid"]
     uuid: Optional[str]
 
@@ -39,8 +48,10 @@ class DRAPATCTransformer(Transformer):
 
         if event_type == "subject" and event["type"] == "SUBJECT_PROCESS":
             return self.make_process(event)
-        if event_type == "fileobject" and event["type"] == "FILE_OBJECT_BLOCK":
+        elif event_type == "fileobject" and event["type"] == "FILE_OBJECT_BLOCK":
             return self.make_file(event)
+        elif event_type == "registrykeyobject":
+            return self.make_registrykey(event)
 
         return tuple()
 
@@ -97,3 +108,22 @@ class DRAPATCTransformer(Transformer):
             file_node.file_name = file_name
 
         return (file_node,)
+
+    def make_registrykey(self, event: dict) -> Tuple[TCRegistryKey]:
+
+        hive, key, path = split_reg_path(event["key"])
+        base_obj = event["baseObject"]
+
+        value = event["value"]["com.bbn.tc.schema.avro.cdm18.Value"]
+
+        regkey = TCRegistryKey(
+            uuid=event["uuid"],
+            host=base_obj["hostId"],
+            value_type=value["valueDataType"],
+            value=value["name"],
+            hive=hive,
+            key_path=path,
+            key=key,
+        )
+
+        return (regkey,)

@@ -39,5 +39,5 @@ class DARPATCJson(JSONDataSource):
                     yield data
                     break
             i += 1
-            if i > 20000:
+            if i > 1000000:
                 break
