@@ -1,7 +1,7 @@
 from typing import List, Optional, Tuple, Union
 
 from beagle.common import logger, split_path, split_reg_path
-from beagle.nodes import File, Process, RegistryKey
+from beagle.nodes import File, Process, RegistryKey, IPAddress
 from beagle.transformers.base_transformer import Transformer
 
 
@@ -33,6 +33,15 @@ class TCRegistryKey(RegistryKey):
         super().__init__(*args, **kwargs)
 
 
+class TCIPAddress(IPAddress):
+    key_fields: List[str] = ["uuid"]
+    uuid: Optional[str]
+
+    def __init__(self, uuid: str = None, *args, **kwargs) -> None:
+        self.uuid = uuid
+        super().__init__(*args, **kwargs)
+
+
 class DRAPATCTransformer(Transformer):
 
     name = "DARPA TC"
@@ -52,6 +61,10 @@ class DRAPATCTransformer(Transformer):
             return self.make_file(event)
         elif event_type == "registrykeyobject":
             return self.make_registrykey(event)
+        elif event_type == "netflowobject":
+            return self.make_addr(event)
+        elif event_type == "event" and event["type"] == "EVENT_WRITE":
+            return self.make_write(event)
 
         return tuple()
 
@@ -111,6 +124,8 @@ class DRAPATCTransformer(Transformer):
 
     def make_registrykey(self, event: dict) -> Tuple[TCRegistryKey]:
 
+        if event["key"].startswith("\\REGISTRY"):
+            event["key"] = event["key"].replace("\\REGISTRY", "", 1)
         hive, key, path = split_reg_path(event["key"])
         base_obj = event["baseObject"]
 
@@ -127,3 +142,17 @@ class DRAPATCTransformer(Transformer):
         )
 
         return (regkey,)
+
+    def make_addr(self, event: dict) -> Tuple[TCIPAddress]:
+        addr = TCIPAddress(uuid=event["uuid"], addr=event["remoteAddress"])
+        # TODO: Add port data somehow
+        return (addr,)
+
+    def make_write(self, event: dict) -> Tuple[TCProcess, TCFile]:
+
+        proc = TCProcess(uuid=event["subject"]["com.bbn.tc.schema.avro.cdm18.UUID"])
+        target = TCFile(uuid=event["predicateObject"]["com.bbn.tc.schema.avro.cdm18.UUID"])
+
+        proc.wrote[target].append(timestamp=event["timestampNanos"])
+
+        return (proc, target)
