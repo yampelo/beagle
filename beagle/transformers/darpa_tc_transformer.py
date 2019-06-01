@@ -78,6 +78,8 @@ class DRAPATCTransformer(Transformer):
             return self.file_events(event)
         elif event_type == "event" and event["type"] == "EVENT_EXECUTE":
             return self.execute_events(event)
+        elif event_type == "event" and event["type"] in ["EVENT_CONNECT"]:
+            return self.conn_events(event)
 
         return tuple()
 
@@ -186,3 +188,11 @@ class DRAPATCTransformer(Transformer):
         proc.launched[target].append(timestamp=event["timestampNanos"])
 
         return (proc, target)
+
+    def conn_events(self, event: dict) -> Tuple[TCProcess, TCIPAddress]:
+        proc = TCProcess(uuid=event["subject"]["com.bbn.tc.schema.avro.cdm18.UUID"])
+        addr = TCIPAddress(uuid=event["predicateObject"]["com.bbn.tc.schema.avro.cdm18.UUID"])
+
+        proc.connected_to[addr].append(timestamp=event["timestampNanos"])
+
+        return (proc, addr)
