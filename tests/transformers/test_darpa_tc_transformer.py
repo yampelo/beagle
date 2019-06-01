@@ -203,4 +203,4 @@ def test_make_registry(transformer):
     reg: TCRegistryKey = nodes[0]
     assert reg.uuid == "736F96AB-F043-4ED4-A456-D6F6DC3365FC"
     assert reg.key == "280810"
-    assert reg.hive == "REGISTRY"
+    assert reg.hive == "USER"

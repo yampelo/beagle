@@ -139,8 +139,9 @@ class DRAPATCTransformer(Transformer):
 
     def make_registrykey(self, event: dict) -> Tuple[TCRegistryKey]:
 
-        if event["key"].startswith("\\REGISTRY"):
-            event["key"] = event["key"].replace("\\REGISTRY", "", 1)
+        if event["key"].startswith("\\REGISTRY\\"):
+            event["key"] = event["key"].replace("\\REGISTRY\\", "", 1)
+
         hive, key, path = split_reg_path(event["key"])
         base_obj = event["baseObject"]
 
