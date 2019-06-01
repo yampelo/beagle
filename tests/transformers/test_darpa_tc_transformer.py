@@ -1,7 +1,7 @@
 import pytest
 
 from beagle.transformers import DRAPATCTransformer
-from beagle.transformers.darpa_tc_transformer import TCFile, TCProcess
+from beagle.transformers.darpa_tc_transformer import TCFile, TCProcess, TCRegistryKey
 
 
 @pytest.fixture
@@ -200,3 +200,7 @@ def test_make_registry(transformer):
 
     nodes = transformer.transform(test_event)
     assert len(nodes) == 1
+    reg: TCRegistryKey = nodes[0]
+    assert reg.uuid == "736F96AB-F043-4ED4-A456-D6F6DC3365FC"
+    assert reg.key == "280810"
+    assert reg.hive == "REGISTRY"

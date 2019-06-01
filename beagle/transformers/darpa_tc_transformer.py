@@ -57,14 +57,27 @@ class DRAPATCTransformer(Transformer):
 
         if event_type == "subject" and event["type"] == "SUBJECT_PROCESS":
             return self.make_process(event)
-        elif event_type == "fileobject" and event["type"] == "FILE_OBJECT_BLOCK":
+        elif event_type == "fileobject" and event["type"] in [
+            "FILE_OBJECT_BLOCK",
+            "FILE_OBJECT_PEFILE",
+        ]:
             return self.make_file(event)
         elif event_type == "registrykeyobject":
             return self.make_registrykey(event)
         elif event_type == "netflowobject":
             return self.make_addr(event)
-        elif event_type == "event" and event["type"] == "EVENT_WRITE":
-            return self.make_write(event)
+        elif event_type == "event" and event["type"] in [
+            "EVENT_READ",
+            "EVENT_OPEN",
+            "EVENT_WRITE",
+            "EVENT_WRITE_APPEND",
+            "EVENT_MODIFY_FILE_ATTRIBUTES",
+            "EVENT_CREATE_OBJECT",
+            "EVENT_LOAD_LIBRARY",
+        ]:
+            return self.file_events(event)
+        elif event_type == "event" and event["type"] == "EVENT_EXECUTE":
+            return self.execute_events(event)
 
         return tuple()
 
@@ -144,15 +157,32 @@ class DRAPATCTransformer(Transformer):
         return (regkey,)
 
     def make_addr(self, event: dict) -> Tuple[TCIPAddress]:
-        addr = TCIPAddress(uuid=event["uuid"], addr=event["remoteAddress"])
+        addr = TCIPAddress(uuid=event["uuid"], ip_address=event["remoteAddress"])
         # TODO: Add port data somehow
         return (addr,)
 
-    def make_write(self, event: dict) -> Tuple[TCProcess, TCFile]:
+    def file_events(self, event: dict) -> Tuple[TCProcess, TCFile]:
 
         proc = TCProcess(uuid=event["subject"]["com.bbn.tc.schema.avro.cdm18.UUID"])
         target = TCFile(uuid=event["predicateObject"]["com.bbn.tc.schema.avro.cdm18.UUID"])
 
-        proc.wrote[target].append(timestamp=event["timestampNanos"])
+        if event["type"] in ["EVENT_READ", "EVENT_MODIFY_FILE_ATTRIBUTES", "EVENT_OPEN"]:
+            proc.accessed[target].append(timestamp=event["timestampNanos"])
+        elif event["type"] in ["EVENT_WRITE", "EVENT_WRITE_APPEND", "EVENT_CREATE_OBJECT"]:
+            proc.wrote[target].append(timestamp=event["timestampNanos"])
+        elif event["type"] in ["EVENT_LOAD_LIBRARY"]:
+            proc.loaded[target].append(timestamp=event["timestampNanos"])
+
+        return (proc, target)
+
+    def execute_events(self, event: dict) -> Tuple[TCProcess, TCProcess]:
+
+        proc = TCProcess(uuid=event["subject"]["com.bbn.tc.schema.avro.cdm18.UUID"])
+        target = TCProcess(
+            uuid=event["predicateObject"]["com.bbn.tc.schema.avro.cdm18.UUID"],
+            process_image=event.get("predicateObjectPath", {}).get("string"),
+        )
+
+        proc.launched[target].append(timestamp=event["timestampNanos"])
 
         return (proc, target)
