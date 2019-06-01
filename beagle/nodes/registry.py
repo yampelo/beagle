@@ -8,7 +8,6 @@ class RegistryKey(Node):
     __name__ = "Registry Key"
     __color__ = "#808000"
 
-    ip_address: Optional[str]
     host: Optional[str]
     hive: Optional[str]
     key_path: Optional[str]

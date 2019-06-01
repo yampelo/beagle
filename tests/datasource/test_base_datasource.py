@@ -16,6 +16,9 @@ def test_subclass_no_name():
             def metadata(self):
                 return {}
 
+            def events(self):
+                yield {}
+
     # With name, no error
     class OtherDataSource(DataSource):
         name = "OtherDataSource"
@@ -27,6 +30,9 @@ def test_subclass_no_name():
 
         def metadata(self):
             return {}
+
+        def events(self):
+            yield {}
 
     assert OtherDataSource.name == "OtherDataSource"
 
@@ -44,6 +50,9 @@ def test_subclass_no_transformers():
             def metadata(self):
                 return {}
 
+            def events(self):
+                yield {}
+
     with pytest.raises(RuntimeError):
 
         class MyOtherDataSource(DataSource):
@@ -57,6 +66,9 @@ def test_subclass_no_transformers():
             def metadata(self):
                 return {}
 
+            def events(self):
+                yield {}
+
     # With name, no error
     class OtherDataSource(DataSource):
         name = "OtherDataSource"
@@ -68,6 +80,9 @@ def test_subclass_no_transformers():
 
         def metadata(self):
             return {}
+
+        def events(self):
+            yield {}
 
     assert OtherDataSource.name == "OtherDataSource"
 

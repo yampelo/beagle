@@ -38,13 +38,13 @@ def split_path(path: str) -> Tuple[str, str]:
 
 
 def split_reg_path(reg_path: str) -> Tuple[str, str, str]:
-    """Splits a full registry path into hive, path, and key.
+    """Splits a full registry path into hive, key, and path.
 
     Examples
     ----------
 
         >>> split_reg_path(\\REGISTRY\\MACHINE\\SYSTEM\\ControlSet001\\Control\\ComputerName)
-        (REGISTRY, MACHINE\\SYSTEM\\ControlSet001\\Control, ComputerName)
+        (REGISTRY, ComputerName, MACHINE\\SYSTEM\\ControlSet001\\Control)
 
 
     Parameters
