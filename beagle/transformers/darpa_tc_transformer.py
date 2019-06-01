@@ -193,6 +193,7 @@ class DRAPATCTransformer(Transformer):
         proc = TCProcess(uuid=event["subject"]["com.bbn.tc.schema.avro.cdm18.UUID"])
         addr = TCIPAddress(uuid=event["predicateObject"]["com.bbn.tc.schema.avro.cdm18.UUID"])
 
+        # TODO: Need to add the port data on the edge somehow
         proc.connected_to[addr].append(timestamp=event["timestampNanos"])
 
         return (proc, addr)
