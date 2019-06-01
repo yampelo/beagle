@@ -1,7 +1,7 @@
 import pytest
 
 from beagle.transformers import DRAPATCTransformer
-from beagle.transformers.darpa_tc_transformer import TCFile, TCProcess, TCRegistryKey
+from beagle.transformers.darpa_tc_transformer import TCFile, TCIPAddress, TCProcess, TCRegistryKey
 
 
 @pytest.fixture
@@ -204,3 +204,28 @@ def test_make_registry(transformer):
     assert reg.uuid == "736F96AB-F043-4ED4-A456-D6F6DC3365FC"
     assert reg.key == "280810"
     assert reg.hive == "USER"
+
+
+def test_make_addr(transformer):
+    test_event = {
+        "event_type": "netflowobject",
+        "uuid": "80A1F002-2331-4910-982F-6C65930A49F2",
+        "baseObject": {
+            "hostId": "47923ED7-29D4-4E65-ABA2-F70A4E74DCCD",
+            "permission": None,
+            "epoch": None,
+            "properties": None,
+        },
+        "localAddress": "ff02::1:3",
+        "localPort": 5355,
+        "remoteAddress": "fe80::2544:d52e:aa5e:4967",
+        "remotePort": 56157,
+        "ipProtocol": {"int": 17},
+        "fileDescriptor": None,
+    }
+
+    nodes = transformer.transform(test_event)
+    assert len(nodes) == 1
+    addr: TCIPAddress = nodes[0]
+    assert addr.uuid == "80A1F002-2331-4910-982F-6C65930A49F2"
+    assert addr.ip_address == "fe80::2544:d52e:aa5e:4967"
