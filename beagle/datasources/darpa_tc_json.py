@@ -29,7 +29,6 @@ class DARPATCJson(JSONDataSource):
 
         This pops out the relevant info under the first key.
         """
-        i = 0
         for event in super().events():
             event = event["datum"]
 
@@ -38,6 +37,3 @@ class DARPATCJson(JSONDataSource):
                     data["event_type"] = key.split("com.bbn.tc.schema.avro.cdm18.")[-1].lower()
                     yield data
                     break
-            i += 1
-            if i > 1000000:
-                break
