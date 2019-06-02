@@ -341,7 +341,9 @@ def new():
             except Exception as e:
                 logger.critical(f"Failure to clean up temporary files after error {e}")
 
-        return make_response(jsonify({"message": str(e)}), 500)
+        response = make_response(jsonify({"message": str(e)}), 500)
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response
 
     logger.info("Cleaning up tempfiles")
 
