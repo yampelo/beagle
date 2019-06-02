@@ -10,6 +10,12 @@ TESTDB_PATH = f"{tempfile.gettempdir()}/{TESTDB}"
 TEST_DATABASE_URI = "sqlite:///" + TESTDB_PATH
 
 
+@pytest.fixture
+def client(app):
+
+    return app.test_client()
+
+
 @pytest.fixture(scope="session")
 def app(request):
     """Session-wide test `Flask` application."""

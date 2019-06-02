@@ -14,7 +14,6 @@ import beagle.transformers  # noqa: F401
 from beagle.common import logger
 from beagle.config import Config
 from beagle.datasources.base_datasource import ExternalDataSource
-from beagle.backends import NetworkX
 from beagle.web.api.models import Graph
 from beagle.web.server import db
 
