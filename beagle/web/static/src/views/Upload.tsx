@@ -1,10 +1,20 @@
-import { Form } from 'formsy-semantic-ui-react';
-import * as React from 'react';
-import Dropzone from 'react-dropzone';
-import { Redirect } from 'react-router';
-import { Button, Container, Header, Icon, Message, Popup, Segment, Step } from 'semantic-ui-react';
-import { snakeToSpaced } from 'src/common';
-import LoadingBar from 'src/components/misc/LoadingBar';
+import { Form } from "formsy-semantic-ui-react";
+import * as React from "react";
+import Dropzone from "react-dropzone";
+import { Redirect } from "react-router";
+import {
+    Button,
+    Checkbox,
+    Container,
+    Header,
+    Icon,
+    Message,
+    Popup,
+    Segment,
+    Step
+} from "semantic-ui-react";
+import { snakeToSpaced } from "src/common";
+import LoadingBar from "src/components/misc/LoadingBar";
 
 interface Transformer {
     id: string;
@@ -106,7 +116,17 @@ export default class Upload extends React.Component<{}, UploadState> {
             selectedTransformer: target.value
         });
     };
+    public setActiveBackend = (e: any, target: any) => {
+        this.setState({
+            selectedBackend: target.value
+        });
+    };
 
+    public handleToggleAdvanced = () => {
+        this.setState({
+            advancedVisible: !this.state.advancedVisible
+        });
+    };
     public updateTransformers = (e: any, target: any) => {
         this.setState({
             selectedDatasource: target.value,
@@ -332,14 +352,47 @@ export default class Upload extends React.Component<{}, UploadState> {
                                 }))}
                                 onChange={this.updateTransformers}
                             />
-                            {this.state.selectedDatasource.transformers && (
+                            {this.state.advancedVisible &&
+                                (this.state.selectedDatasource.transformers && (
+                                    <Form.Select
+                                        name="transformer"
+                                        label={
+                                            <div>
+                                                <Popup
+                                                    trigger={<Icon name="info circle" />}
+                                                    content="Different transformers may produce different graphs"
+                                                />
+                                                <span
+                                                    style={{
+                                                        color: "rgba(0,0,0,.87)",
+                                                        fontSize: ".92857143em",
+                                                        fontWeight: 700
+                                                    }}
+                                                >
+                                                    Transformer
+                                                </span>
+                                            </div>
+                                        }
+                                        placeholder="Select Transformer"
+                                        value={this.state.selectedTransformer}
+                                        options={this.state.selectedDatasource.transformers.map(
+                                            transformer => ({
+                                                key: transformer.id,
+                                                text: transformer.name,
+                                                value: transformer
+                                            })
+                                        )}
+                                        onChange={this.setActiveTranformer}
+                                    />
+                                ))}
+                            {this.state.advancedVisible && (
                                 <Form.Select
-                                    name="transformer"
+                                    name="backend"
                                     label={
                                         <div>
                                             <Popup
                                                 trigger={<Icon name="info circle" />}
-                                                content="Different transformers may produce different graphs"
+                                                content="Destination of the graph. NetworkX will use the web GUI."
                                             />
                                             <span
                                                 style={{
@@ -348,20 +401,18 @@ export default class Upload extends React.Component<{}, UploadState> {
                                                     fontWeight: 700
                                                 }}
                                             >
-                                                Transformer
+                                                Backend
                                             </span>
                                         </div>
                                     }
                                     placeholder="Select Transformer"
-                                    value={this.state.selectedTransformer}
-                                    options={this.state.selectedDatasource.transformers.map(
-                                        transformer => ({
-                                            key: transformer.id,
-                                            text: transformer.name,
-                                            value: transformer
-                                        })
-                                    )}
-                                    onChange={this.setActiveTranformer}
+                                    value={this.state.selectedBackend}
+                                    options={this.backends.map(backend => ({
+                                        key: backend.id,
+                                        text: backend.name,
+                                        value: backend
+                                    }))}
+                                    onChange={this.setActiveBackend}
                                 />
                             )}
                         </Form.Group>
@@ -381,7 +432,13 @@ export default class Upload extends React.Component<{}, UploadState> {
                         <Form.Group className="fluid" widths="equal">
                             {this.state.isExternal ? this.makeInputs() : this.makeDropZones()}
                         </Form.Group>
-
+                        <Form.Field>
+                            <Checkbox
+                                onChange={this.handleToggleAdvanced}
+                                checked={this.state.advancedVisible}
+                                label="Show Advanced Options"
+                            />
+                        </Form.Field>
                         <Button style={{ marginTop: "1em" }} color="blue" onClick={this.onSubmit}>
                             Submit
                         </Button>
