@@ -119,6 +119,31 @@ def pipelines():
     return response
 
 
+@api.route("/backends")
+def get_backends():
+    """Returns all possible backends, their names, and their IDs.
+
+    The array contains elements with the following structure.
+
+    >>> {
+        id: string, # class name
+        name: string # Human-readable name
+    }
+
+    These map back to the __name__ attributes of Backend subclasses.
+
+    Returns
+    -------
+    List[dict]
+        Array of {id: string, name: string} entries.
+    """
+    response = jsonify(
+        [{"id": backend.__name__, "name": backend.__name__} for backend in BACKENDS.values()]
+    )
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
+
+
 @api.route("/transformers")
 def get_transformers():
     """Returns all possible transformers, their names, and their IDs.
