@@ -40,6 +40,14 @@ TRANSFORMERS = {
     )
 }
 
+BACKENDS = {
+    cls[1].__name__: cls[1]
+    for cls in inspect.getmembers(
+        sys.modules["beagle.backends"],
+        lambda cls: inspect.isclass(cls) and not inspect.isabstract(cls),
+    )
+}
+
 
 # Generate an array containing a description of each datasource.
 # This includes it's name, it's id, it's required parameters, and the transformers
@@ -484,4 +492,3 @@ def get_graph_metadata(graph_id: int):
     response.headers.add("Access-Control-Allow-Origin", "*")
 
     return response
-
