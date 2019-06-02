@@ -39,32 +39,42 @@ Returns a list of available datasources, which transformers they work with, as w
     -   **Code:** 200 <br />
         **Output Schema:**
         ```typescript
-        [
-             {
-                "id": string,
-                "name": string,
-                "params": [
-                    {
-                        "name": string,
-                        "required": boolean,
-                    }
-                    ...
-                ],
-                "transformers": [
+        {
+            "datasources":
+                [
                     {
                         "id": string,
-                        "name": string
-                    }
-                ]
-                "type": "files"|"external"
-            },
-            ...
-        ]
+                        "name": string,
+                        "params": [
+                            {
+                                "name": string,
+                                "required": boolean,
+                            }
+                            ...
+                        ],
+                        "transformers": [
+                            {
+                                "id": string,
+                                "name": string
+                            }
+                        ]
+                        "type": "files"|"external"
+                    },
+                    ...
+                ],
+            "backends": [
+                {"name": string" id": string},
+                ...
+            ]
+        }
         ```
 
 -   **Notes**
     <br/>
-    The response JSON of this API call provides an array of all available datasources.
+    The response JSON of this API call provides an array of all available datasources
+    and backends
+
+    The `datasources` array contains the following information:
 
     -   `id`: This is the python class for this datasource.
     -   `name` : The human-readable version of the name. This is the value which shows up in the dropdown on the upload form.
@@ -99,49 +109,59 @@ Returns a list of available datasources, which transformers they work with, as w
 
     In the above, the `HXTriage` data source requires one file based parameter called `triage`, and the data it yields can be transformed into nodes via the `FireEye HX` transformer class.
 
+    The `backends` key simply contains key/value names of the various datasource classes. For example:
+    <br/>
+
+    ```json
+    { "name": "Neo4J", "id": "Neo4J" }
+    ```
+
 -   **Sample Output:**
 
     ```json
-    [
-        {
-            "id": "GenericVTSandbox",
-            "name": "VirusTotal v3 API Sandbox Report Files",
-            "params": [
-                {
-                    "name": "behaviour_report_file",
-                    "required": true
-                },
-                {
-                    "name": "hash_metadata_file",
-                    "required": false
-                }
-            ],
-            "transformers": [
-                {
-                    "id": "GenericTransformer",
-                    "name": "Generic"
-                }
-            ],
-            "type": "files"
-        },
-        {
-            "id": "HXTriage",
-            "name": "FireEye HX Triage",
-            "params": [
-                {
-                    "name": "triage",
-                    "required": true
-                }
-            ],
-            "transformers": [
-                {
-                    "id": "FireEyeHXTransformer",
-                    "name": "FireEye HX"
-                }
-            ],
-            "type": "files"
-        }
-    ]
+    {
+        "datasources": [
+            {
+                "id": "GenericVTSandbox",
+                "name": "VirusTotal v3 API Sandbox Report Files",
+                "params": [
+                    {
+                        "name": "behaviour_report_file",
+                        "required": true
+                    },
+                    {
+                        "name": "hash_metadata_file",
+                        "required": false
+                    }
+                ],
+                "transformers": [
+                    {
+                        "id": "GenericTransformer",
+                        "name": "Generic"
+                    }
+                ],
+                "type": "files"
+            },
+            {
+                "id": "HXTriage",
+                "name": "FireEye HX Triage",
+                "params": [
+                    {
+                        "name": "triage",
+                        "required": true
+                    }
+                ],
+                "transformers": [
+                    {
+                        "id": "FireEyeHXTransformer",
+                        "name": "FireEye HX"
+                    }
+                ],
+                "type": "files"
+            }
+        ],
+        "backends": [{ "name": "NetworkX", "id": "NetworkX" }, { "name": "Neo4J", "id": "Neo4J" }]
+    }
     ```
 
 ### New Graph `/api/new`
@@ -162,6 +182,8 @@ Returns a list of available datasources, which transformers they work with, as w
         "datasource": string,
         "transformer": string,
         "comment": string,
+        // Optionally set the backend, by default uses NetworkX
+        "backend": string | undefined
 
         // Parameters unique to datasource
         "param1": string|file,
@@ -212,6 +234,16 @@ Returns a list of available datasources, which transformers they work with, as w
         -F 'datasource=HXTriage' \
         -F 'transformer=FireEyeHXTransformer' \
         -F 'comment=Stuxnet Triage' \
+        http://localhost:8000/api/new
+    ```
+
+    Creating the same triag,e but this time send it to Neo4J
+    ```bash
+    curl -F 'triage=@incident.mans' \
+        -F 'datasource=HXTriage' \
+        -F 'transformer=FireEyeHXTransformer' \
+        -F 'comment=Stuxnet Triage' \
+        -F "backend=Neo4J" \
         http://localhost:8000/api/new
     ```
 
