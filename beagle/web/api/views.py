@@ -52,26 +52,31 @@ BACKENDS = {
 # Generate an array containing a description of each datasource.
 # This includes it's name, it's id, it's required parameters, and the transformers
 # which it can send data to.
-SCHEMA = [
-    {
-        "id": datasource.__name__,
-        "name": datasource.name,
-        "params": [
-            {
-                "name": k,
-                "required": (v.default == _empty),
-            }  # Check if there is a default value, if not, required.
-            for k, v in inspect.signature(
-                datasource
-            ).parameters.items()  # Gets the expected parameters
-        ],
-        "type": "external" if issubclass(datasource, ExternalDataSource) else "files",
-        "transformers": [
-            {"id": trans.__name__, "name": trans.name} for trans in datasource.transformers
-        ],
-    }
-    for datasource in DATASOURCES.values()
-]
+SCHEMA = {
+    "datasources": [
+        {
+            "id": datasource.__name__,
+            "name": datasource.name,
+            "params": [
+                {
+                    "name": k,
+                    "required": (v.default == _empty),
+                }  # Check if there is a default value, if not, required.
+                for k, v in inspect.signature(
+                    datasource
+                ).parameters.items()  # Gets the expected parameters
+            ],
+            "type": "external" if issubclass(datasource, ExternalDataSource) else "files",
+            "transformers": [
+                {"id": trans.__name__, "name": trans.name} for trans in datasource.transformers
+            ],
+        }
+        for datasource in DATASOURCES.values()
+    ],
+    "backends": [
+        {"id": backend.__name__, "name": backend.__name__} for backend in BACKENDS.values()
+    ],
+}
 
 
 @api.route("/datasources")

@@ -11,6 +11,11 @@ interface Transformer {
     name: string;
 }
 
+interface Backend {
+    id: string;
+    name: string;
+}
+
 interface DataSourceEntry {
     id: string;
     name: string;
@@ -22,6 +27,7 @@ interface DataSourceEntry {
 export interface UploadState {
     selectedDatasource: DataSourceEntry;
     selectedTransformer: Transformer;
+    selectedBackend: Backend;
     isExternal: boolean;
     comment: string;
     params: Array<{ name: string; required: boolean }>;
@@ -31,15 +37,18 @@ export interface UploadState {
     graphRoute: string;
     steps: { [name: string]: { active: boolean; done: boolean; link?: string } };
     processing: boolean;
+    advancedVisible: boolean;
 }
 
 export default class Upload extends React.Component<{}, UploadState> {
     public pipelines: DataSourceEntry[];
+    public backends: Backend[];
 
     constructor(props: {}) {
         super(props);
 
         this.pipelines = [];
+        this.backends = [];
 
         this.state = {
             ready: false,
@@ -47,6 +56,8 @@ export default class Upload extends React.Component<{}, UploadState> {
             isExternal: false,
             selectedDatasource: {} as DataSourceEntry,
             selectedTransformer: {} as Transformer,
+            // By default use NetworkX
+            selectedBackend: { id: "NetworkX", name: "NetworkX" },
             params: [],
             formParams: {},
             graphRoute: "",
@@ -56,7 +67,8 @@ export default class Upload extends React.Component<{}, UploadState> {
                 transform: { active: false, done: false },
                 view: { active: false, done: false }
             },
-            processing: false
+            processing: false,
+            advancedVisible: false
         };
     }
 
@@ -72,7 +84,8 @@ export default class Upload extends React.Component<{}, UploadState> {
                     return;
                 }
 
-                this.pipelines = json;
+                this.pipelines = json.datasources;
+                this.backends = json.backends;
 
                 const firstDataSource = this.pipelines[0];
 
