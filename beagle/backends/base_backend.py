@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import List
+from typing import List, Any, Union
 
 from beagle.nodes import Node
 
@@ -29,7 +29,7 @@ class Backend(object, metaclass=ABCMeta):
         self.nodes = nodes
 
     @abstractmethod
-    def graph(self) -> None:
+    def graph(self) -> Union[str, Any]:
         """When this method is called, the backend should take in the
         passed in `Node` array and produce a graph.
         """
