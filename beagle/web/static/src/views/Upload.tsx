@@ -45,6 +45,7 @@ export interface UploadState {
     ready: boolean;
     errorMessage: string;
     graphRoute: string;
+    redirect: boolean;
     steps: { [name: string]: { active: boolean; done: boolean; link?: string } };
     processing: boolean;
     advancedVisible: boolean;
@@ -71,6 +72,7 @@ export default class Upload extends React.Component<{}, UploadState> {
             params: [],
             formParams: {},
             graphRoute: "",
+            redirect: false,
             errorMessage: "",
             steps: {
                 upload: { active: true, done: false },
@@ -185,6 +187,7 @@ export default class Upload extends React.Component<{}, UploadState> {
 
         const formData = new FormData();
         formData.append("datasource", this.state.selectedDatasource.id);
+        formData.append("backend", this.state.selectedBackend.id);
         formData.append("transformer", this.state.selectedTransformer.id);
         formData.append("comment", this.state.comment);
 
@@ -221,10 +224,22 @@ export default class Upload extends React.Component<{}, UploadState> {
                             view: { active: false, done: false }
                         }
                     });
+                } else if (json.hasOwnProperty("resp")) {
+                    this.setState({
+                        graphRoute: json.resp,
+                        redirect: false,
+                        processing: false,
+                        steps: {
+                            upload: { active: true, done: true },
+                            transform: { active: true, done: true },
+                            view: { active: true, done: true, link: json.resp }
+                        }
+                    });
                 } else {
                     this.setState({
                         processing: false,
                         graphRoute: json.self,
+                        redirect: true,
                         steps: {
                             upload: { active: true, done: true },
                             transform: { active: true, done: true },
@@ -462,7 +477,9 @@ export default class Upload extends React.Component<{}, UploadState> {
                             header="Graph succesfully created!"
                             content={this.state.graphRoute}
                         />,
-                        <Redirect key="redirect" to={this.state.graphRoute} />
+                        this.state.redirect && (
+                            <Redirect key="redirect" to={this.state.graphRoute} />
+                        )
                     ]}
                     {this.state.processing && (
                         <Message info={true} icon={true} attached="bottom">

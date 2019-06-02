@@ -245,7 +245,8 @@ def new():
         )
 
     logger.info(
-        f"Recieved upload request for datasource=<{requested_datasource}>, transformer=<{requested_transformer}>"
+        f"Recieved upload request for datasource=<{requested_datasource}>, "
+        + f"transformer=<{requested_transformer}>, backend=<{requested_backend}>"
     )
 
     datasource_cls = DATASOURCES[requested_datasource]
@@ -328,6 +329,9 @@ def new():
 
     except Exception as e:
         logger.critical(f"Failure to generate graph {e}")
+        import traceback
+
+        logger.debug(f"{traceback.format_exc()}")
 
         if not is_external:
             # Clean up temporary files
@@ -348,12 +352,15 @@ def new():
 
     logger.info("Finished generating graph")
 
-    if len(G.nodes()) == 0:
+    # Check if we even had a graph.
+    # This will be on the G attribute for any class subclassing NetworkX
+    if graph.is_empty():
         return make_response(jsonify({"message": f"Graph generation resulted in 0 nodes. "}), 400)
 
     # If the backend is NetworkX, save the graph.
     # Otherwise, redirect the user to wherever he sent it (if possible)
-    if backend_class == NetworkX:
+    if backend_class.__name__ == "NetworkX":
+
         # Take the SHA256 of the contents of the graph.
         contents_hash = hashlib.sha256(
             json.dumps(graph.to_json(), sort_keys=True).encode("utf-8")
@@ -391,10 +398,12 @@ def new():
         logger.info(f"Saved graph to {dest_path}")
 
         response = jsonify({"id": db_entry.id, "self": f"/{dest_folder}/{db_entry.id}"})
-        response.headers.add("Access-Control-Allow-Origin", "*")
-        return response
     else:
+        logger.debug(G)
         response = jsonify({"resp": G})
+
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
 
 
 @api.route("/categories/")
