@@ -38,3 +38,9 @@ class Backend(object, metaclass=ABCMeta):
 
     def to_json(self) -> dict:
         raise NotImplementedError("Backend.to_json() is not implemented!")
+
+    @abstractmethod
+    def is_empty(self) -> bool:
+        """Returns true if there wasn't a graph created.
+        """
+        raise NotImplementedError()
