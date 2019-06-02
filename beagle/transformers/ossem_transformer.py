@@ -1,8 +1,7 @@
 from typing import List, Optional, Tuple
 
-from beagle.nodes import Process, File
-
-from beagle.common import logger
+from beagle.common import logger, split_path
+from beagle.nodes import File, Process
 from beagle.transformers.base_transformer import Transformer
 
 
@@ -35,17 +34,21 @@ class OSSEMTransformer(Transformer):
 
     def created(self, event: dict) -> Tuple[Process, File, Process, File]:
 
+        proc_name, proc_path = split_path(event["process_path"])
+
         proc = Process(
             process_id=event.get("process_id"),
-            process_image=event.get("process_name"),
-            process_image_path=event.get("process_path"),
+            process_image=proc_name,
+            process_image_path=proc_path,
             command_line=event.get("process_command_line"),
         )
 
+        proc_name, proc_path = split_path(event["process_parent_path"])
+
         parent = Process(
             process_id=event.get("process_parent_id"),
-            process_image=event.get("process_parent_path"),
-            process_image_path=event.get("process_path"),
+            process_image=proc_name,
+            process_image_path=proc_path,
             command_line=event.get("process_parent_command_line"),
         )
 
@@ -55,6 +58,6 @@ class OSSEMTransformer(Transformer):
         parent_file.file_of[parent]
         proc_file.file_of[proc]
 
-        parent.launched[proc].append(timestamp=event["time"])
+        parent.launched[proc].append(timestamp=event["event_creation_time"])
 
         return (proc, proc_file, parent, parent_file)
