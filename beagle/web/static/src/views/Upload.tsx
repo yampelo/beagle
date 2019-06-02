@@ -1,12 +1,27 @@
-import { Form } from 'formsy-semantic-ui-react';
-import * as React from 'react';
-import Dropzone from 'react-dropzone';
-import { Redirect } from 'react-router';
-import { Button, Container, Header, Icon, Message, Popup, Segment, Step } from 'semantic-ui-react';
-import { snakeToSpaced } from 'src/common';
-import LoadingBar from 'src/components/misc/LoadingBar';
+import { Form } from "formsy-semantic-ui-react";
+import * as React from "react";
+import Dropzone from "react-dropzone";
+import { Redirect } from "react-router";
+import {
+    Button,
+    Checkbox,
+    Container,
+    Header,
+    Icon,
+    Message,
+    Popup,
+    Segment,
+    Step
+} from "semantic-ui-react";
+import { snakeToSpaced } from "src/common";
+import LoadingBar from "src/components/misc/LoadingBar";
 
 interface Transformer {
+    id: string;
+    name: string;
+}
+
+interface Backend {
     id: string;
     name: string;
 }
@@ -22,6 +37,7 @@ interface DataSourceEntry {
 export interface UploadState {
     selectedDatasource: DataSourceEntry;
     selectedTransformer: Transformer;
+    selectedBackend: Backend;
     isExternal: boolean;
     comment: string;
     params: Array<{ name: string; required: boolean }>;
@@ -29,17 +45,21 @@ export interface UploadState {
     ready: boolean;
     errorMessage: string;
     graphRoute: string;
+    redirect: boolean;
     steps: { [name: string]: { active: boolean; done: boolean; link?: string } };
     processing: boolean;
+    advancedVisible: boolean;
 }
 
 export default class Upload extends React.Component<{}, UploadState> {
     public pipelines: DataSourceEntry[];
+    public backends: Backend[];
 
     constructor(props: {}) {
         super(props);
 
         this.pipelines = [];
+        this.backends = [];
 
         this.state = {
             ready: false,
@@ -47,16 +67,20 @@ export default class Upload extends React.Component<{}, UploadState> {
             isExternal: false,
             selectedDatasource: {} as DataSourceEntry,
             selectedTransformer: {} as Transformer,
+            // By default use NetworkX
+            selectedBackend: { id: "NetworkX", name: "NetworkX" },
             params: [],
             formParams: {},
             graphRoute: "",
+            redirect: false,
             errorMessage: "",
             steps: {
                 upload: { active: true, done: false },
                 transform: { active: false, done: false },
                 view: { active: false, done: false }
             },
-            processing: false
+            processing: false,
+            advancedVisible: false
         };
     }
 
@@ -72,7 +96,8 @@ export default class Upload extends React.Component<{}, UploadState> {
                     return;
                 }
 
-                this.pipelines = json;
+                this.pipelines = json.datasources;
+                this.backends = json.backends;
 
                 const firstDataSource = this.pipelines[0];
 
@@ -93,7 +118,17 @@ export default class Upload extends React.Component<{}, UploadState> {
             selectedTransformer: target.value
         });
     };
+    public setActiveBackend = (e: any, target: any) => {
+        this.setState({
+            selectedBackend: target.value
+        });
+    };
 
+    public handleToggleAdvanced = () => {
+        this.setState({
+            advancedVisible: !this.state.advancedVisible
+        });
+    };
     public updateTransformers = (e: any, target: any) => {
         this.setState({
             selectedDatasource: target.value,
@@ -152,6 +187,7 @@ export default class Upload extends React.Component<{}, UploadState> {
 
         const formData = new FormData();
         formData.append("datasource", this.state.selectedDatasource.id);
+        formData.append("backend", this.state.selectedBackend.id);
         formData.append("transformer", this.state.selectedTransformer.id);
         formData.append("comment", this.state.comment);
 
@@ -188,10 +224,22 @@ export default class Upload extends React.Component<{}, UploadState> {
                             view: { active: false, done: false }
                         }
                     });
+                } else if (json.hasOwnProperty("resp")) {
+                    this.setState({
+                        graphRoute: json.resp,
+                        redirect: false,
+                        processing: false,
+                        steps: {
+                            upload: { active: true, done: true },
+                            transform: { active: true, done: true },
+                            view: { active: true, done: true, link: json.resp }
+                        }
+                    });
                 } else {
                     this.setState({
                         processing: false,
                         graphRoute: json.self,
+                        redirect: true,
                         steps: {
                             upload: { active: true, done: true },
                             transform: { active: true, done: true },
@@ -292,6 +340,7 @@ export default class Upload extends React.Component<{}, UploadState> {
                     <Form className="attached fluid segment">
                         <Form.Group widths="equal">
                             <Form.Select
+                                search={true}
                                 name="datasource"
                                 label={
                                     <div>
@@ -319,14 +368,47 @@ export default class Upload extends React.Component<{}, UploadState> {
                                 }))}
                                 onChange={this.updateTransformers}
                             />
-                            {this.state.selectedDatasource.transformers && (
+                            {this.state.advancedVisible &&
+                                (this.state.selectedDatasource.transformers && (
+                                    <Form.Select
+                                        name="transformer"
+                                        label={
+                                            <div>
+                                                <Popup
+                                                    trigger={<Icon name="info circle" />}
+                                                    content="Different transformers may produce different graphs"
+                                                />
+                                                <span
+                                                    style={{
+                                                        color: "rgba(0,0,0,.87)",
+                                                        fontSize: ".92857143em",
+                                                        fontWeight: 700
+                                                    }}
+                                                >
+                                                    Transformer
+                                                </span>
+                                            </div>
+                                        }
+                                        placeholder="Select Transformer"
+                                        value={this.state.selectedTransformer}
+                                        options={this.state.selectedDatasource.transformers.map(
+                                            transformer => ({
+                                                key: transformer.id,
+                                                text: transformer.name,
+                                                value: transformer
+                                            })
+                                        )}
+                                        onChange={this.setActiveTranformer}
+                                    />
+                                ))}
+                            {this.state.advancedVisible && (
                                 <Form.Select
-                                    name="transformer"
+                                    name="backend"
                                     label={
                                         <div>
                                             <Popup
                                                 trigger={<Icon name="info circle" />}
-                                                content="Different transformers may produce different graphs"
+                                                content="Destination of the graph. NetworkX will use the web GUI."
                                             />
                                             <span
                                                 style={{
@@ -335,20 +417,18 @@ export default class Upload extends React.Component<{}, UploadState> {
                                                     fontWeight: 700
                                                 }}
                                             >
-                                                Transformer
+                                                Backend
                                             </span>
                                         </div>
                                     }
                                     placeholder="Select Transformer"
-                                    value={this.state.selectedTransformer}
-                                    options={this.state.selectedDatasource.transformers.map(
-                                        transformer => ({
-                                            key: transformer.id,
-                                            text: transformer.name,
-                                            value: transformer
-                                        })
-                                    )}
-                                    onChange={this.setActiveTranformer}
+                                    value={this.state.selectedBackend}
+                                    options={this.backends.map(backend => ({
+                                        key: backend.id,
+                                        text: backend.name,
+                                        value: backend
+                                    }))}
+                                    onChange={this.setActiveBackend}
                                 />
                             )}
                         </Form.Group>
@@ -368,7 +448,13 @@ export default class Upload extends React.Component<{}, UploadState> {
                         <Form.Group className="fluid" widths="equal">
                             {this.state.isExternal ? this.makeInputs() : this.makeDropZones()}
                         </Form.Group>
-
+                        <Form.Field>
+                            <Checkbox
+                                onChange={this.handleToggleAdvanced}
+                                checked={this.state.advancedVisible}
+                                label="Show Advanced Options"
+                            />
+                        </Form.Field>
                         <Button style={{ marginTop: "1em" }} color="blue" onClick={this.onSubmit}>
                             Submit
                         </Button>
@@ -391,7 +477,9 @@ export default class Upload extends React.Component<{}, UploadState> {
                             header="Graph succesfully created!"
                             content={this.state.graphRoute}
                         />,
-                        <Redirect key="redirect" to={this.state.graphRoute} />
+                        this.state.redirect && (
+                            <Redirect key="redirect" to={this.state.graphRoute} />
+                        )
                     ]}
                     {this.state.processing && (
                         <Message info={true} icon={true} attached="bottom">

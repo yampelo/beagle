@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import List
+from typing import List, Any, Union
 
 from beagle.nodes import Node
 
@@ -29,7 +29,7 @@ class Backend(object, metaclass=ABCMeta):
         self.nodes = nodes
 
     @abstractmethod
-    def graph(self) -> None:
+    def graph(self) -> Union[str, Any]:
         """When this method is called, the backend should take in the
         passed in `Node` array and produce a graph.
         """
@@ -38,3 +38,9 @@ class Backend(object, metaclass=ABCMeta):
 
     def to_json(self) -> dict:
         raise NotImplementedError("Backend.to_json() is not implemented!")
+
+    @abstractmethod
+    def is_empty(self) -> bool:
+        """Returns true if there wasn't a graph created.
+        """
+        raise NotImplementedError()

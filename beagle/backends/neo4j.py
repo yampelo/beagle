@@ -44,13 +44,14 @@ class Neo4J(NetworkX):
 
         logger.info("Initialized Neo4j Backend")
         self.batch_size = int(Config.get("neo4j", "batch_size"))
+        self.uri = uri
 
         if clear_database:
             logger.info("Wiping database")
             with self.neo4j.session() as session:
                 session.write_transaction(lambda tx: tx.run("MATCH (n) DETACH DELETE n"))
 
-    def graph(self) -> None:
+    def graph(self) -> str:
 
         logger.info(f"Generating graph using NetworkX")
 
@@ -67,6 +68,7 @@ class Neo4J(NetworkX):
         self._make_edges(nx_graph)
 
         logger.info("All data inserted into Neo4J")
+        return self.uri.replace("bolt", "http")
 
     def _make_nodes(self, source_graph: nx.Graph) -> None:
 

@@ -46,7 +46,7 @@ REQUIRED = [
     "neo4j==1.7.2",
     "neobolt==1.7.4",
     "neotime==1.7.4",
-    "networkx==2.3rc3",
+    "networkx==2.3",
     "numpy==1.16.2",
     "pandas==0.24.2",
     "pluggy==0.9.0",

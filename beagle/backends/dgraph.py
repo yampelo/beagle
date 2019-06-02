@@ -43,6 +43,7 @@ class DGraph(NetworkX):
         client_stub = pydgraph.DgraphClientStub(host)
 
         self.dgraph = pydgraph.DgraphClient(client_stub)
+        self.host = host
 
         super().__init__(*args, **kwargs)
 
@@ -101,7 +102,7 @@ class DGraph(NetworkX):
         logger.debug(schema)
         self.dgraph.alter(pydgraph.Operation(schema=schema))
 
-    def graph(self) -> None:
+    def graph(self):
         """Pushes the nodes and edges into DGraph."""
 
         logger.info(f"Generating base graph using NetworkX")
@@ -178,3 +179,5 @@ class DGraph(NetworkX):
             )
 
             txn.commit()
+
+        return self.host

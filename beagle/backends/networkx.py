@@ -1,10 +1,11 @@
 from collections import defaultdict
+from typing import Optional
 
 import networkx as nx
-from typing import Optional
+
+from beagle.backends.base_backend import Backend
 from beagle.common import logger
 from beagle.nodes import Node
-from beagle.backends.base_backend import Backend
 
 
 class NetworkX(Backend):
@@ -49,6 +50,9 @@ class NetworkX(Backend):
         super().__init__(*args, **kwargs)
 
         logger.info("Initialized NetworkX Backend")
+
+    def is_empty(self) -> bool:
+        return len(self.G.nodes()) == 0
 
     @logger.catch
     def graph(self) -> nx.MultiDiGraph:
