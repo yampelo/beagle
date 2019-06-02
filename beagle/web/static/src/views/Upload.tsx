@@ -325,6 +325,7 @@ export default class Upload extends React.Component<{}, UploadState> {
                     <Form className="attached fluid segment">
                         <Form.Group widths="equal">
                             <Form.Select
+                                search={true}
                                 name="datasource"
                                 label={
                                     <div>
