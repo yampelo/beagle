@@ -29,10 +29,9 @@ class JSONData(DataSource):
         handle.seek(0)
 
         if first_char == "[":
-            data: List[Dict] = json.load(open(self.file_path))
-
+            data: List[Dict] = json.load(handle)
             for event in data:
                 yield event
         else:
-            for line in open(self.file_path).readlines():
+            for line in handle.readlines():
                 yield json.loads(line)

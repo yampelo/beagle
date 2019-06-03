@@ -14,16 +14,14 @@ def test_metadata():
 
 def test_events_in_newline(tmpdir):
     p = tmpdir.mkdir("json_data").join("data.json")
-    for event in [{"foo": "bar"}, {"foo": "tar"}]:
-        p.write(json.dumps(event))
-    return p
+    p.write("\n".join([json.dumps(x) for x in [{"foo": "bar"}, {"foo": "tar"}]]))
+    events = list(JSONData(p).events())
 
-    assert list(JSONData(p).events()) == [{"foo": "bar"}, {"foo": "tar"}]
+    assert all([x in events for x in [{"foo": "bar"}, {"foo": "tar"}]])
 
 
 def test_event_in_array(tmpdir):
     p = tmpdir.mkdir("json_data").join("data.json")
-    p.write([{"foo": "bar"}, {"foo": "tar"}])
-    return p
+    p.write(json.dumps([{"foo": "bar"}, {"foo": "tar"}]))
 
     assert list(JSONData(p).events()) == [{"foo": "bar"}, {"foo": "tar"}]
