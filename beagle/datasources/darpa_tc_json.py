@@ -2,11 +2,11 @@
 # https://github.com/darpa-i2o/Transparent-Computing
 from typing import Generator
 
-from beagle.datasources.json_data import JSONData
+from beagle.datasources.json_data import JSONFile
 from beagle.transformers import DRAPATCTransformer
 
 
-class DARPATCJson(JSONData):
+class DARPATCJson(JSONFile):
     name = "Darpa TC3 JSON"
     transformers = [DRAPATCTransformer]  # type: ignore
     category = "Darpa TC3"

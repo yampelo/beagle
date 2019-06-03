@@ -430,12 +430,7 @@ def adhoc():
     if not isinstance(events, list):
         events = [events]
 
-    # Create a tempfile for the data.
-    tmpfile = tempfile.NamedTemporaryFile()
-    tmpfile.write(json.dumps(events).encode())
-    tmpfile.seek(0)
-
-    g = JSONData(tmpfile.name).to_graph()
+    g = JSONData(events).to_graph()
 
     return jsonify({"data": NetworkX.graph_to_json(g)})
 
