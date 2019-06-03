@@ -1,5 +1,4 @@
 from beagle.constants import EventTypes, FieldNames
-import json
 
 
 def test_missing_params(client):
