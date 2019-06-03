@@ -1,4 +1,4 @@
-from beagle.constants import EventTypes, FieldNames
+from beagle.constants import EventTypes, FieldNames, Protocols
 
 
 def test_missing_params(client):
@@ -42,3 +42,37 @@ def test_adhoc_single_event(client):
 
     assert len(resp["nodes"]) > 0
     assert len(resp["links"]) > 0
+
+
+def test_adhoc_array(client):
+    events = [
+        {
+            FieldNames.PARENT_PROCESS_IMAGE: "<PATH_SAMPLE.EXE>",
+            FieldNames.PARENT_PROCESS_IMAGE_PATH: "\\",
+            FieldNames.PARENT_PROCESS_ID: "3420",
+            FieldNames.PARENT_COMMAND_LINE: "",
+            FieldNames.PROCESS_IMAGE: "cmd.exe",
+            FieldNames.PROCESS_IMAGE_PATH: "<SYSTEM32>",
+            FieldNames.COMMAND_LINE: "",
+            FieldNames.PROCESS_ID: "3712",
+            FieldNames.TIMESTAMP: 5,
+            FieldNames.EVENT_TYPE: EventTypes.PROCESS_LAUNCHED,
+        },
+        {
+            FieldNames.IP_ADDRESS: "24.151.31.150",
+            FieldNames.PROTOCOL: Protocols.TCP,
+            FieldNames.PORT: 465,
+            FieldNames.PROCESS_IMAGE: "<PATH_SAMPLE.EXE>",
+            FieldNames.PROCESS_IMAGE_PATH: "\\",
+            FieldNames.PROCESS_ID: "1748",
+            FieldNames.COMMAND_LINE: "",
+            FieldNames.EVENT_TYPE: EventTypes.CONNECTION,
+        },
+    ]
+
+    resp = client.post("/api/adhoc", json={"data": events}).json["data"]
+
+    assert len(resp["nodes"]) > 0
+
+    all_types = [l["type"] for l in resp["links"]]
+    assert "Connected To" in all_types
