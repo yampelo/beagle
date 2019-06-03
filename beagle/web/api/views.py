@@ -11,9 +11,11 @@ from flask.helpers import make_response
 
 import beagle.datasources  # noqa: F401
 import beagle.transformers  # noqa: F401
+from beagle.backends.networkx import NetworkX
 from beagle.common import logger
 from beagle.config import Config
 from beagle.datasources.base_datasource import ExternalDataSource
+from beagle.datasources.json_data import JSONData
 from beagle.web.api.models import Graph
 from beagle.web.server import db
 
@@ -405,6 +407,32 @@ def new():
 
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response
+
+
+@api.route("/adhoc", methods=["POST"])
+def adhoc():
+    """Allows for ad-hoc transformation of generic JSON Data based on one of two CIM models:
+
+    1. The Beagle CIM Model (defined in `constants.py`)
+    2. The OSSEM Model (defined in https://github.com/Cyb3rWard0g/OSSEM)
+    """
+
+    valid_cim_formats = ["beagle"]
+    data = request.get_json()
+    events = data["data"]
+    cim_format = data.get("cim", "beagle")
+
+    if str(cim_format).lower() not in valid_cim_formats:
+        response = jsonify({"message": f"cim_format must be in {cim_format}"})
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response
+
+    if not isinstance(events, list):
+        events = [events]
+
+    g = JSONData(events).to_graph()
+
+    return jsonify({"data": NetworkX.graph_to_json(g)})
 
 
 @api.route("/categories/")

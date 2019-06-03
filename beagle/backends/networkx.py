@@ -204,6 +204,12 @@ class NetworkX(Backend):
 
         nx.set_node_attributes(self.G, {node_id: {"data": current_data}})
 
+    @classmethod
+    def graph_to_json(cls, graph: nx.MultiDiGraph) -> dict:
+        backend = cls(nodes=[])
+        backend.G = graph
+        return backend.to_json()
+
     def to_json(self) -> dict:
         """Convert the graph to JSON, which can later be used be read in using
         networkx::

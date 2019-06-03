@@ -6,11 +6,9 @@ from beagle.datasources.base_datasource import DataSource
 from beagle.transformers import GenericTransformer
 
 
-class JSONData(DataSource):
-    """A generic data source which returns events from a JSON file.
-    """
+class JSONFile(DataSource):
 
-    name = "JSON Data"
+    name = "JSON File"
     transformers = [GenericTransformer]
     category = "Generic Data"
 
@@ -35,3 +33,22 @@ class JSONData(DataSource):
         else:
             for line in handle.readlines():
                 yield json.loads(line)
+
+
+class JSONData(DataSource):
+    """A generic data source which returns events one by one
+    """
+
+    name = "JSON Data"
+    transformers = [GenericTransformer]
+    category = "Generic Data"
+
+    def __init__(self, events: List[Dict]) -> None:
+        self._events = events
+
+    def events(self) -> Generator[dict, None, None]:
+        for event in self._events:
+            yield event
+
+    def metadata(self) -> dict:
+        return {}
