@@ -430,7 +430,7 @@ def adhoc():
     if not isinstance(events, list):
         events = [events]
 
-    g = JSONData(events).to_graph()
+    g = JSONData(events).to_graph(consolidate_edges=True)
 
     return jsonify({"data": NetworkX.graph_to_json(g)})
 
