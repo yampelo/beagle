@@ -18,6 +18,7 @@ pydgraph = "*"
 pandas = "*"
 graphistry = {extras = ["networkx"],version = "==0.9.63"}
 pybeagle = {editable = true,extras = ["rekall"],path = "."}
+splunk-sdk = "*"
 
 [dev-packages]
 "flake8" = "*"
@@ -33,6 +34,7 @@ pytest = "==4.0.0"
 sphinx = "*"
 recommonmark = "*"
 ipykernel = "*"
+mock = "*"
 
 [requires]
 python_version = "3.6"

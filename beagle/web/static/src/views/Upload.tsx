@@ -1,20 +1,10 @@
-import { Form } from "formsy-semantic-ui-react";
-import * as React from "react";
-import Dropzone from "react-dropzone";
-import { Redirect } from "react-router";
-import {
-    Button,
-    Checkbox,
-    Container,
-    Header,
-    Icon,
-    Message,
-    Popup,
-    Segment,
-    Step
-} from "semantic-ui-react";
-import { snakeToSpaced } from "src/common";
-import LoadingBar from "src/components/misc/LoadingBar";
+import { Form } from 'formsy-semantic-ui-react';
+import * as React from 'react';
+import Dropzone from 'react-dropzone';
+import { Redirect } from 'react-router';
+import { Button, Checkbox, Container, Header, Icon, Message, Popup, Segment, Step } from 'semantic-ui-react';
+import { snakeToSpaced } from 'src/common';
+import LoadingBar from 'src/components/misc/LoadingBar';
 
 interface Transformer {
     id: string;
@@ -29,7 +19,7 @@ interface Backend {
 interface DataSourceEntry {
     id: string;
     name: string;
-    params: Array<{ name: string; required: boolean }>;
+    params: Array<{ name: string; required: boolean; default: null | string }>;
     transformers: Transformer[];
     type: string;
 }
@@ -40,7 +30,7 @@ export interface UploadState {
     selectedBackend: Backend;
     isExternal: boolean;
     comment: string;
-    params: Array<{ name: string; required: boolean }>;
+    params: Array<{ name: string; required: boolean; default: null | string }>;
     formParams: { [name: string]: string | File };
     ready: boolean;
     errorMessage: string;
@@ -278,6 +268,7 @@ export default class Upload extends React.Component<{}, UploadState> {
             <Form.Input
                 name={param.name}
                 key={param.name}
+                placeholder={param.default}
                 label={snakeToSpaced(param.name)}
                 onChange={this.onParamChange(param.name)}
                 required={param.required}
