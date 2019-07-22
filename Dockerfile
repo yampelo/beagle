@@ -34,7 +34,7 @@ RUN npm run build
 
 WORKDIR /opt/beagle
 
-RUN pip install ".[rekall]"
+RUN pip install ".[rekall,splunk]"
 
 RUN mkdir -p /data/beagle
 
