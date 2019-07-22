@@ -9,7 +9,7 @@ from beagle.datasources.base_datasource import ExternalDataSource
 from beagle.transformers.generic_transformer import GenericTransformer
 
 
-def request(url, message, **kwargs):
+def request(url, message, **kwargs):  # pragma: no cover
     method = message["method"].lower()
     data = message.get("body", "") if method == "post" else None
 
@@ -37,7 +37,7 @@ def request(url, message, **kwargs):
     }
 
 
-def handler():
+def handler():  # pragma: no cover
     return request
 
 
