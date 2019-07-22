@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Container, Header } from 'semantic-ui-react';
+import { Button, Container, Header, Popup } from 'semantic-ui-react';
 import { snakeToSpaced } from 'src/common';
 
 import DataTable from './misc/DataTable';
@@ -67,7 +67,10 @@ export default class EntriesTable extends React.Component<EntriesTableProps, Ent
                 if (typeof pair[1] === "string" && pair[1].startsWith("http")) {
                     pair[1] = <Button href={pair[1]} content="Follow Link" />;
                 }
-                return [snakeToSpaced(pair[0]), pair[1]];
+                return [
+                    snakeToSpaced(pair[0]),
+                    <Popup key={idx} content={pair[1]} trigger={<span>{pair[1]}</span>} />
+                ];
             });
 
             pairs = [
