@@ -62,6 +62,7 @@ SCHEMA = {
                 {
                     "name": k,
                     "required": (v.default == _empty),
+                    "default": (v.default),
                 }  # Check if there is a default value, if not, required.
                 for k, v in inspect.signature(
                     datasource
