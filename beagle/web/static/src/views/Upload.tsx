@@ -182,9 +182,11 @@ export default class Upload extends React.Component<{}, UploadState> {
         formData.append("comment", this.state.comment);
 
         // Add in the parameters requiered by the transformer
-        this.state.params.forEach(key =>
-            formData.append(key.name, this.state.formParams[key.name])
-        );
+        this.state.params.forEach(key => {
+            if (this.state.formParams[key.name] !== undefined) {
+                formData.append(key.name, this.state.formParams[key.name]);
+            }
+        });
 
         this.setState({
             processing: true,
