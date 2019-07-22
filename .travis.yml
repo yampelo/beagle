@@ -31,7 +31,7 @@ matrix:
     - name: "Windows Python 3.6"
       os: windows
       language: sh
-      install: pip install .
+      install: pip install ".[splunk]"
       before_install:
         - choco install python3 --version 3.6.8
         - export PATH="/c/Python36:/c/Python36/Scripts:$PATH"

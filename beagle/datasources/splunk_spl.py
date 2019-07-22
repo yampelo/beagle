@@ -130,7 +130,7 @@ class SplunkSPLSearch(ExternalDataSource):
         logger.info(f"Processed {count} splunk results")
 
     def metadata(self) -> dict:  # pragma: no cover
-        return {"spl": self.spl[:45]}
+        return {"spl": self.spl}
 
     def create_search(self, query: str, query_kwargs: dict):
         """Creates a splunk search with `query` and `query_kwargs` using `splunk_client`
