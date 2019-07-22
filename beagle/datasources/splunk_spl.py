@@ -107,7 +107,11 @@ class SplunkSPLSearch(ExternalDataSource):
 
         job: Job = self.create_search(
             self.spl,
-            query_kwargs={"exec_mode": "normal", "earliest": self.earliest, "latest": self.latest},
+            query_kwargs={
+                "exec_mode": "normal",
+                "earliest_time": self.earliest,
+                "latest_time": self.latest,
+            },
         )
 
         self.sid = job.sid
