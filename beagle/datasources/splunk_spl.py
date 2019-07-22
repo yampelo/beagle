@@ -62,8 +62,18 @@ class SplunkSPLSearch(ExternalDataSource):
 
     def __init__(self, spl: str, *args, **kwargs):
 
-        self.spl = spl
+        self.spl = self.patch_spl(spl)
         self.client = self.setup_session()
+
+    def patch_spl(self, spl: str) -> str:
+        """Ensures `search ` is the first command in the SPL.
+        """
+        if spl[0] == "|":
+            return spl
+        elif spl[0:6] == "search":
+            return spl
+        else:
+            return "search " + spl
 
     def setup_session(self):
         import splunklib.client as client
@@ -72,8 +82,10 @@ class SplunkSPLSearch(ExternalDataSource):
             "host": Config.get("splunk", "host"),
             "username": Config.get("splunk", "username"),
             "password": Config.get("splunk", "password"),
-            "port": int(Config.get("splunk", "port")),
+            "port": int(Config.get("splunk", "port", fallback=8089)),
         }
+
+        logger.info(f"Creating Splunk client for host={client_kwargs['host']}")
 
         return client.connect(sharing="global", **client_kwargs, handler=handler())
 
@@ -84,11 +96,18 @@ class SplunkSPLSearch(ExternalDataSource):
 
         self.sid = job.sid
 
+        logger.info(f"Creating splunk search with sid={self.sid}, waiting for job=Done")
+
         while not job.is_done():
+            logger.debug("Job not done, sleeping")
             time.sleep(5)
 
+        logger.info(f"Job is done, getting results")
+        count = 0
         for result in self.get_results(job, count=100000000):
+            count += 1
             yield result
+        logger.info(f"Processed {count} splunk results")
 
     def metadata(self) -> dict:
         return {"sid": self.sid, "spl": self.spl[:45]}

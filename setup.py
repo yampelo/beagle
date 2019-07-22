@@ -64,6 +64,7 @@ REQUIRED = [
     "sqlalchemy==1.3.2",
     "urllib3==1.24.1",
     "werkzeug==0.15.2",
+    "mock==3.0.5",
 ]
 
 
