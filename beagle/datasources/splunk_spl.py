@@ -75,7 +75,7 @@ class SplunkSPLSearch(ExternalDataSource):
         else:
             return "search " + spl
 
-    def setup_session(self):
+    def setup_session(self):  # pragma: no cover
         import splunklib.client as client
 
         client_kwargs = {
@@ -109,7 +109,7 @@ class SplunkSPLSearch(ExternalDataSource):
             yield result
         logger.info(f"Processed {count} splunk results")
 
-    def metadata(self) -> dict:
+    def metadata(self) -> dict:  # pragma: no cover
         return {"sid": self.sid, "spl": self.spl[:45]}
 
     def create_search(self, query: str, query_kwargs: dict):
