@@ -60,8 +60,21 @@ class SplunkSPLSearch(ExternalDataSource):
     transformers = [GenericTransformer]
     category = "Splunk"
 
-    def __init__(self, spl: str):
+    def __init__(self, spl: str, earliest: str = "-24h@h", latest: str = "now"):
+        """Creates a splunk query to pull data from
 
+        Parameters
+        ----------
+        spl : str
+            The SPL to run
+        earilest : str, optional
+            The earliest time modifier, by default "24h@h"
+        latest : str, optional
+            The latest time modifier, by default "now"
+        """
+
+        self.earliest = earliest
+        self.latest = latest
         self.spl = self.patch_spl(spl)
         self.client = self.setup_session()
 
@@ -92,7 +105,10 @@ class SplunkSPLSearch(ExternalDataSource):
     def events(self) -> Generator[dict, None, None]:
         from splunklib.client import Job
 
-        job: Job = self.create_search(self.spl, query_kwargs={"exec_mode": "normal"})
+        job: Job = self.create_search(
+            self.spl,
+            query_kwargs={"exec_mode": "normal", "earliest": self.earliest, "latest": self.latest},
+        )
 
         self.sid = job.sid
 
@@ -110,7 +126,7 @@ class SplunkSPLSearch(ExternalDataSource):
         logger.info(f"Processed {count} splunk results")
 
     def metadata(self) -> dict:  # pragma: no cover
-        return {"sid": self.sid, "spl": self.spl[:45]}
+        return {"spl": self.spl[:45]}
 
     def create_search(self, query: str, query_kwargs: dict):
         """Creates a splunk search with `query` and `query_kwargs` using `splunk_client`
