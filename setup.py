@@ -17,7 +17,7 @@ VERSION = "1.0.5"
 EMAIL = None
 
 
-EXTRAS = {"rekall": ["rekall==1.7.2rc1"]}
+EXTRAS = {"rekall": ["rekall==1.7.2rc1"], "splunk": ["splunk-sdk==1.6.6"]}
 REQUIRED = [
     "ansimarkup==1.4.0",
     "atomicwrites==1.3.0",
