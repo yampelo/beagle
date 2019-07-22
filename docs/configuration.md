@@ -34,3 +34,10 @@ Each section below represents a single entry in the configuration file:
 ### `virustotal`
 
 -   `api_key`: The VirusTotal API Key to use for fetching data from virustotal
+
+### `splunk`
+
+-   `host`: The IP or FQDN of the Splunk server (no `https://`)
+-   `port`: The port of `splunkd` (usually this is 8089)
+-   `username`: The username of the user to run searches under
+-   `password` The password of the user to run searches under
