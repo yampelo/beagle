@@ -11,19 +11,19 @@ matrix:
     - name: "Linux Python 3.6"
       os: linux
       python: 3.6
-      install: pip install ".[rekall]"
+      install: pip install ".[splunk,rekall]"
 
     - name: "Linux Python 3.7"
       os: linux
       python: 3.7
       dist: xenial
-      install: pip install .
+      install: pip install ".[splunk]"
 
     - name: "Linux Python 3.7 CodeCov"
       os: linux
       python: 3.7
       dist: xenial
-      install: pip install . codecov
+      install: pip install ".[splunk]" codecov
       script: mkdir -p data && pytest --cov=./beagle
       after_success: codecov
 
@@ -41,7 +41,7 @@ matrix:
     - name: "Windows Python 3.7"
       os: windows
       language: sh
-      install: pip install .
+      install: pip install ".[splunk]"
       before_install:
           - choco install python3 --version 3.7.3
           - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
@@ -52,14 +52,14 @@ matrix:
       os: osx
       python: 3.6
       language: sh
-      install: pip3 install --user -e ".[rekall]"
+      install: pip3 install --user -e ".[splunk,rekall]"
       script: mkdir -p data && $(python3 -m site --user-base)/bin/pytest
 
     - name: "MacOSX Python 3.7"
       os: osx
       python: 3.7
       language: sh
-      install: pip3 install --user -e .
+      install: pip3 install --user -e ".[splunk]"
       script: mkdir -p data && $(python3 -m site --user-base)/bin/pytest
 
 script: mkdir -p data && pytest
