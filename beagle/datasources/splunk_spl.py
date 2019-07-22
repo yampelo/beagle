@@ -60,7 +60,7 @@ class SplunkSPLSearch(ExternalDataSource):
     transformers = [GenericTransformer]
     category = "Splunk"
 
-    def __init__(self, spl: str, *args, **kwargs):
+    def __init__(self, spl: str):
 
         self.spl = self.patch_spl(spl)
         self.client = self.setup_session()
