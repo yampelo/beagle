@@ -38,6 +38,10 @@ class SysmonTransformer(Transformer):
             return self.network_connection(event)
         elif event_id in [13, 14, 15]:
             return self.registry_creation(event)
+        elif event_id == 22:
+            return self.dns_lookup(event)
+        elif event_id == 11:
+            return self.file_created(event)
         return None
 
     def process_creation(self, event: dict) -> Tuple[Process, File, Process, File]:
@@ -116,7 +120,7 @@ class SysmonTransformer(Transformer):
 
         proc = SysMonProc(
             host=event["Computer"],
-            user=event["EventData_User"],
+            user=event.get("EventData_User"),
             process_guid=event["EventData_ProcessGuid"],
             process_id=int(event["EventData_ProcessId"]),
             process_image=process_image,
@@ -178,3 +182,24 @@ class SysmonTransformer(Transformer):
             proc.deleted_key[key].append(timestamp=event["EventData_UtcTime"])
 
         return (proc, proc_file, key)
+
+    def dns_lookup(self, event: dict) -> Tuple[Process, File, Domain]:
+        process_image, process_path = split_path(event["EventData_Image"])
+
+        proc = SysMonProc(
+            host=event["Computer"],
+            user=event.get("EventData_User"),
+            process_guid=event["EventData_ProcessGuid"],
+            process_id=int(event["EventData_ProcessId"]),
+            process_image=process_image,
+            process_image_path=process_path,
+        )
+        proc_file = proc.get_file_node()
+        proc_file.file_of[proc]
+
+        # TODO: Parse out EventData_QueryResults and add resolutions
+        domain = Domain(domain=event["EventData_QueryName"])
+
+        proc.dns_query_for[domain].append(timestamp=event["EventData_UtcTime"])
+
+        return (proc, proc_file, domain)
