@@ -1,6 +1,6 @@
 import pytest
 
-from beagle.nodes import File, Process, Domain, IPAddress
+from beagle.nodes import File, Process, Domain, IPAddress, RegistryKey
 from beagle.transformers.sysmon_transformer import SysmonTransformer
 
 
@@ -220,3 +220,103 @@ def test_network_connection_with_hostname(transformer):
     assert address in domain.resolves_to
 
     assert address.ip_address == "111.221.29.254"
+
+
+def test_filecreate_event(transformer):
+    event = {
+        "Provider_Name": "Microsoft-Windows-Sysmon",
+        "Provider_Guid": "{5770385f-c22a-43e0-bf4c-06f5698ffbd9}",
+        "Provider": None,
+        "EventID_Qualifiers": "",
+        "EventID": "11",
+        "Version": "2",
+        "Level": "4",
+        "Task": "11",
+        "Opcode": "0",
+        "Keywords": "0x8000000000000000",
+        "TimeCreated_SystemTime": "2017-09-24 20:54:55.222649",
+        "TimeCreated": None,
+        "EventRecordID": "16",
+        "Correlation_ActivityID": "",
+        "Correlation_RelatedActivityID": "",
+        "Correlation": None,
+        "Execution_ProcessID": "1812",
+        "Execution_ThreadID": "4000",
+        "Execution": None,
+        "Channel": "Microsoft-Windows-Sysmon/Operational",
+        "Computer": "DESKTOP-2C3IQHO",
+        "Security_UserID": "S-1-5-18",
+        "Security": None,
+        "EventData_UtcTime": 1506300895,
+        "EventData_ProcessGuid": "{0ad3e319-1b11-59c8-0000-0010054f3100}",
+        "EventData_ProcessId": "3344",
+        "EventData_Image": "C:\\Windows\\system32\\msiexec.exe",
+        "EventData_TargetFilename": "C:\\Program Files\\SplunkUniversalForwarder\\bin\\splunkd.exe",
+        "EventData_CreationUtcTime": "2017-09-24 20:54:55.023",
+    }
+    nodes = transformer.transform(event)
+    assert len(nodes) == 3
+    proc: Process = nodes[0]
+    written: File = nodes[2]
+
+    assert proc.accessed[written]
+
+    assert written.file_name == "splunkd.exe"
+
+
+@pytest.mark.parametrize(
+    "event_type,edge_type",
+    [
+        ("SetValue", "changed_value"),
+        ("DeleteValue", "deleted_value"),
+        ("CreateKey", "created_key"),
+        ("DeleteKey", "deleted_key"),
+    ],
+)
+def test_registry(transformer, event_type, edge_type):
+    event = {
+        "Provider_Name": "Microsoft-Windows-Sysmon",
+        "Provider_Guid": "{5770385f-c22a-43e0-bf4c-06f5698ffbd9}",
+        "Provider": None,
+        "EventID_Qualifiers": "",
+        "EventID": "13",
+        "Version": "2",
+        "Level": "4",
+        "Task": "13",
+        "Opcode": "0",
+        "Keywords": "0x8000000000000000",
+        "TimeCreated_SystemTime": "2017-09-24 20:54:56.862953",
+        "TimeCreated": None,
+        "EventRecordID": "56",
+        "Correlation_ActivityID": "",
+        "Correlation_RelatedActivityID": "",
+        "Correlation": None,
+        "Execution_ProcessID": "1812",
+        "Execution_ThreadID": "4000",
+        "Execution": None,
+        "Channel": "Microsoft-Windows-Sysmon/Operational",
+        "Computer": "DESKTOP-2C3IQHO",
+        "Security_UserID": "S-1-5-18",
+        "Security": None,
+        "EventData_EventType": event_type,
+        "EventData_UtcTime": 1506300896,
+        "EventData_ProcessGuid": "{0ad3e319-0c16-59c8-0000-0010d47d0000}",
+        "EventData_ProcessId": "532",
+        "EventData_Image": "C:\\Windows\\system32\\services.exe",
+        "EventData_TargetObject": "\\REGISTRY\\MACHINE\\SYSTEM\\ControlSet001\\Services\\splunkdrv\\Start",
+        "EventData_Details": "DWORD (0x00000003)",
+    }
+
+    nodes = transformer.transform(event)
+    assert len(nodes) == 3
+    proc: Process = nodes[0]
+    key: RegistryKey = nodes[2]
+
+    assert key in getattr(proc, edge_type)
+    if event_type == "SetValue":
+        assert {"value": "DWORD (0x00000003)", "timestamp": 1506300896} in getattr(proc, edge_type)[
+            key
+        ]
+    else:
+        assert {"timestamp": 1506300896} in getattr(proc, edge_type)[key]
+    assert key.key == "Start"

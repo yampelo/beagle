@@ -120,7 +120,7 @@ class SysmonTransformer(Transformer):
 
         proc = SysMonProc(
             host=event["Computer"],
-            user=event["EventData_User"],
+            user=event.get("EventData_User"),
             process_guid=event["EventData_ProcessGuid"],
             process_id=int(event["EventData_ProcessId"]),
             process_image=process_image,
