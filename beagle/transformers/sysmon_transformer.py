@@ -40,6 +40,8 @@ class SysmonTransformer(Transformer):
             return self.registry_creation(event)
         elif event_id == 22:
             return self.dns_lookup(event)
+        elif event_id == 11:
+            return self.file_created(event)
         return None
 
     def process_creation(self, event: dict) -> Tuple[Process, File, Process, File]:
@@ -195,6 +197,7 @@ class SysmonTransformer(Transformer):
         proc_file = proc.get_file_node()
         proc_file.file_of[proc]
 
+        # TODO: Parse out EventData_QueryResults and add resolutions
         domain = Domain(domain=event["EventData_QueryName"])
 
         proc.dns_query_for[domain].append(timestamp=event["EventData_UtcTime"])
