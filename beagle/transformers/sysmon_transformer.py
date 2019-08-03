@@ -38,7 +38,7 @@ class SysmonTransformer(Transformer):
             return self.network_connection(event)
         elif event_id in [13, 14, 15]:
             return self.registry_creation(event)
-        elif event_id == 2:
+        elif event_id == 22:
             return self.dns_lookup(event)
         return None
 
