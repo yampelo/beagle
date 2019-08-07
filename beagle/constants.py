@@ -80,3 +80,7 @@ class FieldNames:
     REG_KEY_VALUE = "reg_key_value"
     REG_KEY_PATH = "reg_path"
 
+    # Alerts
+    ALERTED_ON = "alerted_on"
+    ALERT_NAME = "alert_name"
+    ALERT_DATA = "alert_data"

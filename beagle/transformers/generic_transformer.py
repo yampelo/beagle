@@ -2,7 +2,7 @@ from typing import Optional, Tuple, Union
 
 from beagle.common.logging import logger
 from beagle.constants import EventTypes, FieldNames
-from beagle.nodes import URI, Domain, File, IPAddress, Process, RegistryKey
+from beagle.nodes import URI, Alert, Domain, File, IPAddress, Node, Process, RegistryKey
 from beagle.transformers.base_transformer import Transformer
 
 # TODO: Add Timestamps to everything, if possible.
@@ -22,6 +22,9 @@ class GenericTransformer(Transformer):
     def transform(self, event: dict) -> Optional[Tuple]:
 
         event_type = event.get(FieldNames.EVENT_TYPE)
+
+        if event.get(FieldNames.ALERTED_ON):
+            return self.make_alert(event)
 
         if event_type == EventTypes.PROCESS_LAUNCHED:
             return self.make_process(event)
@@ -46,6 +49,26 @@ class GenericTransformer(Transformer):
             return self.make_regkey_set_value(event)
         else:
             return None
+
+    def make_alert(self, event: dict) -> Tuple[Alert, ...]:
+        event.pop(FieldNames.ALERTED_ON)
+        alert = Alert(
+            alert_name=event.pop(FieldNames.ALERT_NAME),
+            alert_data=event.pop(FieldNames.ALERT_DATA, None),
+        )
+
+        nodes = self.transform(event)
+
+        if not nodes:
+            return (alert,)
+
+        for node in nodes:
+            if FieldNames.TIMESTAMP in event:
+                alert.alerted_on[node].append(timestamp=event[FieldNames.TIMESTAMP])
+            else:
+                alert.alerted_on[node]
+
+        return (alert,) + nodes
 
     def make_process(self, event: dict) -> Tuple[Process, File, Process, File]:
         """Accepts a process with the `EventTypes.PROCESS_LAUNCHED` event_type.

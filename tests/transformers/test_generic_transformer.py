@@ -1,7 +1,7 @@
 import pytest
 
 from beagle.constants import EventTypes, FieldNames, Protocols
-from beagle.nodes import URI, Domain, File, IPAddress, Process, RegistryKey
+from beagle.nodes import URI, Domain, File, IPAddress, Process, RegistryKey, Alert
 from beagle.transformers import GenericTransformer
 
 
@@ -440,3 +440,52 @@ def test_make_reg_set_no_value(transformer):
     assert regkey.key == "Type"
 
     assert regkey in process.changed_value
+
+
+def test_make_alert(transformer):
+    input_event = {
+        FieldNames.PARENT_PROCESS_IMAGE: "<PATH_SAMPLE.EXE>",
+        FieldNames.PARENT_PROCESS_IMAGE_PATH: "\\",
+        FieldNames.PARENT_PROCESS_ID: "3420",
+        FieldNames.PARENT_COMMAND_LINE: "",
+        FieldNames.PROCESS_IMAGE: "cmd.exe",
+        FieldNames.PROCESS_IMAGE_PATH: "<SYSTEM32>",
+        FieldNames.COMMAND_LINE: "",
+        FieldNames.PROCESS_ID: "3712",
+        FieldNames.TIMESTAMP: 5,
+        FieldNames.EVENT_TYPE: EventTypes.PROCESS_LAUNCHED,
+        FieldNames.ALERTED_ON: True,
+        FieldNames.ALERT_NAME: "Malicious CMD Line",
+        FieldNames.ALERT_DATA: "Bad CMD line detected",
+    }
+
+    nodes = transformer.transform(input_event)
+
+    assert len(nodes) == 5
+
+    alert: Alert = nodes[0]
+    parent: Process = nodes[1]
+    parent_file: File = nodes[2]
+
+    child: Process = nodes[3]
+    child_file: File = nodes[4]
+
+    for node in [parent, parent_file, child, child_file]:
+        assert node in alert.alerted_on
+
+    assert parent in parent_file.file_of
+
+    assert child in child_file.file_of
+
+    assert parent.process_image == "<PATH_SAMPLE.EXE>"
+    # NOTE: Expected to be false
+    assert parent.process_image_path == "\\"
+    assert parent.command_line == ""
+
+    assert parent.process_path == "\\<PATH_SAMPLE.EXE>"
+
+    assert child.process_image == "cmd.exe"
+    assert child.process_image_path == "<SYSTEM32>"
+    assert child.command_line == ""
+
+    assert {"timestamp": 5} in parent.launched[child]
