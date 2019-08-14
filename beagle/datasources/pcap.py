@@ -1,5 +1,4 @@
-from typing import Dict, Generator, cast
-
+from typing import Generator, cast
 
 from beagle.common import logger
 from beagle.datasources.base_datasource import DataSource
@@ -39,10 +38,10 @@ class PCAP(DataSource):
 
         return rdpcap
 
-    def events(self):  # -> Generator[dict, None, None]:
+    def events(self) -> Generator[dict, None, None]:
         reader = self._get_rdpcap()
 
-        from scapy.all import Ether, IP, TCP
+        from scapy.all import Ether, IP, TCP, DNS, UDP, Packet
         from scapy.layers.http import HTTPRequest
 
         logger.info("Reading PCAP File")
@@ -60,10 +59,15 @@ class PCAP(DataSource):
                 # returns protocol as a human readable string.
                 "protocol": lambda layer: layer.get_field("proto").i2s[layer.fields["proto"]],
             },
+            UDP: {
+                "dport": lambda layer: layer.fields["dport"],
+                "sport": lambda layer: layer.fields["sport"],
+            },
             TCP: {
                 "sport": lambda layer: layer.fields["sport"],
                 "dport": lambda layer: layer.fields["dport"],
             },
+            DNS: {"dns": self._parse_dns_request},
             HTTPRequest: {
                 "http_method": lambda layer: layer.fields["Method"],
                 "uri": lambda layer: layer.fields["Path"],
@@ -74,7 +78,10 @@ class PCAP(DataSource):
         packet_type = "Ether"
         for packet in pcap:
 
-            packet_data = {}
+            packet = cast(Packet, packet)
+
+            packet_data = {"payload": str(packet)}
+
             for layer_name, config in layers_data.items():
 
                 if not packet.haslayer(layer_name):
@@ -85,7 +92,31 @@ class PCAP(DataSource):
                 layer = packet[layer_name]
 
                 for name, processor in config.items():
-                    packet_data[name] = processor(layer)
+
+                    output = processor(layer)
+
+                    # Allows the processor to output multiple values.
+                    if isinstance(output, dict):
+                        packet_data.update(output)
+                    else:
+                        packet_data[name] = output
 
             packet_data["event_type"] = packet_type
+
             yield packet_data
+
+    def _parse_dns_request(self, dns_layer) -> dict:
+        from scapy.layers.dns import DNS, DNSRR
+
+        dns_layer = cast(DNS, dns_layer)
+
+        # Each DNS request has the basic qname/qtype
+        dns_data = {
+            "qname": dns_layer.qd.qname,
+            # Get 'A/MX/NS' as string rather than number.
+            "qtype": dns_layer.qd.get_field("qtype").i2repr(dns_layer.qd, dns_layer.qd.qtype),
+        }
+
+        if dns_layer.ancount > 0 and isinstance(dns_layer.an, DNSRR):
+            dns_data["qanswer"] = dns_layer.an.rdata
+        return dns_data
