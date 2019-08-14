@@ -69,9 +69,9 @@ class PCAP(DataSource):
             },
             DNS: {"dns": self._parse_dns_request},
             HTTPRequest: {
-                "http_method": lambda layer: layer.fields["Method"],
-                "uri": lambda layer: layer.fields["Path"],
-                "http_dest": lambda layer: layer.fields.get("Host"),
+                "http_method": lambda layer: layer.fields["Method"].decode(),
+                "uri": lambda layer: layer.fields["Path"].decode(),
+                "http_dest": lambda layer: layer.fields.get("Host", b"").decode(),
             },
         }
 
@@ -80,7 +80,7 @@ class PCAP(DataSource):
 
             packet = cast(Packet, packet)
 
-            packet_data = {"payload": str(packet)}
+            packet_data = {"payload": str(packet.build())}
 
             for layer_name, config in layers_data.items():
 
@@ -112,7 +112,7 @@ class PCAP(DataSource):
 
         # Each DNS request has the basic qname/qtype
         dns_data = {
-            "qname": dns_layer.qd.qname,
+            "qname": dns_layer.qd.qname.decode(),
             # Get 'A/MX/NS' as string rather than number.
             "qtype": dns_layer.qd.get_field("qtype").i2repr(dns_layer.qd, dns_layer.qd.qtype),
         }
