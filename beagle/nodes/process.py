@@ -70,6 +70,7 @@ class ConnectedTo(Edge):
     port: int
     protocol: Optional[str]
     timestamp: int
+    payload: Optional[str]
 
     def __init__(self) -> None:
         super().__init__()
