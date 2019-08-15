@@ -56,4 +56,3 @@ def test_node_updated(nx):
 
     # Should only have one node, since both nodes inserted are equal
     assert len(G.nodes()) == 1
-

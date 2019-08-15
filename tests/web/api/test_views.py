@@ -75,4 +75,4 @@ def test_adhoc_array(client):
     assert len(resp["nodes"]) > 0
 
     all_types = [l["type"] for l in resp["links"]]
-    assert "Connected To" in all_types
+    assert Protocols.TCP in all_types

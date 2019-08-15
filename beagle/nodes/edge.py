@@ -2,6 +2,8 @@ from typing import Any, Dict, List
 
 
 class Edge(object):
+    __name__ = "Edge"
+
     """The base Edge class.
 
     An edge simply stores metadata about interaction between two nodes. Each
@@ -61,10 +63,14 @@ class Edge(object):
 
         entry = {k: None for k, _ in self.__annotations__.items()}
         entry.update(data)
+        entry["edge_name"] = self.get_name(entry)
 
         self._events.append(entry)
 
         return self
+
+    def get_name(self, entry: dict):
+        return self.__name__
 
     @property
     def _display(self):
@@ -91,6 +97,7 @@ class Edge(object):
 
         entry = {k: None for k, _ in self.__annotations__.items()}
         entry.update(kwargs)
+        entry["edge_name"] = self.get_name(entry)
 
         self._events.append(entry)
 
@@ -107,4 +114,3 @@ class Edge(object):
 
     def __len__(self) -> int:
         return len(self._events)
-
