@@ -11,6 +11,7 @@ from .procmon_csv import ProcmonCSV
 from .sysmon_evtx import SysmonEVTX
 from .virustotal import GenericVTSandbox, GenericVTSandboxAPI
 from .win_evtx import WinEVTX
+from .pcap import PCAP
 
 __all__ = [
     "DataSource",
@@ -21,6 +22,7 @@ __all__ = [
     "WindowsMemory",
     "ProcmonCSV",
     "SysmonEVTX",
+    "PCAP",
     "GenericVTSandbox",
     "GenericVTSandboxAPI",
     "WinEVTX",
