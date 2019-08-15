@@ -1,3 +1,4 @@
+import inspect
 from abc import ABCMeta
 from collections import defaultdict
 from typing import Any, Dict, List, Tuple
@@ -92,7 +93,7 @@ class Node(object, metaclass=ABCMeta):
             []
         """
 
-        return []
+        return [attr for attr in self.__dict__.values() if isinstance(attr, defaultdict)]
 
     @property
     def _display(self) -> str:
