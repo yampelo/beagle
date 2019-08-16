@@ -2,7 +2,7 @@ from typing import Generator, cast
 
 from beagle.common import logger
 from beagle.datasources.base_datasource import DataSource
-from beagle.transformers.generic_transformer import GenericTransformer
+from beagle.transformers.pcap_transformer import PCAPTransformer
 
 
 class PCAP(DataSource):
@@ -15,7 +15,7 @@ class PCAP(DataSource):
     """
 
     name = "PCAP File"
-    transformers = [GenericTransformer]
+    transformers = [PCAPTransformer]
     category = "PCAP"
 
     def __init__(self, pcap_file: str) -> None:
