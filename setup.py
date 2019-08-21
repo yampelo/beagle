@@ -63,7 +63,7 @@ REQUIRED = [
     "six==1.12.0",
     "sqlalchemy==1.3.2",
     "urllib3==1.24.1",
-    "werkzeug==0.15.2",
+    "werkzeug==0.15.3",
     "mock==3.0.5",
 ]
 
