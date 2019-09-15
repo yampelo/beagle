@@ -8,7 +8,7 @@ from .generic_transformer import GenericTransformer
 from .procmon_transformer import ProcmonTransformer
 from .sysmon_transformer import SysmonTransformer
 from .darpa_tc_transformer import DRAPATCTransformer
-
+from .ossem_transformer import OSSEMTransformer
 
 __all__ = [
     "Transformer",
@@ -19,4 +19,5 @@ __all__ = [
     "ProcmonTransformer",
     "SysmonTransformer",
     "DRAPATCTransformer",
+    "OSSEMTransformer",
 ]
