@@ -6,8 +6,9 @@ from .darpa_tc_json import DARPATCJson
 from .fireeye_ax_report import FireEyeAXReport
 from .hx_triage import HXTriage
 from .memory import WindowsMemory
-from .splunk_spl import SplunkSPLSearch
+from .pcap import PCAP
 from .procmon_csv import ProcmonCSV
+from .splunk_spl import SplunkSPLSearch
 from .sysmon_evtx import SysmonEVTX
 from .virustotal import GenericVTSandbox, GenericVTSandboxAPI
 from .win_evtx import WinEVTX
@@ -21,6 +22,7 @@ __all__ = [
     "WindowsMemory",
     "ProcmonCSV",
     "SysmonEVTX",
+    "PCAP",
     "GenericVTSandbox",
     "GenericVTSandboxAPI",
     "WinEVTX",

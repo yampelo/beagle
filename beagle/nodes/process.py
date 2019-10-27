@@ -65,11 +65,15 @@ class Loaded(Edge):
 
 
 class ConnectedTo(Edge):
-    __name__ = "Connected To"
 
+    __name__ = "Connected To"
     port: int
     protocol: Optional[str]
     timestamp: int
+    payload: Optional[str]
+
+    def get_name(self, entry) -> str:
+        return entry.get("protocol") or self.__name__
 
     def __init__(self) -> None:
         super().__init__()

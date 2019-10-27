@@ -16,8 +16,12 @@ REQUIRES_PYTHON = ">=3.6.0"
 VERSION = "1.0.5"
 EMAIL = None
 
+splunk = ["splunk-sdk==1.6.6"]
+rekall = ["rekall==1.7.2rc1"]
+pcap = ["scapy==2.4.3"]
 
-EXTRAS = {"rekall": ["rekall==1.7.2rc1"], "splunk": ["splunk-sdk==1.6.6"]}
+_all = splunk + rekall + pcap
+EXTRAS = {"all": _all, "rekall": rekall, "splunk": splunk, "pcap": pcap}
 REQUIRED = [
     "ansimarkup==1.4.0",
     "atomicwrites==1.3.0",

@@ -98,6 +98,9 @@ class NetworkX(Backend):
 
         for edge_dict in node.edges:
             for dest_node, edge_data in edge_dict.items():
+
+                edge_name = edge_data.__name__
+
                 # If there's no data on the edges, insert at least one to represent
                 # the edge exists
                 if len(edge_data._events) == 0:
@@ -110,10 +113,13 @@ class NetworkX(Backend):
                 else:
                     # Otherwise, insert all the edge instances.
                     for entry in getattr(edge_data, "_events", [None]):
+                        if entry:
+                            edge_name = entry.pop("edge_name")
+
                         self.insert_edge(
                             u=node,  # Source node
                             v=dest_node,  # Dest Node
-                            edge_name=edge_data.__name__,  # Edge name
+                            edge_name=edge_name,  # Edge name
                             data=entry,
                         )
 
