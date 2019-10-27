@@ -82,6 +82,47 @@ class Node(object, metaclass=ABCMeta):
             + ")"
         )
 
+    def merge_with(self, node: "Node") -> None:
+        """Merge the current node with the destination node. After a call to `merge_with` the
+        calling node will be updated with the information from the passed in node. This
+        is similar to a dict `update` call.
+
+        Parameters
+        ----------
+        node : Node
+            The node to use to update the current node.
+
+        Raises
+        ------
+        TypeError
+            Passed in node does not represent the same entity represented by the current node.
+        """
+
+        if hash(self) != hash(node):
+            raise TypeError(f"Argument {node} must represent same node object")
+
+        # Otherwise, update the node
+
+        for key, value in node.__dict__.items():
+
+            # NOTE: Skips edge combination because edge data is
+            # added anyway in self.insert_node()
+            if isinstance(value, defaultdict):
+
+                for dest_node, edge_data in value.items():
+
+                    events = edge_data._events
+
+                    relationship = getattr(self, key)[dest_node]
+
+                    for event in events:
+                        event.pop("edge_name")
+                        relationship.append(**event)
+
+            # Always use the latest value.
+            elif value:
+                setattr(self, key, value)
+
     @property
     def edges(self) -> List:
         """Returns an empty list, so that all nodes can have their
