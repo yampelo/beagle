@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import DefaultDict, Dict, List, Optional, Tuple, Union
+from typing import DefaultDict, Dict, List, Optional, Tuple
 
 from beagle.common import logger
 from beagle.nodes import URI, Domain, IPAddress, Node
@@ -55,11 +55,17 @@ class PCAPTransformer(Transformer):
             dom = Domain(event["http_dest"])
             uri = URI(event["uri"])
             src.http_request_to[uri].append(method=event["http_method"])
+
+            dom.resolves_to[dst]
+
             uri.uri_of[dom]
             return (src, dst, dom, uri)
 
         if event_type == "DNS":
+            if event["qname"][-1] == ".":
+                event["qname"] = event["qname"][:-1]
             dom = Domain(event["qname"])
+
             src.dns_query_for[dom].append(record_type=event["qtype"])
             if "qanswer" in event:
                 ip = IPAddress(event["qanswer"])

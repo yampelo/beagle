@@ -23,8 +23,8 @@ class PCAP(DataSource):
         self.pcap_file = pcap_file
         self._imported_scapy = False
 
-    def metadata(self) -> dict:
-        return {}
+    def metadata(self) -> dict:  # pragma: no cover
+        return {"filename": self.pcap_file}
 
     def _get_rdpcap(self):
 
@@ -57,7 +57,9 @@ class PCAP(DataSource):
                 "src_ip": lambda layer: layer.fields["src"],
                 "dst_ip": lambda layer: layer.fields["dst"],
                 # returns protocol as a human readable string.
-                "protocol": lambda layer: layer.get_field("proto").i2s[layer.fields["proto"]],
+                "protocol": lambda layer: layer.get_field("proto")
+                .i2s[layer.fields["proto"]]
+                .upper(),
             },
             UDP: {
                 "dport": lambda layer: layer.fields["dport"],
