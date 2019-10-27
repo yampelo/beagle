@@ -141,7 +141,7 @@ def test_dns_request_no_resp(transformer):
     nodes = transformer.transform(event)
     assert len(nodes) == 3
     src: Host = nodes[0]
-    dst: Host = nodes[3]
+    dst: Host = nodes[2]
     dom: Domain = nodes[1]
     assert dst in src.connected_to
 
@@ -150,6 +150,5 @@ def test_dns_request_no_resp(transformer):
     assert src.mac == "ab:ab:ab:ab:ab:ab"
     assert dst.mac == "12:12:12:12:12:12"
 
-    assert ip.ip_address == "123.0.0.1"
     assert dom.domain == "google.com"
     assert dom in src.dns_query_for

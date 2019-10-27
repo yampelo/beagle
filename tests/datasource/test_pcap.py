@@ -123,7 +123,7 @@ def test_single_dns_query_packet():
     assert events[0]["dst_ip"] == "192.168.1.1"
     assert events[0]["sport"] == 80
     assert events[0]["dport"] == 53
-    assert events[0]["qname"] == "google.com"
+    assert events[0]["qname"] == "google.com."
     assert events[0]["qtype"] == "A"
 
     assert events[0]["event_type"] == "DNS"
