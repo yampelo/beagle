@@ -170,6 +170,16 @@ class DummyNode(Node):
         return self.x
 
 
+def testMergeRejectsUnequalNodes():
+    """First node's fields should be updated with the second nodes"""
+
+    n1 = DummyNode(x=1, y=2, z=4)
+    n2 = DummyNode(x=1, y=3, z=3)
+
+    with pytest.raises(TypeError):
+        n1.merge_with(n2)
+
+
 def testMergeNoEdges():
     """First node's fields should be updated with the second nodes"""
 
