@@ -10,7 +10,7 @@ from beagle.nodes import Process
 @pytest.fixture()
 def nx() -> Callable[..., NetworkX]:
     def _backend(*args, **kwargs) -> networkx.Graph:
-        return NetworkX(*args, consolidate_edges=True, **kwargs).graph()
+        return NetworkX(*args, consolidate_edges=True, **kwargs).graph()  # noqa
 
     return _backend
 
@@ -56,3 +56,17 @@ def test_node_updated(nx):
 
     # Should only have one node, since both nodes inserted are equal
     assert len(G.nodes()) == 1
+
+
+def test_edge_has_no_name(nx):
+    proc = Process(process_id=10, process_image="test.exe", command_line=None)
+    other_proc = Process(process_id=12, process_image="best.exe", command_line="best.exe /c 123456")
+
+    # append never called
+    proc.launched[other_proc]
+
+    # This shouldn't error.
+    G = nx(nodes=[proc, other_proc])
+
+    len(G.nodes()) == 2
+    len(G.edges()) == 1

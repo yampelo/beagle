@@ -113,7 +113,7 @@ class NetworkX(Backend):
                 else:
                     # Otherwise, insert all the edge instances.
                     for entry in getattr(edge_data, "_events", [None]):
-                        if entry:
+                        if entry and "edge_name" in entry:
                             edge_name = entry.pop("edge_name")
 
                         self.insert_edge(
@@ -144,12 +144,13 @@ class NetworkX(Backend):
         data : dict
             Data entry to place on this edge.
         """
+        logger.debug(f"Adding edge ({u})-[{edge_name}]->({v})")
 
         u_id = hash(u)
         v_id = hash(v)
 
         if v_id in self.G.nodes:
-            self.update_node(v, v_id)
+            self.update_node(node=v, node_id=v_id)
         else:
             # First time, make an array.
             self.G.add_node(v_id, data=v)
