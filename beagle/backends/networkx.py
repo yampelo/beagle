@@ -4,7 +4,7 @@ from typing import Optional
 import networkx as nx
 
 from beagle.backends.base_backend import Backend
-from beagle.common import logger
+from beagle.common import logger, dedup_nodes
 from beagle.nodes import Node
 
 
@@ -68,6 +68,7 @@ class NetworkX(Backend):
 
         logger.info("Beginning graph generation.")
 
+        self.nodes = dedup_nodes(self.nodes)
         for node in self.nodes:
             node_id = hash(node)
             self.insert_node(node, node_id)
@@ -144,7 +145,6 @@ class NetworkX(Backend):
         data : dict
             Data entry to place on this edge.
         """
-        logger.debug(f"Adding edge ({u})-[{edge_name}]->({v})")
 
         u_id = hash(u)
         v_id = hash(v)
