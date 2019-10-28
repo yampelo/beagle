@@ -10,7 +10,7 @@ from beagle.nodes import Process
 @pytest.fixture()
 def nx() -> Callable[..., NetworkX]:
     def _backend(*args, **kwargs) -> networkx.Graph:
-        return NetworkX(*args, consolidate_edges=True, **kwargs).graph()  # noqa
+        return NetworkX(*args, consolidate_edges=True, **kwargs).graph()  # type: ignore
 
     return _backend
 
@@ -70,3 +70,9 @@ def test_edge_has_no_name(nx):
 
     len(G.nodes()) == 2
     len(G.edges()) == 1
+
+
+def test_empty_graph(nx):
+    backend = NetworkX(nodes=[], consolidate_edges=True)
+    backend.graph()
+    assert backend.is_empty()

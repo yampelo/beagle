@@ -1,10 +1,11 @@
 from collections import defaultdict
-from typing import Optional
+from itertools import groupby
+from typing import List
 
 import networkx as nx
 
 from beagle.backends.base_backend import Backend
-from beagle.common import logger, dedup_nodes
+from beagle.common import dedup_nodes, logger
 from beagle.nodes import Node
 
 
@@ -68,10 +69,43 @@ class NetworkX(Backend):
 
         logger.info("Beginning graph generation.")
 
+        # De-duplicate nodes.
         self.nodes = dedup_nodes(self.nodes)
+
         for node in self.nodes:
-            node_id = hash(node)
-            self.insert_node(node, node_id)
+
+            # Insert the node into the graph.
+            self.insert_node(node, hash(node))
+
+            # Insert the node's edges
+            # Add in all the edges for this node.
+            for edge_dict in node.edges:
+                for dest_node, edge_data in edge_dict.items():
+
+                    default_edge_name = edge_data.__name__
+
+                    edge_instances = [
+                        {"edge_name": entry.pop("edge_name", default_edge_name), "data": entry}
+                        for entry in edge_data._events
+                    ]
+
+                    if len(edge_instances) == 0:
+                        edge_instances = [{"edge_name": default_edge_name}]
+
+                    # Sort by name
+                    edge_instances = sorted(edge_instances, key=lambda e: e["edge_name"])
+
+                    for edge_name, instances in groupby(
+                        edge_instances, key=lambda e: e["edge_name"]
+                    ):
+
+                        self.insert_edges(
+                            u=node,  # Source node
+                            v=dest_node,  # Dest Node
+                            edge_name=edge_name,
+                            # All instances of edges between u->v. Only get the data
+                            instances=[e.get("data", None) for e in edge_instances],
+                        )
 
         logger.info("Completed graph generation.")
         logger.info(f"Graph contains {len(self.G.nodes())} nodes and {len(self.G.edges())} edges.")
@@ -81,58 +115,25 @@ class NetworkX(Backend):
     def insert_node(self, node: Node, node_id: int) -> None:
         """Inserts a node into the graph, as well as all edges outbound from it.
 
-        If a node with `node_id` already exists, the node data is updated using
-        :py:meth:`update_node`.
-
         Parameters
         ----------
         node : Node
             Node object to insert
-        no`de_id : int
+        node_id : int
             The ID of the node (`hash(node)`)
         """
 
-        if node_id not in self.G.nodes:
-            self.G.add_node(node_id, data=node)
+        # Add the node
+
+        # If it is in the graph, update with the object from the array.
+        if node_id in self.G:
+            nx.set_node_attributes(self.G, {node_id: {"data": node}})
+        # Otherwise, insert from the first time
         else:
-            self.update_node(node, node_id)
+            self.G.add_node(node_id, data=node)
 
-        for edge_dict in node.edges:
-            for dest_node, edge_data in edge_dict.items():
-
-                edge_name = edge_data.__name__
-
-                # If there's no data on the edges, insert at least one to represent
-                # the edge exists
-                if len(edge_data._events) == 0:
-                    self.insert_edge(
-                        u=node,  # Source node
-                        v=dest_node,  # Dest Node
-                        edge_name=edge_data.__name__,  # Edge name
-                        data=None,
-                    )
-                else:
-                    # Otherwise, insert all the edge instances.
-                    for entry in getattr(edge_data, "_events", [None]):
-                        if entry and "edge_name" in entry:
-                            edge_name = entry.pop("edge_name")
-
-                        self.insert_edge(
-                            u=node,  # Source node
-                            v=dest_node,  # Dest Node
-                            edge_name=edge_name,  # Edge name
-                            data=entry,
-                        )
-
-    def insert_edge(self, u: Node, v: Node, edge_name: str, data: Optional[dict]) -> None:
-        """Insert an edge from `u` to `v` with type `edge_name` that contains data
-        `data`.
-
-        If the edge already exists, the data entry is appended to the existing data
-        array.
-
-        This results in a single edge between `u` and `v` per `edge_name`. And each
-        occurence of that edge is represented by an entry in the `data` list.
+    def insert_edges(self, u: Node, v: Node, edge_name: str, instances: List[dict]) -> None:
+        """Inserts instances of an edge of type `edge_name` from node `u` to `v`
 
         Parameters
         ----------
@@ -142,17 +143,15 @@ class NetworkX(Backend):
             Destination Node object
         edge_name : str
             Edge Name
-        data : dict
-            Data entry to place on this edge.
+        instances : List[dict]
+            The data entries for the node between `u` and `v`.
         """
 
         u_id = hash(u)
         v_id = hash(v)
 
-        if v_id in self.G.nodes:
-            self.update_node(node=v, node_id=v_id)
-        else:
-            # First time, make an array.
+        # Add the node if its not in teh graph.
+        if v_id not in self.G.nodes:
             self.G.add_node(v_id, data=v)
 
         # If we consolidate edges, the key is the edge name, and we update the data.
@@ -163,23 +162,27 @@ class NetworkX(Backend):
                     u_for_edge=u_id,
                     v_for_edge=v_id,
                     key=edge_name,
-                    data=([data] if data else []),
+                    data=instances,
                     edge_name=edge_name,
                 )
-            elif data:
-                curr = curr["data"]
-                curr.append(data)
+            else:
                 nx.set_edge_attributes(
-                    self.G, {(u_id, v_id, edge_name): {"data": curr, "edge_name": edge_name}}
+                    self.G,
+                    {
+                        (u_id, v_id, edge_name): {
+                            "data": curr["data"] + instances,  # Add old data to new data.
+                            "edge_name": edge_name,
+                        }
+                    },
                 )
 
         # Otherwise, they key is assigned from NetworkX, and we add the edge type as a label:
         else:
-            self.G.add_edge(
-                u_for_edge=u_id, v_for_edge=v_id, data=([data] if data else []), edge_name=edge_name
+            self.G.add_edges_from(
+                [(u_id, v_id, {"key": edge_name, "data": entry}) for entry in instances]
             )
 
-    def update_node(self, node: Node, node_id: int) -> None:
+    def update_node(self, node: Node, node_id: int) -> None:  # pragma: no cover
         """Update the attributes of a node. Since we may see the same Node in multiple events,
         we want to have the largest coverage of its attributes.
         * See :class:`beagle.nodes.node.Node` for how we determine two nodes are the same.
@@ -187,12 +190,19 @@ class NetworkX(Backend):
         This method updates the node already in the graph with the newest attributes
         from the passed in parameter `Node`
 
+
         Parameters
         ----------
         node : Node
             The Node object to use to update the node already in the graph
         node_id : int
             The hash of the Node. see :py:meth:`beagle.nodes.node.__hash__`
+
+
+        Notes
+        ---------
+        Since nodes are de-duplicated before being inserted into the graph, this should
+        only be used to manually add in new data.
 
         """
 
