@@ -49,7 +49,9 @@ class PCAPTransformer(Transformer):
         src = Host(ip_address=event["src_ip"], mac=event["src_mac"])
         dst = Host(ip_address=event["dst_ip"], mac=event["dst_mac"])
 
-        src.connected_to[dst].append(port=event["dport"], protocol=event["protocol"])
+        src.connected_to[dst].append(
+            port=event["dport"], protocol=event["protocol"], payload=event["payload"]
+        )
 
         if event_type == "HTTPRequest":
             dom = Domain(event["http_dest"])

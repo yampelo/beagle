@@ -1,3 +1,4 @@
+import codecs
 from typing import Generator, cast
 
 from beagle.common import logger
@@ -82,7 +83,11 @@ class PCAP(DataSource):
 
             packet = cast(Packet, packet)
 
-            packet_data = {"payload": str(packet.build())}
+            packet_data = {
+                "payload": packet.build()
+                .decode(encoding="ascii", errors="ignore")
+                .replace("\x00", ".")
+            }
 
             for layer_name, config in layers_data.items():
 
