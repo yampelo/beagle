@@ -1,8 +1,9 @@
 from __future__ import absolute_import
 
-from typing import Tuple
+from typing import Dict, List, Tuple
 
 from beagle.common.logging import logger  # noqa:F401
+from beagle.nodes import Node
 
 
 def split_path(path: str) -> Tuple[str, str]:
@@ -63,3 +64,46 @@ def split_reg_path(reg_path: str) -> Tuple[str, str, str]:
     reg_key = reg_path.split("\\")[-1]
 
     return (hive, reg_key, reg_key_path)
+
+
+def dedup_nodes(nodes: List[Node]) -> List[Node]:
+    """Deduplicates a list of nodes.
+
+    Parameters
+    ----------
+    nodes : List[Node]
+        [description]
+
+    Returns
+    -------
+    List[Node]
+        [description]
+    """
+
+    def _merge_batch(nodes: List[Node]) -> List[Node]:
+        """Merge a single batch of nodes"""
+        output: Dict[int, Node] = {}
+
+        logger.debug(f"Merging batch of size {len(nodes)}")
+
+        for node in nodes:
+            node_key = hash(node)
+
+            # First time seeing node.
+            if node_key not in output:
+                output[node_key] = node
+                continue
+
+            # Otherwise, update the node
+
+            current = output[node_key]
+
+            current.merge_with(node)
+
+            output[node_key] = current
+
+        logger.debug(f"Merged down to size {len(output)}")
+
+        return list(output.values())
+
+    return _merge_batch(nodes)
