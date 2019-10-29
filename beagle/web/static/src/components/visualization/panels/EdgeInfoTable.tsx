@@ -26,24 +26,31 @@ export default class EdgeInfoTable extends React.Component<EdgeInfoTableProps, a
                 if ("timestamp" in entry) {
                     const tmp = new Date(0);
                     tmp.setUTCSeconds(Number(entry.timestamp));
-                    entry.timestamp = tmp;
+                    entry.timestamp = _.toString(tmp); // Display as string.
                 }
                 // Captialize the object keys
                 return _.fromPairs(_.toPairs(entry).map(([k, v]) => [_.capitalize(k), v]));
             });
 
-            const foundKeys = ["Occurence", ...Array.from(allKeys)];
+            const foundKeys = Array.from(allKeys);
 
             const renderBodyRow = (item: object, i: number) => {
                 const r = {
                     key: `row-${i}`,
                     cells: [
-                        i + 1,
-                        ...Object.values(item).map(ii => {
-                            const stringified = JSON.stringify(ii);
+                        ...Object.values(item).map(v => {
+                            if (_.isNull(v)) {
+                                return "";
+                            } else if (_.isNumber(v)) {
+                                return v;
+                            }
+                            const stringified = JSON.stringify(v);
                             return stringified.slice(1, stringified.length - 1);
                         })
-                    ]
+                    ],
+                    style: {
+                        wordBreak: "break-all"
+                    }
                 };
                 return r;
             };
@@ -52,7 +59,6 @@ export default class EdgeInfoTable extends React.Component<EdgeInfoTableProps, a
                 <Table
                     celled={true}
                     striped={true}
-                    columns={2}
                     headerRow={foundKeys}
                     tableData={tableData}
                     renderBodyRow={renderBodyRow}

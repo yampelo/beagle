@@ -1,4 +1,4 @@
-import codecs
+import unicodedata
 from typing import Generator, cast
 
 from beagle.common import logger
@@ -84,9 +84,14 @@ class PCAP(DataSource):
             packet = cast(Packet, packet)
 
             packet_data = {
-                "payload": packet.build()
-                .decode(encoding="ascii", errors="ignore")
-                .replace("\x00", ".")
+                "payload": "".join(
+                    c
+                    for c in packet.build()
+                    .decode(encoding="ascii", errors="ignore")
+                    .replace("\x00", ".")  # replace null bytes
+                    # Remove unicode control characters
+                    if unicodedata.category(c) not in {"Cc", "Cf", "Cs", "Co", "Cn"}
+                )
             }
 
             for layer_name, config in layers_data.items():
