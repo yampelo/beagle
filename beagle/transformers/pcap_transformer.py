@@ -50,13 +50,18 @@ class PCAPTransformer(Transformer):
         dst = Host(ip_address=event["dst_ip"], mac=event["dst_mac"])
 
         src.connected_to[dst].append(
-            port=event["dport"], protocol=event["protocol"], payload=event["payload"]
+            port=event["dport"],
+            protocol=event["protocol"],
+            payload=event["payload"],
+            timestamp=event["timestamp"],
         )
 
         if event_type == "HTTPRequest":
             dom = Domain(event["http_dest"])
             uri = URI(event["uri"])
-            src.http_request_to[uri].append(method=event["http_method"])
+            src.http_request_to[uri].append(
+                method=event["http_method"], timestamp=event["timestamp"]
+            )
 
             dom.resolves_to[dst]
 
@@ -68,10 +73,10 @@ class PCAPTransformer(Transformer):
                 event["qname"] = event["qname"][:-1]
             dom = Domain(event["qname"])
 
-            src.dns_query_for[dom].append(record_type=event["qtype"])
+            src.dns_query_for[dom].append(record_type=event["qtype"], timestamp=event["timestamp"])
             if "qanswer" in event:
                 ip = IPAddress(event["qanswer"])
-                dom.resolves_to[ip]
+                dom.resolves_to[ip].append(timestamp=event["timestamp"])
                 return (src, dom, ip, dst)
 
             return (src, dom, dst)

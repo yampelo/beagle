@@ -83,15 +83,20 @@ class PCAP(DataSource):
 
             packet = cast(Packet, packet)
 
+            payload = packet.build()
+            if packet.haslayer(IP):
+                payload = packet[IP].build()
+
             packet_data = {
                 "payload": "".join(
                     c
-                    for c in packet.build()
-                    .decode(encoding="ascii", errors="ignore")
-                    .replace("\x00", ".")  # replace null bytes
+                    for c in payload.decode(encoding="ascii", errors="ignore").replace(
+                        "\x00", "."
+                    )  # replace null bytes
                     # Remove unicode control characters
                     if unicodedata.category(c) not in {"Cc", "Cf", "Cs", "Co", "Cn"}
-                )
+                ),
+                "timestamp": int(packet.time),
             }
 
             for layer_name, config in layers_data.items():
