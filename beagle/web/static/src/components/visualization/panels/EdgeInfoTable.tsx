@@ -15,12 +15,22 @@ export default class EdgeInfoTable extends React.Component<EdgeInfoTableProps, a
                     Click an Edge to view information
                 </Header>
             );
+        } else if (this.props.edge.properties.data.every(e => _.isNull(e))) {
+            // If all the events are `null`, that means this edge has no underyling events.
+            return (
+                <Header as="h5" className="centered">
+                    Edge contains no underlying events.
+                </Header>
+            );
         } else {
             // Clone since we modify the edge later
             const edge = _.cloneDeep(this.props.edge);
 
             const allKeys = new Set<string>();
             const tableData = edge.properties.data.map(entry => {
+                if (_.isNull(entry)) {
+                    return [];
+                }
                 Object.keys(entry).forEach(key => allKeys.add(_.capitalize(key)));
 
                 if ("timestamp" in entry) {
@@ -60,6 +70,7 @@ export default class EdgeInfoTable extends React.Component<EdgeInfoTableProps, a
                     celled={true}
                     striped={true}
                     headerRow={foundKeys}
+                    fixed={true}
                     tableData={tableData}
                     renderBodyRow={renderBodyRow}
                 />
