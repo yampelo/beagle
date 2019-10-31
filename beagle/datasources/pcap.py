@@ -135,5 +135,8 @@ class PCAP(DataSource):
         }
 
         if dns_layer.ancount > 0 and isinstance(dns_layer.an, DNSRR):
-            dns_data["qanswer"] = dns_layer.an.rdata
+            resp = dns_layer.an.rdata
+            if isinstance(resp, bytes):
+                resp = resp.decode()
+            dns_data["qanswer"] = resp
         return dns_data
