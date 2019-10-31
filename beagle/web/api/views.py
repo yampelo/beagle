@@ -464,7 +464,7 @@ def get_categories():
     # Show only the responses we upload
     if request.args.get("uploaded"):
         categories = [value[0] for value in db.session.query(Graph.category).distinct()]
-        print(categories)
+        # Filter out the ones we don't have
         resp = list(filter(lambda entry: entry["id"] in categories, resp))
 
     response = jsonify(resp)
