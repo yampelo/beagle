@@ -15,35 +15,53 @@ export default class EdgeInfoTable extends React.Component<EdgeInfoTableProps, a
                     Click an Edge to view information
                 </Header>
             );
+        } else if (this.props.edge.properties.data.every(e => _.isNull(e))) {
+            // If all the events are `null`, that means this edge has no underyling events.
+            return (
+                <Header as="h5" className="centered">
+                    Edge contains no underlying events.
+                </Header>
+            );
         } else {
             // Clone since we modify the edge later
             const edge = _.cloneDeep(this.props.edge);
 
             const allKeys = new Set<string>();
             const tableData = edge.properties.data.map(entry => {
+                if (_.isNull(entry)) {
+                    return {};
+                }
                 Object.keys(entry).forEach(key => allKeys.add(_.capitalize(key)));
 
                 if ("timestamp" in entry) {
                     const tmp = new Date(0);
                     tmp.setUTCSeconds(Number(entry.timestamp));
-                    entry.timestamp = tmp;
+                    entry.timestamp = _.toString(tmp); // Display as string.
                 }
                 // Captialize the object keys
                 return _.fromPairs(_.toPairs(entry).map(([k, v]) => [_.capitalize(k), v]));
             });
 
-            const foundKeys = ["Occurence", ...Array.from(allKeys)];
+            const foundKeys = Array.from(allKeys);
 
             const renderBodyRow = (item: object, i: number) => {
+                global.console.log(item, i);
                 const r = {
                     key: `row-${i}`,
                     cells: [
-                        i + 1,
-                        ...Object.values(item).map(ii => {
-                            const stringified = JSON.stringify(ii);
+                        ...Object.values(item).map(v => {
+                            if (_.isNull(v)) {
+                                return "";
+                            } else if (_.isNumber(v)) {
+                                return v;
+                            }
+                            const stringified = JSON.stringify(v);
                             return stringified.slice(1, stringified.length - 1);
                         })
-                    ]
+                    ],
+                    style: {
+                        wordBreak: "break-all"
+                    }
                 };
                 return r;
             };
@@ -52,8 +70,8 @@ export default class EdgeInfoTable extends React.Component<EdgeInfoTableProps, a
                 <Table
                     celled={true}
                     striped={true}
-                    columns={2}
                     headerRow={foundKeys}
+                    fixed={true}
                     tableData={tableData}
                     renderBodyRow={renderBodyRow}
                 />

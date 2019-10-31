@@ -40,6 +40,8 @@ def test_basic_connection(transformer):
         "protocol": "tcp",
         "sport": "12345",
         "dport": "80",
+        "payload": "1",
+        "timestamp": 1,
     }
 
     nodes = transformer.transform(event)
@@ -67,6 +69,8 @@ def test_http_request(transformer):
         "http_dest": "https://google.com",
         "event_type": "HTTPRequest",
         "protocol": "tcp",
+        "payload": "1",
+        "timestamp": 1,
     }
 
     nodes = transformer.transform(event)
@@ -100,7 +104,9 @@ def test_dns_request_one_resp(transformer):
         "qname": "google.com.",
         "qanswer": "123.0.0.1",
         "qtype": "A",
+        "payload": "1",
         "event_type": "DNS",
+        "timestamp": 1,
         "protocol": "udp",
     }
 
@@ -134,6 +140,8 @@ def test_dns_request_no_resp(transformer):
         "dport": 53,
         "qname": "google.com.",
         "qtype": "A",
+        "timestamp": 1,
+        "payload": "1",
         "event_type": "DNS",
         "protocol": "udp",
     }

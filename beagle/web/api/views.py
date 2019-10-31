@@ -441,6 +441,7 @@ def adhoc():
 
 
 @api.route("/categories/")
+@api.route("/categories")
 def get_categories():
     """Returns a list of categories as id, name pairs.
 
@@ -456,11 +457,18 @@ def get_categories():
     -------
     List[dict]
     """
-
     categories = set([source.category for source in DATASOURCES.values()])
-    response = jsonify(
-        [{"id": category.replace(" ", "_").lower(), "name": category} for category in categories]
-    )
+
+    resp = [{"id": category.replace(" ", "_").lower(), "name": category} for category in categories]
+
+    # Show only the responses we upload
+    if request.args.get("uploaded"):
+        categories = [value[0] for value in db.session.query(Graph.category).distinct()]
+        # Filter out the ones we don't have
+        resp = list(filter(lambda entry: entry["id"] in categories, resp))
+
+    response = jsonify(resp)
+
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response
 

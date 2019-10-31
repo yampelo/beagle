@@ -46,7 +46,7 @@ class Sidebar extends React.Component<any, SideBarState> {
         fetch(
             `${
                 process.env.NODE_ENV === "production" ? "" : "http://localhost:8000"
-            }/api/categories/`
+            }/api/categories?uploaded=true`
         )
             .then(resp => resp.json())
             .then(json => {

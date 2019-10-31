@@ -1,3 +1,4 @@
+import unicodedata
 from typing import Generator, cast
 
 from beagle.common import logger
@@ -82,7 +83,21 @@ class PCAP(DataSource):
 
             packet = cast(Packet, packet)
 
-            packet_data = {"payload": str(packet.build())}
+            payload = packet.build()
+            if packet.haslayer(IP):
+                payload = packet[IP].build()
+
+            packet_data = {
+                "payload": "".join(
+                    c
+                    for c in payload.decode(encoding="ascii", errors="ignore").replace(
+                        "\x00", "."
+                    )  # replace null bytes
+                    # Remove unicode control characters
+                    if unicodedata.category(c) not in {"Cc", "Cf", "Cs", "Co", "Cn"}
+                ),
+                "timestamp": int(packet.time),
+            }
 
             for layer_name, config in layers_data.items():
 
@@ -120,5 +135,8 @@ class PCAP(DataSource):
         }
 
         if dns_layer.ancount > 0 and isinstance(dns_layer.an, DNSRR):
-            dns_data["qanswer"] = dns_layer.an.rdata
+            resp = dns_layer.an.rdata
+            if isinstance(resp, bytes):
+                resp = resp.decode()
+            dns_data["qanswer"] = resp
         return dns_data
