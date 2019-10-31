@@ -29,7 +29,7 @@ export default class EdgeInfoTable extends React.Component<EdgeInfoTableProps, a
             const allKeys = new Set<string>();
             const tableData = edge.properties.data.map(entry => {
                 if (_.isNull(entry)) {
-                    return [];
+                    return {};
                 }
                 Object.keys(entry).forEach(key => allKeys.add(_.capitalize(key)));
 
@@ -45,6 +45,7 @@ export default class EdgeInfoTable extends React.Component<EdgeInfoTableProps, a
             const foundKeys = Array.from(allKeys);
 
             const renderBodyRow = (item: object, i: number) => {
+                global.console.log(item, i);
                 const r = {
                     key: `row-${i}`,
                     cells: [
