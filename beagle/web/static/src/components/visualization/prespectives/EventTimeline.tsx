@@ -21,12 +21,17 @@ export default class EventTimeline extends React.Component<EventTimelineProps, E
         function transformEdge(edge: Edge): TimelineItem[] | undefined {
             const targetNode = _.find(props.visibleNodes, { id: edge.to });
 
-            if (_.isUndefined(targetNode) || !("properties" in edge)) {
+            if (
+                _.isNil(edge) ||
+                _.isUndefined(targetNode) ||
+                !("properties" in edge) ||
+                edge.properties.data.length === 0 // Edge with no data, for example, a file of edge.
+            ) {
                 return undefined;
             }
 
             return edge.properties.data
-                .filter(properties => "timestamp" in properties)
+                .filter(properties => !_.isNil(properties) && "timestamp" in properties)
                 .map(edgeInfo => {
                     const date = new Date(0);
                     date.setUTCSeconds(edgeInfo.timestamp);
