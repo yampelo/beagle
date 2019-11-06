@@ -1,24 +1,12 @@
 from collections import defaultdict
 from typing import TYPE_CHECKING, DefaultDict, Dict, List, Optional
 
-from beagle.nodes import Edge, Node
+from beagle.nodes.node import Node
+from beagle.edges import FileOf, CopiedTo
 
 # mypy type hinting
 if TYPE_CHECKING:
     from beagle.nodes import Process  # noqa: F401
-
-
-class FileOf(Edge):
-    __name__ = "File Of"
-
-
-class CopiedTo(Edge):
-    __name__ = "Copied To"
-
-    timestamp: int
-
-    def __init__(self) -> None:
-        super().__init__()
 
 
 class File(Node):

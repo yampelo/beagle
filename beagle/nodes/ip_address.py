@@ -1,8 +1,11 @@
 from collections import defaultdict
-from typing import DefaultDict, List, Optional
+from typing import DefaultDict, List, Optional, TYPE_CHECKING
 
-from beagle.nodes import Node, URI, Domain
-from beagle.nodes.process import ConnectedTo, DNSQueryFor, HTTPRequestTo
+from beagle.nodes.node import Node
+from beagle.edges import ConnectedTo, DNSQueryFor, HTTPRequestTo
+
+if TYPE_CHECKING:
+    from beagle.nodes import URI, Domain  # noqa
 
 
 class IPAddress(Node):
@@ -16,8 +19,8 @@ class IPAddress(Node):
     key_fields: List[str] = ["ip_address"]
 
     connected_to: DefaultDict["IPAddress", ConnectedTo]
-    http_request_to: DefaultDict[URI, HTTPRequestTo]
-    dns_query_for: DefaultDict[Domain, DNSQueryFor]  # List of DNS Lookups
+    http_request_to: DefaultDict["URI", HTTPRequestTo]
+    dns_query_for: DefaultDict["Domain", DNSQueryFor]  # List of DNS Lookups
 
     def __init__(self, ip_address: str = None, mac: str = None):
         self.ip_address = ip_address

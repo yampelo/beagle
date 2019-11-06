@@ -1,18 +1,15 @@
 from __future__ import absolute_import
 
-from .node import Node
-from .edge import Edge
-
+from .alert import Alert
 from .domain import URI, Domain
 from .file import File, FileOf
 from .ip_address import IPAddress
+from .node import Node
 from .process import Launched, Process
 from .registry import RegistryKey
-from .alert import Alert
 
 __all__ = [
     "Node",
-    "Edge",
     "URI",
     "Domain",
     "File",

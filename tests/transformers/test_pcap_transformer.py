@@ -1,8 +1,7 @@
 import pytest
 
 from beagle.transformers import PCAPTransformer
-from beagle.transformers.pcap_transformer import Host
-from beagle.nodes import Domain, URI
+from beagle.nodes import Domain, URI, IPAddress
 
 
 @pytest.fixture
@@ -47,8 +46,8 @@ def test_basic_connection(transformer):
     nodes = transformer.transform(event)
     assert len(nodes) == 2
     assert nodes[1] in nodes[0].connected_to
-    src: Host = nodes[0]
-    dst: Host = nodes[1]
+    src: IPAddress = nodes[0]
+    dst: IPAddress = nodes[1]
 
     assert src.ip_address == "127.0.0.1"
     assert dst.ip_address == "192.168.1.1"
@@ -76,8 +75,8 @@ def test_http_request(transformer):
     nodes = transformer.transform(event)
     assert len(nodes) == 4
     assert nodes[1] in nodes[0].connected_to
-    src: Host = nodes[0]
-    dst: Host = nodes[1]
+    src: IPAddress = nodes[0]
+    dst: IPAddress = nodes[1]
     dom: Domain = nodes[2]
     uri: URI = nodes[3]
 
@@ -112,8 +111,8 @@ def test_dns_request_one_resp(transformer):
 
     nodes = transformer.transform(event)
     assert len(nodes) == 4
-    src: Host = nodes[0]
-    dst: Host = nodes[3]
+    src: IPAddress = nodes[0]
+    dst: IPAddress = nodes[3]
     dom: Domain = nodes[1]
     ip: URI = nodes[2]
     assert dst in src.connected_to
@@ -148,8 +147,8 @@ def test_dns_request_no_resp(transformer):
 
     nodes = transformer.transform(event)
     assert len(nodes) == 3
-    src: Host = nodes[0]
-    dst: Host = nodes[2]
+    src: IPAddress = nodes[0]
+    dst: IPAddress = nodes[2]
     dom: Domain = nodes[1]
     assert dst in src.connected_to
 

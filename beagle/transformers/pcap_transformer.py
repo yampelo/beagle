@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 from beagle.common import logger
 from beagle.nodes import URI, Domain, IPAddress, Node
