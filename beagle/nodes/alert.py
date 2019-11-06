@@ -1,16 +1,8 @@
 from collections import defaultdict
 from typing import DefaultDict, List, Optional
 
-from beagle.nodes import Edge, Node
-
-
-class AlertedOn(Edge):
-    __name__ = "Alerted On"
-
-    timestamp: int
-
-    def __init__(self) -> None:
-        super().__init__()
+from beagle.nodes.node import Node
+from beagle.edges import AlertedOn
 
 
 class Alert(Node):

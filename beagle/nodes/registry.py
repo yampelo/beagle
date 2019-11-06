@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from beagle.nodes import Node
+from beagle.nodes.node import Node
 
 
 class RegistryKey(Node):

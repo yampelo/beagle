@@ -1,32 +1,8 @@
-from collections import defaultdict
-from typing import DefaultDict, Dict, List, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 from beagle.common import logger
 from beagle.nodes import URI, Domain, IPAddress, Node
-from beagle.nodes.process import ConnectedTo, DNSQueryFor, HTTPRequestTo
 from beagle.transformers.base_transformer import Transformer
-
-
-class Host(IPAddress):
-    __name__ = "Host"
-    __color__ = "#E69500"
-
-    mac: Optional[str]
-    ip_address: Optional[str]
-
-    key_fields: List[str] = ["ip_address", "mac"]
-    connected_to: DefaultDict["Host", ConnectedTo]
-    http_request_to: DefaultDict[URI, HTTPRequestTo]
-    dns_query_for: DefaultDict[Domain, DNSQueryFor]  # List of DNS Lookups
-
-    def __init__(self, mac: str, ip_address: str) -> None:
-        self.mac = mac
-        self.ip_address = ip_address
-
-        self.connected_to = defaultdict(ConnectedTo)
-
-        self.http_request_to = defaultdict(HTTPRequestTo)
-        self.dns_query_for = defaultdict(DNSQueryFor)
 
 
 class PCAPTransformer(Transformer):
@@ -46,8 +22,8 @@ class PCAPTransformer(Transformer):
         if event_type in ["Ether", "IP"] or "src_ip" not in event or "dst_ip" not in event:
             return None
 
-        src = Host(ip_address=event["src_ip"], mac=event["src_mac"])
-        dst = Host(ip_address=event["dst_ip"], mac=event["dst_mac"])
+        src = IPAddress(ip_address=event["src_ip"], mac=event["src_mac"])
+        dst = IPAddress(ip_address=event["dst_ip"], mac=event["dst_mac"])
 
         src.connected_to[dst].append(
             port=event["dport"],

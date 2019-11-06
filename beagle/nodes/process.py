@@ -2,157 +2,27 @@ from collections import defaultdict
 from typing import DefaultDict, Dict, List, Optional
 
 from beagle.nodes.domain import URI, Domain
-from beagle.nodes.edge import Edge
 from beagle.nodes.file import File
 from beagle.nodes.ip_address import IPAddress
 from beagle.nodes.node import Node
 from beagle.nodes.registry import RegistryKey
 
-
-class Launched(Edge):
-    __name__ = "Launched"
-
-    timestamp: int  # Array of process launch times
-
-    def __init__(self) -> None:
-        super().__init__()
-
-
-class Wrote(Edge):
-    __name__ = "Wrote"
-
-    contents: Optional[str]  # Array of contents of writes
-    timestamp: int  # Array of timestamps of writes
-
-    def __init__(self) -> None:
-        super().__init__()
-
-
-class Accessed(Edge):
-    __name__ = "Accessed"
-
-    timestamp: int
-
-    def __init__(self) -> None:
-        super().__init__()
-
-
-class Deleted(Edge):
-    __name__ = "Deleted"
-
-    timestamp: int
-
-    def __init__(self) -> None:
-        super().__init__()
-
-
-class Copied(Edge):
-    __name__ = "Copied"
-
-    timestamp: int
-
-    def __init__(self) -> None:
-        super().__init__()
-
-
-class Loaded(Edge):
-    __name__ = "Loaded"
-
-    timestamp: int
-
-    def __init__(self) -> None:
-        super().__init__()
-
-
-class ConnectedTo(Edge):
-
-    __name__ = "Connected To"
-    port: int
-    protocol: Optional[str]
-    timestamp: int
-    payload: Optional[str]
-
-    def get_name(self, entry) -> str:
-        return entry.get("protocol") or self.__name__
-
-    def __init__(self) -> None:
-        super().__init__()
-
-
-class HTTPRequestTo(Edge):
-    __name__ = "HTTP Request To"
-
-    user_agent: Optional[str]
-    method: Optional[str]
-    header: Optional[str]
-    timestamp: int
-
-    def __init__(self) -> None:
-        super().__init__()
-
-    @property
-    def _display(self):
-        return self.method or super()._display()
-
-
-class DNSQueryFor(Edge):
-    __name__ = "DNS Query For"
-
-    timestamp: int
-    record_type: Optional[str]
-
-    def __init__(self) -> None:
-        super().__init__()
-
-
-class ChangedValue(Edge):
-    __name__ = "Changed Value"
-
-    value: Optional[str]
-    timestamp: int
-
-    def __init__(self) -> None:
-        super().__init__()
-
-
-class CreatedKey(Edge):
-    __name__ = "Created Key"
-
-    timestamp: int
-    value: Optional[str]
-
-    def __init__(self) -> None:
-        super().__init__()
-
-
-class ReadKey(Edge):
-    __name__ = "Read Key"
-
-    timestamp: int
-    value: Optional[str]
-
-    def __init__(self) -> None:
-        super().__init__()
-
-
-class DeletedValue(Edge):
-    __name__ = "Deleted Value"
-
-    timestamp: int
-    value: Optional[str]
-
-    def __init__(self) -> None:
-        super().__init__()
-
-
-class DeletedKey(Edge):
-    __name__ = "Deleted Key"
-
-    timestamp: int
-    value: Optional[str]
-
-    def __init__(self) -> None:
-        super().__init__()
+from beagle.edges import (
+    ConnectedTo,
+    DNSQueryFor,
+    HTTPRequestTo,
+    Wrote,
+    Accessed,
+    Launched,
+    Loaded,
+    Deleted,
+    Copied,
+    ChangedValue,
+    CreatedKey,
+    ReadKey,
+    DeletedValue,
+    DeletedKey,
+)
 
 
 class Process(Node):

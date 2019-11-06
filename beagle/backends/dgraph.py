@@ -8,7 +8,8 @@ import pydgraph
 from beagle.backends.networkx import NetworkX
 from beagle.common import logger
 from beagle.config import Config
-from beagle.nodes import Edge, Node
+from beagle.nodes import Node
+from beagle.edges import Edge
 
 
 class DGraph(NetworkX):

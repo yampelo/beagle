@@ -1,4 +1,4 @@
-from beagle.nodes import Edge
+from beagle.edges import Edge
 import pytest
 
 

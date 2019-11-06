@@ -3,7 +3,8 @@ from typing import List, DefaultDict
 
 import pytest
 
-from beagle.nodes import Node, Edge
+from beagle.nodes import Node
+from beagle.edges import Edge
 
 
 def testNoKeyFields():

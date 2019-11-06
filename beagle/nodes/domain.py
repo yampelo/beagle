@@ -1,30 +1,10 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, DefaultDict, List, Optional
+from typing import DefaultDict, List, Optional
 
-from beagle.nodes import Edge, Node
+from beagle.nodes.node import Node
 from beagle.nodes.ip_address import IPAddress
 
-# mypy type hinting
-if TYPE_CHECKING:
-    from beagle.nodes import Process  # noqa: F401
-
-
-class URIOf(Edge):
-    __name__ = "URI Of"
-
-    timestamp: int
-
-    def __init__(self) -> None:
-        super().__init__()
-
-
-class ResolvesTo(Edge):
-    __name__ = "Resolves To"
-
-    timestamp: int
-
-    def __init__(self) -> None:
-        super().__init__()
+from beagle.edges import URIOf, ResolvesTo
 
 
 class Domain(Node):
