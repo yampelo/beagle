@@ -4,7 +4,9 @@
 -   Adds Cuckoo Sandbox as a datasource - [#11](https://github.com/yampelo/beagle/pull/11)
 -   Makes `rekall` install an extra option, can be installed via `pip install pybeagle[rekall]`
 -   Adds `SplunkSPLSearch` datasource, allowing feeding data from Splunk - [#57](https://github.com/yampelo/beagle/pull/57).
--   Adds PCAP as a datasource - [#60](https://github.com/yampelo/beagle/pull/60)
+-   Adds PCAP as a datasource - [#60](https://github.com/yampelo/beagle/pull/60),[#63](https://github.com/yampelo/beagle/pull/63)
+-   Decouples `edges` and `nodes` - [#68](https://github.com/yampelo/beagle/pull/68)
+-   Improves graph generation speed, reducing time by ~40x - [#62](https://github.com/yampelo/beagle/pull/62)
 
 ## [1.0.0] - 2019-03-24
 
