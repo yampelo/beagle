@@ -31,6 +31,7 @@ class File(Node):
         host: str = None,
         file_path: str = None,
         file_name: str = None,
+        full_path: str = None,
         extension: str = None,
         hashes: Optional[Dict[str, str]] = {},
     ) -> None:
@@ -38,7 +39,9 @@ class File(Node):
         self.file_path = file_path
         self.file_name = file_name
 
-        if file_path and file_name:
+        if full_path:
+            self.full_path = full_path
+        elif file_path and file_name:
             if file_path[-1] == "\\":
                 self.full_path = f"{file_path}{file_name}"
             else:

@@ -71,6 +71,7 @@ class Process(Node):
         user: str = None,
         process_image: str = None,
         process_image_path: str = None,
+        process_path: str = None,
         command_line: str = None,
         hashes: Dict[str, str] = {},
     ) -> None:
@@ -82,7 +83,9 @@ class Process(Node):
         self.command_line = command_line
         self.hashes = hashes
 
-        if process_image_path and process_image:
+        if process_path:
+            self.process_path = process_path
+        elif process_image_path and process_image:
             if process_image_path[-1] == "\\":
                 self.process_path = f"{process_image_path}{process_image}"
             else:
