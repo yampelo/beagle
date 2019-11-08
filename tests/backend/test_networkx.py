@@ -1,3 +1,4 @@
+import json
 from typing import Callable
 
 import networkx
@@ -76,3 +77,53 @@ def test_empty_graph(nx):
     backend = NetworkX(nodes=[], consolidate_edges=True)
     backend.graph()
     assert backend.is_empty()
+
+
+def test_from_json_object(nx):
+    proc = Process(process_id=10, process_image="test.exe", command_line=None)
+    other_proc = Process(process_id=12, process_image="best.exe", command_line="best.exe /c 123456")
+
+    proc.launched[other_proc]
+
+    G = nx(nodes=[proc, other_proc])
+
+    _json_output = NetworkX.graph_to_json(G)
+
+    assert isinstance(_json_output, dict)
+
+    G2 = NetworkX.from_json(_json_output)
+
+    # Graphs should be equal.
+    assert networkx.is_isomorphic(G, G2)
+
+
+def test_from_json_path(nx, tmpdir):
+    proc = Process(process_id=10, process_image="test.exe", command_line=None)
+    other_proc = Process(process_id=12, process_image="best.exe", command_line="best.exe /c 123456")
+
+    proc.launched[other_proc]
+
+    G = nx(nodes=[proc, other_proc])
+
+    _json_output = NetworkX.graph_to_json(G)
+
+    # Save to file
+    p = tmpdir.mkdir("networkx").join("data.json")
+    p.write(json.dumps(_json_output))
+
+    G2 = NetworkX.from_json(p)
+
+    # Graphs should be equal.
+    assert networkx.is_isomorphic(G, G2)
+
+
+def test_from_json_fails_on_invalid(nx, tmpdir):
+    with pytest.raises(ValueError):
+
+        NetworkX.from_json({})
+    with pytest.raises(ValueError):
+
+        NetworkX.from_json({"nodes": []})
+    with pytest.raises(ValueError):
+
+        NetworkX.from_json({"links": []})

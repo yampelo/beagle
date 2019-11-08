@@ -71,6 +71,7 @@ class Process(Node):
         user: str = None,
         process_image: str = None,
         process_image_path: str = None,
+        process_path: str = None,
         command_line: str = None,
         hashes: Dict[str, str] = {},
     ) -> None:
@@ -82,7 +83,9 @@ class Process(Node):
         self.command_line = command_line
         self.hashes = hashes
 
-        if process_image_path and process_image:
+        if process_path:
+            self.process_path = process_path
+        elif process_image_path and process_image:
             if process_image_path[-1] == "\\":
                 self.process_path = f"{process_image_path}{process_image}"
             else:
@@ -134,3 +137,16 @@ class Process(Node):
     @property
     def _display(self) -> str:
         return self.process_image or super()._display
+
+
+class SysMonProc(Process):
+    """A custom Process class which extends the regular one. Adds
+    the unique Sysmon process_guid identifier.
+    """
+
+    key_fields: List[str] = ["process_guid"]
+    process_guid: Optional[str]
+
+    def __init__(self, process_guid: str = None, *args, **kwargs) -> None:
+        self.process_guid = process_guid
+        super().__init__(*args, **kwargs)
