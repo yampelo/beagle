@@ -393,5 +393,5 @@ G = NetworkX.from_json("my_graph.json")
 
 -   [REST API Overview](docs/rest_api.md)
 -   [Configuration](docs/configuration.md)
--   [Developement](docs/development.md)
+-   [Development](docs/development.md)
 -   [Design Logic](docs/design_overview.md)
