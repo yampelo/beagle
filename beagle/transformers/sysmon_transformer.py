@@ -1,22 +1,8 @@
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 
 from beagle.common import logger, split_path
-from beagle.constants import Protocols
-from beagle.nodes import URI, Alert, Domain, File, IPAddress, Node, Process, RegistryKey
+from beagle.nodes import Domain, File, IPAddress, Process, RegistryKey, SysMonProc
 from beagle.transformers.base_transformer import Transformer
-
-
-class SysMonProc(Process):
-    """A custom Process class which extends the regular one. Adds
-    the unique Sysmon process_guid identifier.
-    """
-
-    key_fields: List[str] = ["process_guid"]
-    process_guid: Optional[str]
-
-    def __init__(self, process_guid: str = None, *args, **kwargs) -> None:
-        self.process_guid = process_guid
-        super().__init__(*args, **kwargs)
 
 
 class SysmonTransformer(Transformer):

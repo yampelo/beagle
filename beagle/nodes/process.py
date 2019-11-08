@@ -134,3 +134,16 @@ class Process(Node):
     @property
     def _display(self) -> str:
         return self.process_image or super()._display
+
+
+class SysMonProc(Process):
+    """A custom Process class which extends the regular one. Adds
+    the unique Sysmon process_guid identifier.
+    """
+
+    key_fields: List[str] = ["process_guid"]
+    process_guid: Optional[str]
+
+    def __init__(self, process_guid: str = None, *args, **kwargs) -> None:
+        self.process_guid = process_guid
+        super().__init__(*args, **kwargs)
