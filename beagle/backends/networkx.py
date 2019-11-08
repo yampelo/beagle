@@ -76,43 +76,23 @@ class NetworkX(Backend):
         self.nodes = dedup_nodes(self.nodes)
 
         for node in self.nodes:
-
             # Insert the node into the graph.
+            # This also takes care of edges.
             self.insert_node(node, hash(node))
-
-            # Insert the node's edges
-            # Add in all the edges for this node.
-            for edge_dict in node.edges:
-                for dest_node, edge_data in edge_dict.items():
-
-                    default_edge_name = edge_data.__name__
-
-                    edge_instances = [
-                        {"edge_name": entry.pop("edge_name", default_edge_name), "data": entry}
-                        for entry in edge_data._events
-                    ]
-
-                    if len(edge_instances) == 0:
-                        edge_instances = [{"edge_name": default_edge_name}]
-
-                    # Sort by name
-                    edge_instances = sorted(edge_instances, key=lambda e: e["edge_name"])
-
-                    for edge_name, instances in groupby(
-                        edge_instances, key=lambda e: e["edge_name"]
-                    ):
-
-                        self.insert_edges(
-                            u=node,  # Source node
-                            v=dest_node,  # Dest Node
-                            edge_name=edge_name,
-                            # All instances of edges between u->v. Only get the data
-                            instances=[e.get("data", None) for e in edge_instances],
-                        )
 
         logger.info("Completed graph generation.")
         logger.info(f"Graph contains {len(self.G.nodes())} nodes and {len(self.G.edges())} edges.")
 
+        return self.G
+
+    def add_nodes(self, nodes: List[Node]) -> nx.MultiDiGraph:
+        logger.info("Appending nodes into existing graph.")
+        nodes = dedup_nodes(nodes)
+        for node in nodes:
+            self.insert_node(node, hash(node))
+
+        logger.info("Completed appending nodes graph.")
+        logger.info(f"Graph contains {len(self.G.nodes())} nodes and {len(self.G.edges())} edges.")
         return self.G
 
     def insert_node(self, node: Node, node_id: int) -> None:
@@ -134,6 +114,34 @@ class NetworkX(Backend):
         # Otherwise, insert from the first time
         else:
             self.G.add_node(node_id, data=node)
+
+        # Insert the node's edges
+        # Add in all the edges for this node.
+        for edge_dict in node.edges:
+            for dest_node, edge_data in edge_dict.items():
+
+                default_edge_name = edge_data.__name__
+
+                edge_instances = [
+                    {"edge_name": entry.pop("edge_name", default_edge_name), "data": entry}
+                    for entry in edge_data._events
+                ]
+
+                if len(edge_instances) == 0:
+                    edge_instances = [{"edge_name": default_edge_name}]
+
+                # Sort by name
+                edge_instances = sorted(edge_instances, key=lambda e: e["edge_name"])
+
+                for edge_name, instances in groupby(edge_instances, key=lambda e: e["edge_name"]):
+
+                    self.insert_edges(
+                        u=node,  # Source node
+                        v=dest_node,  # Dest Node
+                        edge_name=edge_name,
+                        # All instances of edges between u->v. Only get the data
+                        instances=[e.get("data", None) for e in edge_instances],
+                    )
 
     def insert_edges(self, u: Node, v: Node, edge_name: str, instances: List[dict]) -> None:
         """Inserts instances of an edge of type `edge_name` from node `u` to `v`

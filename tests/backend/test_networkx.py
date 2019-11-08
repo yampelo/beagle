@@ -5,7 +5,7 @@ import networkx
 import pytest
 
 from beagle.backends.networkx import NetworkX
-from beagle.nodes import Process
+from beagle.nodes import Process, File
 
 
 @pytest.fixture()
@@ -127,3 +127,62 @@ def test_from_json_fails_on_invalid(nx, tmpdir):
     with pytest.raises(ValueError):
 
         NetworkX.from_json({"links": []})
+
+
+def test_add_nodes_no_overlap(nx):
+    proc = Process(process_id=10, process_image="test.exe", command_line="test.exe /c foobar")
+    other_proc = Process(process_id=12, process_image="best.exe", command_line="best.exe /c 123456")
+
+    proc.launched[other_proc].append(timestamp=1)
+
+    backend = NetworkX(consolidate_edges=True, nodes=[proc, other_proc])
+    G = backend.graph()
+
+    assert len(G.nodes()) == 2
+    assert len(G.edges()) == 1
+
+    # Add in a new pair of nodes.
+    proc2 = Process(process_id=4, process_image="malware.exe", command_line="malware.exe /c foobar")
+    f = File(file_name="foo", file_path="bar")
+    proc2.wrote[f]
+
+    G = backend.add_nodes([proc2, f])
+
+    # Graph grew
+    assert len(G.nodes()) == 4
+    assert len(G.edges()) == 2
+
+
+def test_add_node_overlaps_existing(nx):
+    proc = Process(process_id=10, process_image="test.exe", command_line="test.exe /c foobar")
+    other_proc = Process(process_id=12, process_image="best.exe", command_line="best.exe /c 123456")
+
+    proc.launched[other_proc].append(timestamp=1)
+
+    backend = NetworkX(consolidate_edges=True, nodes=[proc, other_proc])
+    G = backend.graph()
+
+    assert len(G.nodes()) == 2
+    assert len(G.edges()) == 1
+
+    # Add a new node that *overlaps* an existing node (note - not the same node object.)
+    proc2 = Process(process_id=10, process_image="test.exe", command_line="test.exe /c foobar")
+    f = File(file_name="foo", file_path="bar")
+    proc2.wrote[f]
+
+    G = backend.add_nodes([proc2, f])
+
+    # Graph grew, but only 3 nodes.
+    assert len(G.nodes()) == 3
+    assert len(G.edges()) == 2
+
+    # Process should have both write and launched edges.
+
+    u = hash(proc2)
+    v = hash(other_proc)
+    v2 = hash(f)
+
+    assert networkx.has_path(G, u, v)
+    assert networkx.has_path(G, u, v2)
+    assert "Launched" in G[u][v]
+    assert "Wrote" in G[u][v2]
