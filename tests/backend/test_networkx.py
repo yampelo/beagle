@@ -115,3 +115,15 @@ def test_from_json_path(nx, tmpdir):
 
     # Graphs should be equal.
     assert networkx.is_isomorphic(G, G2)
+
+
+def test_from_json_fails_on_invalid(nx, tmpdir):
+    with pytest.raises(ValueError):
+
+        NetworkX.from_json({})
+    with pytest.raises(ValueError):
+
+        NetworkX.from_json({"nodes": []})
+    with pytest.raises(ValueError):
+
+        NetworkX.from_json({"links": []})
