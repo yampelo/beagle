@@ -5,6 +5,7 @@ import os
 import sys
 import tempfile
 from inspect import _empty  # type: ignore
+from typing import Any, Dict, Tuple
 
 from flask import Blueprint, jsonify, request
 from flask.helpers import make_response
@@ -215,111 +216,53 @@ def new():
         {id: integer, self: string}
     """
 
-    # Verify we have the basic parameters.
-    missing_params = []
-    for param in ["datasource", "transformer", "comment"]:
-        if param not in request.form:
-            missing_params.append(param)
+    # Returns a tuple of (dict, bool).
+    result = _validate_params(request.form)
 
-    if len(missing_params) > 0:
-        logger.debug(f"Request to /new missing parameters: {missing_params}")
-        return make_response(jsonify({"message": f"Missing parameters {missing_params}"}), 400)
+    # If false, return error message
+    if not result[1]:
+        return make_response(jsonify(result[0]), 400)
 
-    # Pull out the requested datasource/transformer.
-    requested_datasource = request.form["datasource"]
-    requested_transformer = request.form["transformer"]
+    config = result[0]
 
-    # Backend is optional
-    requested_backend = request.form.get("backend", "NetworkX")
-
-    datasource_schema = next(
-        filter(lambda entry: entry["id"] == requested_datasource, SCHEMA["datasources"]), None
-    )
-
-    if datasource_schema is None:
-        logger.debug(f"User requested a non-existent data source {requested_datasource}")
-        resp = {
-            "message": f"Requested datasource '{requested_datasource}' is invalid, "
-            + "please use /api/datasources to find a list of valid datasources"
-        }
-        return make_response(jsonify(resp), 400)
-
-    logger.info(
-        f"Recieved upload request for datasource=<{requested_datasource}>, "
-        + f"transformer=<{requested_transformer}>, backend=<{requested_backend}>"
-    )
-
-    datasource_cls = DATASOURCES[requested_datasource]
-    transformer_cls = TRANSFORMERS[requested_transformer]
-    backend_class = BACKENDS[requested_backend]
-
-    required_parameters = datasource_schema["params"]
-
+    datasource_cls = config["datasource"]
+    transformer_cls = config["transformer"]
+    backend_cls = config["backend"]
+    datasource_schema = config["schema"]
     # If this class extends the ExternalDataSource class, we know that the parameters
     # represent strings, and not files.
     is_external = issubclass(datasource_cls, ExternalDataSource)
 
-    # Make sure the user provided all required parameters for the datasource.
-    datasource_missing_params = []
-    for param in required_parameters:
-        # Skip missing parameters
-        if param["required"] is False:
-            continue
-        if is_external and param["name"] not in request.form:
-            datasource_missing_params.append(param["name"])
-
-        if not is_external and param["name"] not in request.files:
-            datasource_missing_params.append(param["name"])
-
-    if len(datasource_missing_params) > 0:
-        logger.debug(
-            f"Missing datasource {'form' if is_external else 'files'} params {datasource_missing_params}"
-        )
-        resp = {
-            "message": f"Missing datasource {'form' if is_external else 'files'} params {datasource_missing_params}"
-        }
-        return make_response(jsonify(resp), 400)
+    logger.info(
+        f"Recieved upload request for datasource=<{datasource_cls.__name__}>, "
+        + f"transformer=<{transformer_cls.__name__}>, backend=<{backend_cls.__name__}>"
+    )
 
     logger.info("Transforming data to a graph.")
 
-    logger.debug("Setting up parameters")
-    params = {}
-
-    if is_external:
-        # External parameters are in the form
-        params = {}
-        for param in datasource_schema["params"]:
-            if param["name"] in request.form:
-                params[param["name"]] = request.form[param["name"]]
-
-        logger.info(f"ExternalDataSource params received {params}")
-
-    else:
-        for param in datasource_schema["params"]:
-            # Save the files, keep track of which parameter they represent
-            if param["name"] in request.files:
-                params[param["name"]] = tempfile.NamedTemporaryFile()
-                request.files[param["name"]].save(params[param["name"]].name)
-                params[param["name"]].seek(0)
-
-        logger.info(f"Saved uploaded files {params}")
-
-    logger.debug("Set up parameters")
+    params = _setup_params(request.form, datasource_schema, is_external)
 
     try:
+
+        # Set up parameters for datasource class
+        datasource_params = (
+            # Use filenames if we are referencing a temporary file
+            {param_name: tempfile.name for param_name, tempfile in params.items()}
+            if not is_external
+            else params
+        )
         # Create the datasource
-        datasource = datasource_cls(
-            # Give file paths instead of file-like objects when not external source.
-            **(
-                {param_name: tempfile.name for param_name, tempfile in params.items()}
-                if not is_external
-                else params
-            )
-        )
+        datasource = datasource_cls(**datasource_params)
+
+        # Create transformer
         transformer = datasource.to_transformer(transformer_cls)
-        graph = backend_class(
-            metadata=datasource.metadata(), nodes=transformer.run(), consolidate_edges=True
-        )
+
+        # Create the nodes
+        nodes = transformer.run()
+
+        # Create the backend
+        graph = backend_cls(metadata=datasource.metadata(), nodes=nodes, consolidate_edges=True)
+
         # Make the graph
         G = graph.graph()
 
@@ -357,15 +300,112 @@ def new():
 
     # If the backend is NetworkX, save the graph.
     # Otherwise, redirect the user to wherever he sent it (if possible)
-    if backend_class.__name__ == "NetworkX":
+    if backend_cls.__name__ == "NetworkX":
         response = _save_graph_to_db(graph, datasource_cls.category)
-
     else:
         logger.debug(G)
         response = jsonify({"resp": G})
 
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response
+
+
+def _validate_params(form: dict) -> Tuple[dict, bool]:
+    # Verify we have the basic parameters.
+    missing_params = []
+    for param in ["datasource", "transformer", "comment"]:
+        if param not in form:
+            missing_params.append(param)
+
+    if len(missing_params) > 0:
+        logger.debug(f"Request to /new missing parameters: {missing_params}")
+        return ({"message": f"Missing parameters {missing_params}"}, False)
+
+    # Pull out the requested datasource/transformer.
+    requested_datasource = form["datasource"]
+    requested_transformer = form["transformer"]
+    # Backend is optional
+    requested_backend = form.get("backend", "NetworkX")
+
+    datasource_schema = next(
+        filter(lambda entry: entry["id"] == requested_datasource, SCHEMA["datasources"]), None
+    )
+
+    if datasource_schema is None:
+        logger.debug(f"User requested a non-existent data source {requested_datasource}")
+        resp = {
+            "message": f"Requested datasource '{requested_datasource}' is invalid, "
+            + "please use /api/datasources to find a list of valid datasources"
+        }
+        return (resp, False)
+
+    datasource_cls = DATASOURCES[requested_datasource]
+    transformer_cls = TRANSFORMERS[requested_transformer]
+    backend_cls = BACKENDS[requested_backend]
+    required_params = datasource_schema["params"]
+
+    is_external = issubclass(datasource_cls, ExternalDataSource)
+
+    # Make sure the user provided all required parameters for the datasource.
+    datasource_missing_params = []
+    for param in required_params:
+        # Skip missing parameters
+        if param["required"] is False:
+            continue
+        if is_external and param["name"] not in request.form:
+            datasource_missing_params.append(param["name"])
+
+        if not is_external and param["name"] not in request.files:
+            datasource_missing_params.append(param["name"])
+
+    if len(datasource_missing_params) > 0:
+        logger.debug(
+            f"Missing datasource {'form' if is_external else 'files'} params {datasource_missing_params}"
+        )
+        resp = {
+            "message": f"Missing datasource {'form' if is_external else 'files'} params {datasource_missing_params}"
+        }
+        return (resp, False)
+
+    return (
+        {
+            "datasource": datasource_cls,
+            "transformer": transformer_cls,
+            "backend": backend_cls,
+            "schema": datasource_schema,
+            "required_params": required_params,
+        },
+        True,
+    )
+
+
+def _setup_params(form: dict, schema: dict, is_external: bool) -> dict:
+    logger.debug("Setting up parameters")
+
+    params: Dict[str, Any] = {}
+
+    if is_external:
+        # External parameters are in the form
+        params = {}
+        for param in schema["params"]:
+            if param["name"] in request.form:
+                params[param["name"]] = request.form[param["name"]]
+
+        logger.info(f"ExternalDataSource params received {params}")
+
+    else:
+        for param in schema["params"]:
+            # Save the files, keep track of which parameter they represent
+            if param["name"] in request.files:
+                params[param["name"]] = tempfile.NamedTemporaryFile()
+                request.files[param["name"]].save(params[param["name"]].name)
+                params[param["name"]].seek(0)
+
+        logger.info(f"Saved uploaded files {params}")
+
+    logger.debug("Set up parameters")
+
+    return params
 
 
 def _save_graph_to_db(backend: NetworkX, category: str) -> dict:
