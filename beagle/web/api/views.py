@@ -225,9 +225,11 @@ def new():
         logger.debug(f"Request to /new missing parameters: {missing_params}")
         return make_response(jsonify({"message": f"Missing parameters {missing_params}"}), 400)
 
-    # Get the
+    # Pull out the requested datasource/transformer.
     requested_datasource = request.form["datasource"]
     requested_transformer = request.form["transformer"]
+
+    # Backend is optional
     requested_backend = request.form.get("backend", "NetworkX")
 
     datasource_schema = next(
@@ -236,15 +238,11 @@ def new():
 
     if datasource_schema is None:
         logger.debug(f"User requested a non-existent data source {requested_datasource}")
-        return make_response(
-            jsonify(
-                {
-                    "message": f"Requested datasource '{requested_datasource}' is invalid, "
-                    + "please use /api/datasources to find a list of valid datasources"
-                }
-            ),
-            400,
-        )
+        resp = {
+            "message": f"Requested datasource '{requested_datasource}' is invalid, "
+            + "please use /api/datasources to find a list of valid datasources"
+        }
+        return make_response(jsonify(resp), 400)
 
     logger.info(
         f"Recieved upload request for datasource=<{requested_datasource}>, "
@@ -264,7 +262,7 @@ def new():
     # Make sure the user provided all required parameters for the datasource.
     datasource_missing_params = []
     for param in required_parameters:
-        # Skip missnig parameters
+        # Skip missing parameters
         if param["required"] is False:
             continue
         if is_external and param["name"] not in request.form:
@@ -277,14 +275,10 @@ def new():
         logger.debug(
             f"Missing datasource {'form' if is_external else 'files'} params {datasource_missing_params}"
         )
-        return make_response(
-            jsonify(
-                {
-                    "message": f"Missing datasource {'form' if is_external else 'files'} params {datasource_missing_params}"
-                }
-            ),
-            400,
-        )
+        resp = {
+            "message": f"Missing datasource {'form' if is_external else 'files'} params {datasource_missing_params}"
+        }
+        return make_response(jsonify(resp), 400)
 
     logger.info("Transforming data to a graph.")
 
@@ -364,50 +358,53 @@ def new():
     # If the backend is NetworkX, save the graph.
     # Otherwise, redirect the user to wherever he sent it (if possible)
     if backend_class.__name__ == "NetworkX":
+        response = _save_graph_to_db(graph, datasource_cls.category)
 
-        # Take the SHA256 of the contents of the graph.
-        contents_hash = hashlib.sha256(
-            json.dumps(graph.to_json(), sort_keys=True).encode("utf-8")
-        ).hexdigest()
-
-        # See if we have previously generated this *exact* graph.
-        existing = Graph.query.filter_by(meta=graph.metadata, sha256=contents_hash).first()
-
-        if existing:
-            logger.info(f"Graph previously generated with id {existing.id}")
-            response = jsonify({"id": existing.id, "self": f"/{existing.category}/{existing.id}"})
-            response.headers.add("Access-Control-Allow-Origin", "*")
-            return response
-
-        dest_folder = datasource_cls.category.replace(" ", "_").lower()
-        # Set up the storage directory.
-        dest_path = f"{Config.get('storage', 'dir')}/{dest_folder}/{contents_hash}.json"
-        os.makedirs(f"{Config.get('storage', 'dir')}/{dest_folder}", exist_ok=True)
-
-        db_entry = Graph(
-            sha256=contents_hash,
-            meta=graph.metadata,
-            comment=request.form.get("comment", None),
-            category=dest_folder,  # Categories use the lower name!
-            file_path=f"{contents_hash}.json",
-        )
-
-        db.session.add(db_entry)
-        db.session.commit()
-
-        logger.info(f"Added graph to database with id={db_entry.id}")
-
-        json.dump(graph.to_json(), open(dest_path, "w"))
-
-        logger.info(f"Saved graph to {dest_path}")
-
-        response = jsonify({"id": db_entry.id, "self": f"/{dest_folder}/{db_entry.id}"})
     else:
         logger.debug(G)
         response = jsonify({"resp": G})
 
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response
+
+
+def _save_graph_to_db(backend: NetworkX, category: str) -> dict:
+    # Take the SHA256 of the contents of the graph.
+    contents_hash = hashlib.sha256(
+        json.dumps(backend.to_json(), sort_keys=True).encode("utf-8")
+    ).hexdigest()
+
+    # See if we have previously generated this *exact* graph.
+    existing = Graph.query.filter_by(meta=backend.metadata, sha256=contents_hash).first()
+
+    if existing:
+        logger.info(f"Graph previously generated with id {existing.id}")
+        response = jsonify({"id": existing.id, "self": f"/{existing.category}/{existing.id}"})
+        return response
+
+    dest_folder = category.replace(" ", "_").lower()
+    # Set up the storage directory.
+    dest_path = f"{Config.get('storage', 'dir')}/{dest_folder}/{contents_hash}.json"
+    os.makedirs(f"{Config.get('storage', 'dir')}/{dest_folder}", exist_ok=True)
+
+    db_entry = Graph(
+        sha256=contents_hash,
+        meta=backend.metadata,
+        comment=request.form.get("comment", None),
+        category=dest_folder,  # Categories use the lower name!
+        file_path=f"{contents_hash}.json",
+    )
+
+    db.session.add(db_entry)
+    db.session.commit()
+
+    logger.info(f"Added graph to database with id={db_entry.id}")
+
+    json.dump(backend.to_json(), open(dest_path, "w"))
+
+    logger.info(f"Saved graph to {dest_path}")
+
+    return jsonify({"id": db_entry.id, "self": f"/{dest_folder}/{db_entry.id}"})
 
 
 @api.route("/adhoc", methods=["POST"])
