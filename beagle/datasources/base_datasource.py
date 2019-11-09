@@ -32,6 +32,10 @@ class DataSource(object, metaclass=ABCMeta):
 
     """
 
+    @property
+    def _is_external(self) -> bool:
+        return False
+
     def __init_subclass__(cls, **kwargs):
         """Validated the subclass has the required annotations.
         """
@@ -162,3 +166,7 @@ class ExternalDataSource(DataSource, metaclass=ABCMeta):
     --------
     See :py:class:`beagle.datasources.virustotal.generic_vt_sandbox_api.GenericVTSandboxAPI`
     """
+
+    @property
+    def _is_external(self) -> bool:
+        return True

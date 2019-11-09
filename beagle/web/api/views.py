@@ -5,18 +5,21 @@ import os
 import sys
 import tempfile
 from inspect import _empty  # type: ignore
-from typing import Any, Dict, Tuple, List
+from typing import Any, Dict, List, Tuple, Type, cast
 
 from flask import Blueprint, jsonify, request
 from flask.helpers import make_response
 
 import beagle.datasources  # noqa: F401
 import beagle.transformers  # noqa: F401
+from beagle.backends import Backend
 from beagle.backends.networkx import NetworkX
 from beagle.common import logger
 from beagle.config import Config
+from beagle.datasources import DataSource
 from beagle.datasources.base_datasource import ExternalDataSource
 from beagle.datasources.json_data import JSONData
+from beagle.transformers import Transformer
 from beagle.web.api.models import Graph
 from beagle.web.server import db
 
@@ -217,21 +220,18 @@ def new():
     """
 
     # Returns a tuple of (dict, bool).
-    result = _validate_params(form=request.form, files=request.files)
+    resp, success = _validate_params(form=request.form, files=request.files)
 
     # If false, return error message
-    if not result[1]:
-        return make_response(jsonify(result[0]), 400)
+    if not success:
+        return make_response(jsonify(resp), 400)
 
-    config = result[0]
-
-    datasource_cls = config["datasource"]
-    transformer_cls = config["transformer"]
-    backend_cls = config["backend"]
-    datasource_schema = config["schema"]
+    datasource_cls: Type[DataSource] = resp["datasource"]
+    transformer_cls: Type[Transformer] = resp["transformer"]
+    backend_cls: Type[Backend] = resp["backend"]
+    datasource_schema = resp["schema"]
     # If this class extends the ExternalDataSource class, we know that the parameters
     # represent strings, and not files.
-    is_external = issubclass(datasource_cls, ExternalDataSource)
 
     logger.info(
         f"Recieved upload request for datasource=<{datasource_cls.__name__}>, "
@@ -240,74 +240,116 @@ def new():
 
     logger.info("Transforming data to a graph.")
 
-    params = _setup_params(request.form, datasource_schema, is_external)
+    params = _setup_params(
+        form=request.form, schema=datasource_schema, is_external=datasource_cls._is_external
+    )
 
-    try:
+    resp, success = _create_graph(
+        datasource_cls=datasource_cls,
+        transformer_cls=transformer_cls,
+        backend_cls=backend_cls,
+        params=params,
+        is_external=datasource_cls._is_external,
+    )
 
-        # Set up parameters for datasource class
-        datasource_params = (
-            # Use filenames if we are referencing a temporary file
-            {param_name: tempfile.name for param_name, tempfile in params.items()}
-            if not is_external
-            else params
-        )
-        # Create the datasource
-        datasource = datasource_cls(**datasource_params)
+    if not success:
+        return make_response(jsonify(resp), 400)
 
-        # Create transformer
-        transformer = datasource.to_transformer(transformer_cls)
-
-        # Create the nodes
-        nodes = transformer.run()
-
-        # Create the backend
-        graph = backend_cls(metadata=datasource.metadata(), nodes=nodes, consolidate_edges=True)
-
-        # Make the graph
-        G = graph.graph()
-
-    except Exception as e:
-        logger.critical(f"Failure to generate graph {e}")
-        import traceback
-
-        logger.debug(f"{traceback.format_exc()}")
-
-        if not is_external:
-            # Clean up temporary files
-            try:
-                for _tempfile in params.values():
-                    _tempfile.close()
-            except Exception as e:
-                logger.critical(f"Failure to clean up temporary files after error {e}")
-
-        response = make_response(jsonify({"message": str(e)}), 500)
-        response.headers.add("Access-Control-Allow-Origin", "*")
-        return response
-
-    logger.info("Cleaning up tempfiles")
-
-    if not is_external:
-        # Clean up temporary files
-        for _tempfile in params.values():
-            _tempfile.close()
-
-    logger.info("Finished generating graph")
-
-    # Check if we even had a graph.
-    # This will be on the G attribute for any class subclassing NetworkX
-    if graph.is_empty():
-        return make_response(jsonify({"message": f"Graph generation resulted in 0 nodes. "}), 400)
+    G = resp["graph"]
 
     # If the backend is NetworkX, save the graph.
     # Otherwise, redirect the user to wherever he sent it (if possible)
     if backend_cls.__name__ == "NetworkX":
-        response = _save_graph_to_db(graph, datasource_cls.category)
+        response = _save_graph_to_db(G, datasource_cls.category)
     else:
         logger.debug(G)
         response = jsonify({"resp": G})
 
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response
+
+
+@api.route("/add/<int:graph_id>", methods=["POST"])
+def add(graph_id: int):
+    """Add data to an existing NetworkX based graph.
+
+    Parameters
+    ----------
+    graph_id : int
+        The graph ID to add to.
+    """
+
+    graph_obj = Graph.query.filter_by(id=graph_id).first()
+    if not graph_obj:
+        return make_response(jsonify({"message": "Graph not found"}), 404)
+
+    # Validate the parameters are valid.
+    # Returns a tuple of (dict, bool).
+    resp, success = _validate_params(form=request.form, files=request.files)
+
+    # If false, return error message
+    if not success:
+        return make_response(jsonify(resp), 400)
+
+    datasource_cls: Type[DataSource] = resp["datasource"]
+    transformer_cls: Type[Transformer] = resp["transformer"]
+    backend_cls: Type[Backend] = resp["backend"]
+
+    # Only NetworkX for now.
+    if backend_cls.__name__ != "NetworkX":
+        logger.info("Cannot append to non NetworkX graphs for now.")
+        return make_response(jsonify({"message": "Can only add to NetworkX Graphs for now."}), 400)
+
+    # Cast to NetworkX
+    backend_cls = cast(Type[NetworkX], backend_cls)
+
+    datasource_schema = resp["schema"]
+    # If this class extends the ExternalDataSource class, we know that the parameters
+    # represent strings, and not files.
+
+    logger.info(
+        f"Recieved add data request for existing graph=<{graph_id}>"
+        + f"datasource=<{datasource_cls.__name__}>, "
+        + f"transformer=<{transformer_cls.__name__}>, backend=<{backend_cls.__class__.__name__}>"
+    )
+
+    params = _setup_params(
+        form=request.form, schema=datasource_schema, is_external=datasource_cls._is_external
+    )
+
+    # NOTE: This will all need to change for support non NetworkX backends.
+
+    # Get the existing graph as JSON
+    dest_path = f"{Config.get('storage', 'dir')}/{graph_obj.category}/{graph_obj.file_path}"
+    json_data = json.load(open(dest_path, "r"))
+
+    # Make a dummy backend instance
+    backend_instance = backend_cls(nodes=[])
+    existing_graph = backend_cls.from_json(json_data)
+
+    # Set the graph
+    backend_instance.G = existing_graph
+
+    resp, success = _add_to_exiting_graph(
+        existing_backend=backend_instance,
+        datasource_cls=datasource_cls,
+        transformer_cls=transformer_cls,
+        params=params,
+        is_external=datasource_cls._is_external,
+    )
+
+    if not success:
+        return make_response(jsonify(resp), 400)
+
+    # Save the existing graph object to disk.
+    resp = _save_graph_to_db(
+        backend=backend_instance,
+        # Use the existing category.
+        category=graph_obj.category,
+        # Graph ID
+        graph_id=graph_obj.id,
+    )
+    return make_response(resp, 200)
 
 
 def _validate_params(form: dict, files: dict) -> Tuple[dict, bool]:
@@ -424,7 +466,144 @@ def _setup_params(form: dict, schema: dict, is_external: bool) -> dict:
     return params
 
 
-def _save_graph_to_db(backend: NetworkX, category: str) -> dict:
+def _create_graph(
+    datasource_cls: Type[DataSource],
+    transformer_cls: Type[Transformer],
+    backend_cls: Type[Backend],
+    params: Dict[str, Any],
+    is_external: bool,
+) -> Tuple[dict, bool]:
+    try:
+        # Set up parameters for datasource class
+        datasource_params = (
+            # Use filenames if we are referencing a temporary file
+            {param_name: tempfile.name for param_name, tempfile in params.items()}
+            if not is_external
+            else params
+        )
+        # Create the datasource
+        datasource = datasource_cls(**datasource_params)  # type: ignore
+        # Create transformer
+        transformer = datasource.to_transformer(transformer_cls)
+
+        # Create the nodes
+        nodes = transformer.run()
+
+        # Create the backend
+        graph = backend_cls(  # type: ignore
+            metadata=datasource.metadata(), nodes=nodes, consolidate_edges=True
+        )
+
+        # Make the graph
+        G = graph.graph()
+
+    except Exception as e:
+        logger.critical(f"Failure to generate graph {e}")
+        import traceback
+
+        logger.debug(f"{traceback.format_exc()}")
+
+        if not is_external:
+            # Clean up temporary files
+            try:
+                for _tempfile in params.values():
+                    _tempfile.close()
+            except Exception as e:
+                logger.critical(f"Failure to clean up temporary files after error {e}")
+                return {"message": str(e)}, False
+
+    logger.info("Cleaning up tempfiles")
+
+    if not is_external:
+        # Clean up temporary files
+        for _tempfile in params.values():
+            _tempfile.close()
+
+    logger.info("Finished generating graph")
+
+    # Check if we even had a graph.
+    # This will be on the G attribute for any class subclassing NetworkX
+    if graph.is_empty():
+        return {"message": f"Graph generation resulted in 0 nodes. "}, False
+
+    return {"graph": G}, True
+
+
+def _add_to_exiting_graph(
+    existing_backend: Backend,
+    datasource_cls: Type[DataSource],
+    transformer_cls: Type[Transformer],
+    params: Dict[str, Any],
+    is_external: bool,
+) -> Tuple[dict, bool]:
+    try:
+        # Set up parameters for datasource class
+        datasource_params = (
+            # Use filenames if we are referencing a temporary file
+            {param_name: tempfile.name for param_name, tempfile in params.items()}
+            if not is_external
+            else params
+        )
+        # Create the datasource
+        datasource = datasource_cls(**datasource_params)  # type: ignore
+        # Create transformer
+        transformer = datasource.to_transformer(transformer_cls)
+
+        # Create the nodes
+        nodes = transformer.run()
+
+        # Create the backend
+        G = existing_backend.add_nodes(nodes)
+
+    except Exception as e:
+        logger.critical(f"Failure to generate graph {e}")
+        import traceback
+
+        logger.debug(f"{traceback.format_exc()}")
+
+        if not is_external:
+            # Clean up temporary files
+            try:
+                for _tempfile in params.values():
+                    _tempfile.close()
+            except Exception as e:
+                logger.critical(f"Failure to clean up temporary files after error {e}")
+                return {"message": str(e)}, False
+
+    logger.info("Cleaning up tempfiles")
+
+    if not is_external:
+        # Clean up temporary files
+        for _tempfile in params.values():
+            _tempfile.close()
+
+    logger.info("Finished generating graph")
+
+    # Check if we even had a graph.
+    # This will be on the G attribute for any class subclassing NetworkX
+    if existing_backend.is_empty():
+        return {"message": f"Graph generation resulted in 0 nodes."}, False
+
+    return {"graph": G}, True
+
+
+def _save_graph_to_db(backend: NetworkX, category: str, graph_id: int = None) -> dict:
+    """Saves a graph to the database, optionally forcing an overwrite of an existing graph.
+
+    Parameters
+    ----------
+    backend : NetworkX
+        The NetworkX object to save
+    category : str
+        The category
+    graph_id: int
+        The graph ID to override.
+
+    Returns
+    -------
+    dict
+        JSON to return to client with ID and path.
+    """
     # Take the SHA256 of the contents of the graph.
     contents_hash = hashlib.sha256(
         json.dumps(backend.to_json(), sort_keys=True).encode("utf-8")
@@ -439,24 +618,32 @@ def _save_graph_to_db(backend: NetworkX, category: str) -> dict:
         return response
 
     dest_folder = category.replace(" ", "_").lower()
+
     # Set up the storage directory.
     dest_path = f"{Config.get('storage', 'dir')}/{dest_folder}/{contents_hash}.json"
     os.makedirs(f"{Config.get('storage', 'dir')}/{dest_folder}", exist_ok=True)
 
-    db_entry = Graph(
-        sha256=contents_hash,
-        meta=backend.metadata,
-        comment=request.form.get("comment", None),
-        category=dest_folder,  # Categories use the lower name!
-        file_path=f"{contents_hash}.json",
-    )
+    json.dump(backend.to_json(), open(dest_path, "w"))
 
-    db.session.add(db_entry)
+    if graph_id:
+        db_entry = Graph.query.filter_by(id=graph_id).first()
+        # set the new hash.
+        db_entry.file_path = f"{contents_hash}.json"
+        # NOTE: Old path is not deleted.
+    else:
+        db_entry = Graph(
+            sha256=contents_hash,
+            meta=backend.metadata,
+            comment=request.form.get("comment", None),
+            category=dest_folder,  # Categories use the lower name!
+            file_path=f"{contents_hash}.json",
+        )
+        # Add new entry
+        db.session.add(db_entry)
+
     db.session.commit()
 
     logger.info(f"Added graph to database with id={db_entry.id}")
-
-    json.dump(backend.to_json(), open(dest_path, "w"))
 
     logger.info(f"Saved graph to {dest_path}")
 
