@@ -341,7 +341,7 @@ class NetworkX(Backend):
                     {
                         "key": edge["id"],  # Unique Key
                         "edge_name": edge["type"],  # Edge Type
-                        "data": edge["properties"],  # Edge Data
+                        "data": edge["properties"]["data"],  # Edge Data
                     },
                 )
                 for edge in data["links"]

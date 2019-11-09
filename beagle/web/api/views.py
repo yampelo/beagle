@@ -233,6 +233,8 @@ def new():
     # If this class extends the ExternalDataSource class, we know that the parameters
     # represent strings, and not files.
 
+    is_external = issubclass(datasource_cls, ExternalDataSource)
+
     logger.info(
         f"Recieved upload request for datasource=<{datasource_cls.__name__}>, "
         + f"transformer=<{transformer_cls.__name__}>, backend=<{backend_cls.__name__}>"
@@ -240,16 +242,14 @@ def new():
 
     logger.info("Transforming data to a graph.")
 
-    params = _setup_params(
-        form=request.form, schema=datasource_schema, is_external=datasource_cls._is_external
-    )
+    params = _setup_params(form=request.form, schema=datasource_schema, is_external=is_external)
 
     resp, success = _create_graph(
         datasource_cls=datasource_cls,
         transformer_cls=transformer_cls,
         backend_cls=backend_cls,
         params=params,
-        is_external=datasource_cls._is_external,
+        is_external=is_external,
     )
 
     if not success:
@@ -260,7 +260,7 @@ def new():
     # If the backend is NetworkX, save the graph.
     # Otherwise, redirect the user to wherever he sent it (if possible)
     if backend_cls.__name__ == "NetworkX":
-        response = _save_graph_to_db(G, datasource_cls.category)
+        response = _save_graph_to_db(backend=resp["backend"], category=datasource_cls.category)
     else:
         logger.debug(G)
         response = jsonify({"resp": G})
@@ -295,6 +295,8 @@ def add(graph_id: int):
     transformer_cls: Type[Transformer] = resp["transformer"]
     backend_cls: Type[Backend] = resp["backend"]
 
+    is_external = issubclass(datasource_cls, ExternalDataSource)
+
     # Only NetworkX for now.
     if backend_cls.__name__ != "NetworkX":
         logger.info("Cannot append to non NetworkX graphs for now.")
@@ -313,9 +315,7 @@ def add(graph_id: int):
         + f"transformer=<{transformer_cls.__name__}>, backend=<{backend_cls.__class__.__name__}>"
     )
 
-    params = _setup_params(
-        form=request.form, schema=datasource_schema, is_external=datasource_cls._is_external
-    )
+    params = _setup_params(form=request.form, schema=datasource_schema, is_external=is_external)
 
     # NOTE: This will all need to change for support non NetworkX backends.
 
@@ -324,7 +324,7 @@ def add(graph_id: int):
     json_data = json.load(open(dest_path, "r"))
 
     # Make a dummy backend instance
-    backend_instance = backend_cls(nodes=[])
+    backend_instance = backend_cls(nodes=[], consolidate_edges=True)
     existing_graph = backend_cls.from_json(json_data)
 
     # Set the graph
@@ -335,7 +335,7 @@ def add(graph_id: int):
         datasource_cls=datasource_cls,
         transformer_cls=transformer_cls,
         params=params,
-        is_external=datasource_cls._is_external,
+        is_external=is_external,
     )
 
     if not success:
@@ -490,12 +490,12 @@ def _create_graph(
         nodes = transformer.run()
 
         # Create the backend
-        graph = backend_cls(  # type: ignore
+        backend_instance = backend_cls(  # type: ignore
             metadata=datasource.metadata(), nodes=nodes, consolidate_edges=True
         )
 
         # Make the graph
-        G = graph.graph()
+        G = backend_instance.graph()
 
     except Exception as e:
         logger.critical(f"Failure to generate graph {e}")
@@ -510,7 +510,8 @@ def _create_graph(
                     _tempfile.close()
             except Exception as e:
                 logger.critical(f"Failure to clean up temporary files after error {e}")
-                return {"message": str(e)}, False
+
+        return {"message": str(e)}, False  # type: ignore
 
     logger.info("Cleaning up tempfiles")
 
@@ -523,10 +524,10 @@ def _create_graph(
 
     # Check if we even had a graph.
     # This will be on the G attribute for any class subclassing NetworkX
-    if graph.is_empty():
+    if backend_instance.is_empty():
         return {"message": f"Graph generation resulted in 0 nodes. "}, False
 
-    return {"graph": G}, True
+    return {"graph": G, "backend": backend_instance}, True
 
 
 def _add_to_exiting_graph(
@@ -584,7 +585,7 @@ def _add_to_exiting_graph(
     if existing_backend.is_empty():
         return {"message": f"Graph generation resulted in 0 nodes."}, False
 
-    return {"graph": G}, True
+    return {"graph": G, "backend": existing_backend}, True
 
 
 def _save_graph_to_db(backend: NetworkX, category: str, graph_id: int = None) -> dict:
