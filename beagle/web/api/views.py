@@ -5,7 +5,7 @@ import os
 import sys
 import tempfile
 from inspect import _empty  # type: ignore
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, List
 
 from flask import Blueprint, jsonify, request
 from flask.helpers import make_response
@@ -83,7 +83,7 @@ SCHEMA = {
 
 
 @api.route("/datasources")
-def pipelines():
+def pipelines():  # pragma: no cover
     """Returns a list of all available datasources, their parameters,
     names, ids, and supported transformers.
 
@@ -128,7 +128,7 @@ def pipelines():
 
 
 @api.route("/backends")
-def get_backends():
+def get_backends():  # pragma: no cover
     """Returns all possible backends, their names, and their IDs.
 
     The array contains elements with the following structure.
@@ -153,7 +153,7 @@ def get_backends():
 
 
 @api.route("/transformers")
-def get_transformers():
+def get_transformers():  # pragma: no cover
     """Returns all possible transformers, their names, and their IDs.
 
     The array contains elements with the following structure.
@@ -217,7 +217,7 @@ def new():
     """
 
     # Returns a tuple of (dict, bool).
-    result = _validate_params(request.form)
+    result = _validate_params(form=request.form, files=request.files)
 
     # If false, return error message
     if not result[1]:
@@ -310,12 +310,28 @@ def new():
     return response
 
 
-def _validate_params(form: dict) -> Tuple[dict, bool]:
+def _validate_params(form: dict, files: dict) -> Tuple[dict, bool]:
+    """Validates that the passed in parameters are valid. Test for the following:
+    1. Datasource, comment, and transformer all passed in (backend is optional).
+    2. For the datasource requested, all of the parameters to the datasource are present.
+
+    Parameters
+    ----------
+    form : dict
+        The HTTP form sent
+    files : dict
+        The files sent along the form, if any
+
+    Returns
+    -------
+    Tuple[dict, bool]
+        Return (error message, False) if not valid, otherwise (config, True)
+    """
     # Verify we have the basic parameters.
     missing_params = []
-    for param in ["datasource", "transformer", "comment"]:
-        if param not in form:
-            missing_params.append(param)
+    for req_param in ["datasource", "transformer", "comment"]:
+        if req_param not in form:
+            missing_params.append(req_param)
 
     if len(missing_params) > 0:
         logger.debug(f"Request to /new missing parameters: {missing_params}")
@@ -342,7 +358,7 @@ def _validate_params(form: dict) -> Tuple[dict, bool]:
     datasource_cls = DATASOURCES[requested_datasource]
     transformer_cls = TRANSFORMERS[requested_transformer]
     backend_cls = BACKENDS[requested_backend]
-    required_params = datasource_schema["params"]
+    required_params: List[Dict[str, Any]] = datasource_schema["params"]
 
     is_external = issubclass(datasource_cls, ExternalDataSource)
 
@@ -352,10 +368,10 @@ def _validate_params(form: dict) -> Tuple[dict, bool]:
         # Skip missing parameters
         if param["required"] is False:
             continue
-        if is_external and param["name"] not in request.form:
+        if is_external and param["name"] not in form:
             datasource_missing_params.append(param["name"])
 
-        if not is_external and param["name"] not in request.files:
+        if not is_external and param["name"] not in files:
             datasource_missing_params.append(param["name"])
 
     if len(datasource_missing_params) > 0:
@@ -511,7 +527,7 @@ def get_categories():
 
 
 @api.route("/categories/<string:category>")
-def get_category_items(category: str):
+def get_category_items(category: str):  # pragma: no cover
     """Returns the set of items that exist in this category, the path to their JSON files, the comment
     made on them, as well as their metadata.
 
@@ -540,9 +556,8 @@ def get_category_items(category: str):
         return make_response(jsonify({"message": "Category not found"}), 404)
 
     # Return reversed.
-    category_data = [graph.to_json() for graph in Graph.query.filter_by(category=category).all()][
-        ::-1
-    ]
+    category_data = [graph.to_json() for graph in Graph.query.filter_by(category=category).all()]
+    category_data = category_data[::-1]
 
     response = jsonify(category_data)
     response.headers.add("Access-Control-Allow-Origin", "*")
@@ -550,7 +565,7 @@ def get_category_items(category: str):
 
 
 @api.route("/graph/<int:graph_id>")
-def get_graph(graph_id: int):
+def get_graph(graph_id: int):  # pragma: no cover - hard to test due to building path.
     """Returns the JSON object for this graph. This is a networkx node_data JSON dump:
 
     >>> {
