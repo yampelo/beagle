@@ -1,7 +1,5 @@
 import json
 
-from wheel import metadata
-
 from ..server import db
 
 
