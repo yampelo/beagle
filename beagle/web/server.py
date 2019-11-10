@@ -2,6 +2,7 @@ import os
 
 from flask import Blueprint, Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 
 from ..config import Config
 
@@ -34,6 +35,8 @@ def create_app(*args):
         template_folder=f"static/build",
         root_path=base_path,
     )
+
+    CORS(app)
     app.config["SQLALCHEMY_DATABASE_URI"] = Config.get("storage", "database")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 

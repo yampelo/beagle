@@ -17,8 +17,8 @@ future = "==0.16.0"
 pydgraph = "*"
 pandas = "*"
 graphistry = {extras = ["networkx"],version = "==0.9.63"}
-pybeagle = {editable = true,extras = ["rekall"],path = "."}
 splunk-sdk = "*"
+flask-cors = "*"
 
 [dev-packages]
 "flake8" = "*"

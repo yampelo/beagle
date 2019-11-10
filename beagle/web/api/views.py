@@ -126,7 +126,7 @@ def pipelines():  # pragma: no cover
     """
 
     response = jsonify(SCHEMA)
-    response.headers.add("Access-Control-Allow-Origin", "*")
+
     return response
 
 
@@ -151,7 +151,7 @@ def get_backends():  # pragma: no cover
     response = jsonify(
         [{"id": backend.__name__, "name": backend.__name__} for backend in BACKENDS.values()]
     )
-    response.headers.add("Access-Control-Allow-Origin", "*")
+
     return response
 
 
@@ -177,7 +177,7 @@ def get_transformers():  # pragma: no cover
     response = jsonify(
         [{"id": trans.__name__, "name": trans.name} for trans in TRANSFORMERS.values()]
     )
-    response.headers.add("Access-Control-Allow-Origin", "*")
+
     return response
 
 
@@ -266,7 +266,6 @@ def new():
         logger.debug(G)
         response = jsonify({"resp": G})
 
-    response.headers.add("Access-Control-Allow-Origin", "*")
     return response
 
 
@@ -632,6 +631,7 @@ def _save_graph_to_db(backend: NetworkX, category: str, graph_id: int = None) ->
         # set the new hash.
         db_entry.file_path = f"{contents_hash}.json"
         # NOTE: Old path is not deleted.
+
     else:
         db_entry = Graph(
             sha256=contents_hash,
@@ -667,7 +667,7 @@ def adhoc():
 
     if str(cim_format).lower() not in valid_cim_formats:
         response = jsonify({"message": f"cim_format must be in {cim_format}"})
-        response.headers.add("Access-Control-Allow-Origin", "*")
+
         return response
 
     if not isinstance(events, list):
@@ -711,7 +711,6 @@ def get_categories():
 
     response = jsonify(resp)
 
-    response.headers.add("Access-Control-Allow-Origin", "*")
     return response
 
 
@@ -749,7 +748,7 @@ def get_category_items(category: str):  # pragma: no cover
     category_data = category_data[::-1]
 
     response = jsonify(category_data)
-    response.headers.add("Access-Control-Allow-Origin", "*")
+
     return response
 
 
@@ -792,8 +791,6 @@ def get_graph(graph_id: int):  # pragma: no cover - hard to test due to building
 
     response = jsonify(json_data)
 
-    response.headers.add("Access-Control-Allow-Origin", "*")
-
     return response
 
 
@@ -821,7 +818,5 @@ def get_graph_metadata(graph_id: int):
         return make_response(jsonify({"message": "Graph not found"}), 404)
 
     response = jsonify(graph_obj.meta)
-
-    response.headers.add("Access-Control-Allow-Origin", "*")
 
     return response
