@@ -24,6 +24,11 @@ interface DataSourceEntry {
     type: string;
 }
 
+export interface UploadProps {
+    postRoute: string; // Where should this post to?
+    postUploadHandler?: () => null; // What to do after upload
+}
+
 export interface UploadState {
     selectedDatasource: DataSourceEntry;
     selectedTransformer: Transformer;
@@ -41,11 +46,11 @@ export interface UploadState {
     advancedVisible: boolean;
 }
 
-export default class Upload extends React.Component<{}, UploadState> {
+export default class Upload extends React.Component<UploadProps, UploadState> {
     public pipelines: DataSourceEntry[];
     public backends: Backend[];
 
-    constructor(props: {}) {
+    constructor(props: UploadProps) {
         super(props);
 
         this.pipelines = [];
@@ -75,6 +80,7 @@ export default class Upload extends React.Component<{}, UploadState> {
     }
 
     public componentWillMount() {
+        // Get the list of data sources to present in the form.
         fetch(
             `${
                 process.env.NODE_ENV === "production" ? "" : "http://localhost:8000"
@@ -199,10 +205,15 @@ export default class Upload extends React.Component<{}, UploadState> {
             }
         });
 
-        fetch(`${process.env.NODE_ENV === "production" ? "" : "http://localhost:8000"}/api/new`, {
-            method: "POST",
-            body: formData
-        })
+        fetch(
+            `${
+                process.env.NODE_ENV === "production" ? "" : "http://localhost:8000" // Point to localhost if not prod
+            }/api${this.props.postRoute}`, // Use the props route.
+            {
+                method: "POST",
+                body: formData
+            }
+        )
             .then(resp => resp.json())
             .then(json => {
                 if (json.hasOwnProperty("message")) {
@@ -228,6 +239,10 @@ export default class Upload extends React.Component<{}, UploadState> {
                         }
                     });
                 } else {
+                    if (this.props.postUploadHandler !== undefined) {
+                        this.props.postUploadHandler();
+                    }
+
                     this.setState({
                         processing: false,
                         graphRoute: json.self,

@@ -36,6 +36,18 @@ class Backend(object, metaclass=ABCMeta):
 
         raise NotImplementedError("Backend.graph() is not implemented!")
 
+    def add_nodes(self, nodes: List[Node]):
+        """This function should allow (or raise an error if not possible to) a user to add additional
+        nodes to an already existing graph.
+
+        Parameters
+        ----------
+        nodes : List[Node]
+            The new nodes to add to the graph.
+        """
+
+        raise NotImplementedError("Backend.add_nodes() is not imeplemnted")
+
     def to_json(self) -> dict:
         raise NotImplementedError("Backend.to_json() is not implemented!")
 
