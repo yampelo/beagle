@@ -1,6 +1,10 @@
+import mock
 import pytest
 
+from beagle.backends import Neo4J, NetworkX
 from beagle.constants import EventTypes, FieldNames, Protocols
+from beagle.datasources import HXTriage
+from beagle.transformers import FireEyeHXTransformer
 from beagle.web.api.models import Graph
 from beagle.web.api.views import _validate_params
 
@@ -26,6 +30,151 @@ def test_missing_params(client):
     )
     assert resp.status_code == 400
     assert "Missing" in resp.json["message"]
+
+
+@mock.patch("beagle.web.api.views._save_graph_to_db")
+@mock.patch("beagle.web.api.views._create_graph")
+@mock.patch("beagle.web.api.views._setup_params")
+@mock.patch("beagle.web.api.views._validate_params")
+def test_new_networkx(validate_mock, setup_mock, create_mock, save_mock, client):
+    validate_mock.return_value = (
+        {
+            "datasource": HXTriage,
+            "schema": {},
+            "transformer": FireEyeHXTransformer,
+            "backend": NetworkX,
+        },
+        True,
+    )
+
+    setup_mock.return_value = ({}, True)
+    create_mock.return_value = ({"graph": {"foo": "bar"}, "backend": NetworkX}, True)
+    save_mock.return_value = {"foo": "bar"}
+
+    resp = client.post(
+        "/api/new",
+        data={"datasource": "HXTriage", "transformer": "GenericTransformer", "comment": "test"},
+    )
+    assert resp.status_code == 200
+    assert resp.json == {"foo": "bar"}
+
+
+@mock.patch("beagle.web.api.views._save_graph_to_db")
+@mock.patch("beagle.web.api.views._create_graph")
+@mock.patch("beagle.web.api.views._setup_params")
+@mock.patch("beagle.web.api.views._validate_params")
+def test_new_non_networkx(validate_mock, setup_mock, create_mock, save_mock, client):
+    validate_mock.return_value = (
+        {
+            "datasource": HXTriage,
+            "schema": {},
+            "transformer": FireEyeHXTransformer,
+            "backend": Neo4J,
+        },
+        True,
+    )
+
+    setup_mock.return_value = ({}, True)
+    create_mock.return_value = ({"graph": "added neo4j data", "backend": Neo4J}, True)
+
+    resp = client.post(
+        "/api/new",
+        data={"datasource": "HXTriage", "transformer": "GenericTransformer", "comment": "test"},
+    )
+    # Save mock not called.
+    assert not save_mock.called
+    assert resp.status_code == 200
+    # Response is the result of create_graph.
+    assert resp.json == {"resp": "added neo4j data"}
+
+
+@mock.patch("beagle.web.api.views._save_graph_to_db")
+@mock.patch("beagle.web.api.views._create_graph")
+@mock.patch("beagle.web.api.views._setup_params")
+@mock.patch("beagle.web.api.views._validate_params")
+def test_new_networkx_create_fails(validate_mock, setup_mock, create_mock, save_mock, client):
+    validate_mock.return_value = (
+        {
+            "datasource": HXTriage,
+            "schema": {},
+            "transformer": FireEyeHXTransformer,
+            "backend": NetworkX,
+        },
+        True,
+    )
+
+    setup_mock.return_value = ({}, True)
+    create_mock.return_value = ({"message": "some error"}, False)
+
+    resp = client.post(
+        "/api/new",
+        data={"datasource": "HXTriage", "transformer": "GenericTransformer", "comment": "test"},
+    )
+    assert resp.status_code == 400
+    assert resp.json == {"message": "some error"}
+
+
+@mock.patch("beagle.web.api.views._save_graph_to_db")
+@mock.patch("beagle.web.api.views._create_graph")
+@mock.patch("beagle.web.api.views._setup_params")
+@mock.patch("beagle.web.api.views._validate_params")
+def test_add_to_non_existent_graph(
+    validate_mock, setup_mock, create_mock, save_mock, client, session
+):
+    # Graph should return None since we didn't add anything in the sessions
+    resp = client.post("/api/add/20", data={})
+
+    # Should reject because we tried using Neo4J
+    assert resp.status_code == 404
+    assert resp.json == {"message": "Graph not found"}
+
+
+@mock.patch("beagle.web.api.views._save_graph_to_db")
+@mock.patch("beagle.web.api.views._create_graph")
+@mock.patch("beagle.web.api.views._setup_params")
+@mock.patch("beagle.web.api.views._validate_params")
+def test_add_non_networkx_fails(validate_mock, setup_mock, create_mock, save_mock, client, session):
+
+    # Make a dummy graph to pass the existing graph ID check.
+    graph = Graph(sha256="", meta="", comment="", category="", file_path="")
+    session.add(graph)
+    session.commit()
+
+    validate_mock.return_value = (
+        {
+            "datasource": HXTriage,
+            "schema": {},
+            "transformer": FireEyeHXTransformer,
+            "backend": Neo4J,
+        },
+        True,
+    )
+
+    resp = client.post(f"/api/add/{graph.id}", data={})
+
+    # Should reject because we tried using Neo4J
+    assert resp.status_code == 400
+    assert resp.json == {"message": "Can only add to NetworkX Graphs for now."}
+
+
+@mock.patch("beagle.web.api.views._save_graph_to_db")
+@mock.patch("beagle.web.api.views._create_graph")
+@mock.patch("beagle.web.api.views._setup_params")
+@mock.patch("beagle.web.api.views._validate_params")
+def test_add_non_invalid_params(validate_mock, setup_mock, create_mock, save_mock, client, session):
+
+    # Make a dummy graph to pass the existing graph ID check.
+    graph = Graph(sha256="", meta="", comment="", category="", file_path="")
+    session.add(graph)
+    session.commit()
+
+    validate_mock.return_value = ({"message": "Missing Param"}, False)
+
+    resp = client.post(f"/api/add/{graph.id}", data={})
+
+    # Should reject because we tried using Neo4J
+    assert resp.status_code == 400
+    assert resp.json == {"message": "Missing Param"}
 
 
 def test_adhoc_single_event(client):

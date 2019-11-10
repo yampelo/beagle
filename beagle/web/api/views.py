@@ -261,6 +261,7 @@ def new():
     # Otherwise, redirect the user to wherever he sent it (if possible)
     if backend_cls.__name__ == "NetworkX":
         response = _save_graph_to_db(backend=resp["backend"], category=datasource_cls.category)
+        response = jsonify(response)
     else:
         logger.debug(G)
         response = jsonify({"resp": G})
@@ -349,7 +350,7 @@ def add(graph_id: int):
         # Graph ID
         graph_id=graph_obj.id,
     )
-    return make_response(resp, 200)
+    return make_response(jsonify(resp), 200)
 
 
 def _validate_params(form: dict, files: dict) -> Tuple[dict, bool]:
@@ -648,7 +649,7 @@ def _save_graph_to_db(backend: NetworkX, category: str, graph_id: int = None) ->
 
     logger.info(f"Saved graph to {dest_path}")
 
-    return jsonify({"id": db_entry.id, "self": f"/{dest_folder}/{db_entry.id}"})
+    return {"id": db_entry.id, "self": f"/{dest_folder}/{db_entry.id}"}
 
 
 @api.route("/adhoc", methods=["POST"])
