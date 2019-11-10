@@ -22,6 +22,7 @@ import TreeGraph from 'src/components/visualization/prespectives/TreeGraph';
 import { Graph } from 'src/models/index.js';
 import { State } from 'src/reducers';
 import { PULL_IN_LIMIT } from 'src/reducers/visibleGraph';
+import Upload from 'src/views/Upload';
 
 import {
     pullInNeighbors,
@@ -40,6 +41,8 @@ interface GraphPageState {
 }
 
 class GraphPage extends React.Component<any, GraphPageState> {
+    private tab: any; // sematnic-ui uses old refs, easier to type hint as any.
+
     constructor(props: any) {
         super(props);
 
@@ -58,7 +61,7 @@ class GraphPage extends React.Component<any, GraphPageState> {
         }
     }
 
-    public componentWillMount() {
+    public loadGraph() {
         fetch(
             `${process.env.NODE_ENV === "production" ? "" : "http://localhost:8000"}/api/graph/${
                 this.props.match.params.id
@@ -126,6 +129,20 @@ class GraphPage extends React.Component<any, GraphPageState> {
             });
     }
 
+    public loadAndResetView() {
+        this.tab.state.activeIndex = 0;
+
+        this.loadGraph();
+
+        toastr.info("Evidence added to graph", `Uploaded artifact merged into graph.`, {
+            timeOut: 10000
+        });
+    }
+
+    public componentWillMount() {
+        this.loadGraph();
+    }
+
     public componentWillUnmount = () => {
         // Reset the graph on unmount.
         store.dispatch(setVisibleNodeTypes([]));
@@ -158,6 +175,7 @@ class GraphPage extends React.Component<any, GraphPageState> {
             <Grid columns={2} celled="internally" padded={false}>
                 <Grid.Column width={10}>
                     <Tab
+                        ref={ref => (this.tab = ref)}
                         menu={{ color: "black", secondary: true, pointing: true, attached: "top" }}
                         panes={[
                             {
@@ -202,6 +220,16 @@ class GraphPage extends React.Component<any, GraphPageState> {
                                     <MarkdownExport
                                         visibleEdges={this.props.visibleEdges}
                                         visibleNodes={this.props.visibleNodes}
+                                    />
+                                )
+                            },
+                            {
+                                menuItem: "Add Evidence",
+                                render: () => (
+                                    // Add evidence
+                                    <Upload
+                                        postRoute={`/add/${this.props.match.params.id}`}
+                                        postUploadHandler={this.loadAndResetView.bind(this)}
                                     />
                                 )
                             }

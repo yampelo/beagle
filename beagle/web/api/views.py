@@ -615,8 +615,7 @@ def _save_graph_to_db(backend: NetworkX, category: str, graph_id: int = None) ->
 
     if existing:
         logger.info(f"Graph previously generated with id {existing.id}")
-        response = jsonify({"id": existing.id, "self": f"/{existing.category}/{existing.id}"})
-        return response
+        return {"id": existing.id, "self": f"/{existing.category}/{existing.id}"}
 
     dest_folder = category.replace(" ", "_").lower()
 
@@ -630,6 +629,7 @@ def _save_graph_to_db(backend: NetworkX, category: str, graph_id: int = None) ->
         db_entry = Graph.query.filter_by(id=graph_id).first()
         # set the new hash.
         db_entry.file_path = f"{contents_hash}.json"
+        db_entry.sha256 = contents_hash
         # NOTE: Old path is not deleted.
 
     else:

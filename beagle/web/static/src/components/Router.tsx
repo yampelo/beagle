@@ -24,19 +24,12 @@ class Sidebar extends React.Component<any, SideBarState> {
 
         this.state = {
             entries: [
-                // {
-                //     id: "home",
-                //     name: "Home",
-                //     route: "/",
-                //     icon: <Icon name="home" />,
-                //     component: Home
-                // },
                 {
                     id: "upload",
                     route: "/",
                     name: "Upload Data",
                     icon: <Icon name="upload" />,
-                    component: Upload
+                    component: () => <Upload postRoute="/new" />
                 }
             ]
         };
