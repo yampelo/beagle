@@ -161,7 +161,7 @@ class Neo4J(NetworkX):
         for key, value in node_props.items():
             if isinstance(value, dict):
                 for _key, _value in value.items():
-                    kv_pairs.append(f"{_key} : '{fix_value(_value)}'")
+                    kv_pairs.append(f"{_key}: '{fix_value(_value)}'")
             else:
                 kv_pairs.append(f"{key}: '{fix_value(value)}'")
 

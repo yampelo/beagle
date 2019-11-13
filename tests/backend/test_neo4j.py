@@ -1,0 +1,37 @@
+import pytest
+from beagle.backends.neo4j import Neo4J
+from beagle.nodes import Process
+from beagle.edges import Launched
+
+
+class MockNeo4j(Neo4J):
+    # Wipes init.
+    def __init__(self):
+        pass
+
+
+@pytest.mark.parametrize(
+    "node,keys",
+    [
+        (
+            # Regular node
+            Process(process_id=10, process_image="test.exe"),
+            ["process_id: '10'", "process_image: 'test.exe'"],
+        ),
+        (
+            # Backslashes
+            Process(process_id=10, process_image="test.exe", process_image_path="c:\\users"),
+            ["process_id: '10'", "process_image: 'test.exe'", "process_image_path: 'c:\\\\users'"],
+        ),
+        (
+            # Dict values
+            Process(process_id=10, process_image="test.exe", hashes={"md5": "1"}),
+            ["process_id: '10'", "process_image: 'test.exe'", "md5: '1'"],
+        ),
+    ],
+)
+def test_node_as_cypher(node, keys):
+    neo4j = MockNeo4j()
+    cypher = neo4j._node_as_cypher(node)
+    for key in keys:
+        assert key in cypher
