@@ -1,11 +1,27 @@
 import json
-from typing import Callable
+from typing import Callable, List
 
 import networkx
 import pytest
 
 from beagle.backends.networkx import NetworkX
 from beagle.nodes import Process, File
+
+
+from io import BytesIO
+
+from scapy.all import Ether, PcapWriter, Packet, IP, UDP, TCP, DNS, DNSQR, DNSRR
+
+from scapy.layers.http import HTTPRequest, HTTP
+
+from beagle.datasources.pcap import PCAP
+
+
+def packets_to_datasource_events(packets: List[Packet]) -> PCAP:
+    f = BytesIO()
+    PcapWriter(f).write(packets)
+    f.seek(0)
+    return PCAP(f)  # type: ignore
 
 
 @pytest.fixture()
@@ -186,3 +202,40 @@ def test_add_node_overlaps_existing(nx):
     assert networkx.has_path(G, u, v2)
     assert "Launched" in G[u][v]
     assert "Wrote" in G[u][v2]
+
+
+def test_from_datasources():
+    packets_1 = [
+        Ether(src="ab:ab:ab:ab:ab:ab", dst="12:12:12:12:12:12")
+        / IP(src="127.0.0.1", dst="192.168.1.1")
+        / TCP(sport=12345, dport=80)
+        / HTTP()
+        / HTTPRequest(Method="GET", Path="/foo", Host="https://google.com")
+    ]
+
+    packets_2 = [
+        # HTTP Packet
+        Ether(src="ab:ab:ab:ab:ab:ab", dst="12:12:12:12:12:12")
+        / IP(src="127.0.0.1", dst="192.168.1.1")
+        / TCP(sport=12345, dport=80)
+        / HTTP()
+        / HTTPRequest(Method="GET", Path="/foo", Host="https://google.com"),
+        # DNS Packet
+        Ether(src="ab:ab:ab:ab:ab:ab", dst="12:12:12:12:12:12")
+        / IP(src="127.0.0.1", dst="192.168.1.1")
+        / UDP(sport=80, dport=53)
+        / DNS(rd=1, qd=DNSQR(qtype="A", qname="google.com"), an=DNSRR(rdata="123.0.0.1")),
+        # TCP Packet
+        Ether(src="ab:ab:ab:ab:ab:ab", dst="12:12:12:12:12:12")
+        / IP(src="127.0.0.1", dst="192.168.1.1")
+        / TCP(sport=80, dport=5355),
+    ]
+
+    nx = NetworkX.from_datasources(
+        [packets_to_datasource_events(packets) for packets in [packets_1, packets_2]]
+    )
+
+    # Make the graph
+    nx.graph()
+
+    assert not nx.is_empty()

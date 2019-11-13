@@ -39,13 +39,30 @@ Beagle can be used directly as a python library, or through a provided web inter
 <img src ="docs/imgs/upload_to_graph.gif">
 </center>
 
-The library can be used either as a sequence of functional calls.
+The library can be used either as a sequence of functional calls from a single datasource.
 
 ```python
 >>> from beagle.datasources import SysmonEVTX
 
 >>> graph = SysmonEVTX("malicious.evtx").to_graph()
 >>> graph
+<networkx.classes.multidigraph.MultiDiGraph at 0x12700ee10>
+```
+
+As a graph generated from a set of multiple artifacts
+
+```python
+>>> from beagle.datasources import SysmonEVTX, HXTriage, PCAP
+>>> from beagle.backends import NetworkX
+
+>>> nx = NetworkX.from_datasources(
+    datasources=[
+        SysmonEVTX("malicious.evtx"),
+        HXTriage("alert.mans"),
+        PCAP("traffic.pcap"),
+    ]
+)
+>>> G = nx.graph()
 <networkx.classes.multidigraph.MultiDiGraph at 0x12700ee10>
 ```
 

@@ -1,7 +1,10 @@
 from abc import ABCMeta, abstractmethod
-from typing import List, Any, Union
+from typing import List, Any, Union, TYPE_CHECKING
 
 from beagle.nodes import Node
+
+if TYPE_CHECKING:
+    from beagle.datasources import DataSource
 
 
 class Backend(object, metaclass=ABCMeta):
@@ -56,3 +59,32 @@ class Backend(object, metaclass=ABCMeta):
         """Returns true if there wasn't a graph created.
         """
         raise NotImplementedError()
+
+    @classmethod
+    def from_datasources(
+        cls, datasources: Union["DataSource", List["DataSource"]], *args, **kwargs
+    ) -> "Backend":
+        """Create a backend instance from a set of datasources
+
+        Parameters
+        ----------
+        datasources : Union[DataSource, List[DataSource]]
+            A set of datasources to use when creating the backend.
+
+        Returns
+        -------
+        Backend
+            Returns the configured instance
+        """
+
+        nodes = []  # type: List[Node]
+
+        if not isinstance(datasources, List):
+            datasources = [datasources]
+
+        for datasource in datasources:
+            nodes += datasource.to_transformer().run()
+
+        instance = cls(*args, nodes=nodes, **kwargs)  # type: ignore
+
+        return instance
