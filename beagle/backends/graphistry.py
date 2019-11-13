@@ -42,7 +42,7 @@ class Graphistry(NetworkX):
                 + " or BEAGLE__GRAPHISTRY__API_KEY enviroment variables"
             )
 
-    def _get_key(self) -> str:
+    def _get_key(self) -> str:  # pragma: no cover
         """Gets the graphistry API key from the enviroment variables or config.
 
         Returns
@@ -74,7 +74,7 @@ class Graphistry(NetworkX):
             {"source": edge["source"], "target": edge["target"]} for edge in json_graph["links"]
         ]
 
-        return nx.readwrite.jsom_graph.node_link_graph(json_graph)
+        return nx.readwrite.json_graph.node_link_graph(json_graph)
 
     def graph(self):
         """Return the Graphistry URL for the graph, or an IPython Widget
@@ -107,4 +107,3 @@ class Graphistry(NetworkX):
             return graphistry.bind(
                 source="src", destination="dst", point_label="_display", edge_label="type"
             ).plot(G, render=self.render)
-

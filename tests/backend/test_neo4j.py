@@ -1,7 +1,6 @@
 import pytest
 from beagle.backends.neo4j import Neo4J
 from beagle.nodes import Process
-from beagle.edges import Launched
 
 
 class MockNeo4j(Neo4J):
