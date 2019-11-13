@@ -170,4 +170,4 @@ class Neo4J(NetworkX):
     def _edge_as_cypher(self, edge: tuple) -> str:
         # TODO: Add edge data.
 
-        return f"{{src:'{edge[0]}', dst:'{edge[1]}'}}"
+        return f"{{src: '{edge[0]}', dst: '{edge[1]}'}}"
