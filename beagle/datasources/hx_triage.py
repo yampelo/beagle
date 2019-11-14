@@ -92,7 +92,7 @@ class HXTriage(DataSource):
 
                 logger.debug(f"Mapped {audit_file} to {version}")
 
-    def _hx_time_to_epoch(self, timestr: str) -> int:
+    def _hx_time_to_epoch(self, timestr: str) -> int: # pragma: no cover
         """Converts an HX Time string to epoch time
 
         Parameters
@@ -369,4 +369,3 @@ class HXTriage(DataSource):
         except Exception as e:
             logger.error(f"Could not parse triage's metadata due to {e}")
             return {}
-

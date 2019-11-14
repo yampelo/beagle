@@ -5,14 +5,14 @@ from beagle.datasources import GenericVTSandbox
 
 
 def tencent1() -> GenericVTSandbox:
-    r = GenericVTSandbox("tests/datasource/virustotal/test_files/example_tencent_habo1.json")
+    r = GenericVTSandbox("tests/datasources/virustotal/test_files/example_tencent_habo1.json")
     next(r.events())
     return r
 
 
 def tencent_nested() -> GenericVTSandbox:
     r = GenericVTSandbox(
-        "tests/datasource/virustotal/test_files/example_tencent_habo_very_nested.json"
+        "tests/datasources/virustotal/test_files/example_tencent_habo_very_nested.json"
     )
     next(r.events())
     return r
@@ -20,14 +20,14 @@ def tencent_nested() -> GenericVTSandbox:
 
 def drweb_nested() -> GenericVTSandbox:
     r = GenericVTSandbox(
-        "tests/datasource/virustotal/test_files/example_drweb_nested_children.json"
+        "tests/datasources/virustotal/test_files/example_drweb_nested_children.json"
     )
     next(r.events())
     return r
 
 
 def drweb_net() -> GenericVTSandbox:
-    r = GenericVTSandbox("tests/datasource/virustotal/test_files/example_drweb_api_with_net.json")
+    r = GenericVTSandbox("tests/datasources/virustotal/test_files/example_drweb_api_with_net.json")
     next(r.events())
     return r
 
@@ -447,12 +447,11 @@ def test_complex_registry_events(source, reg_event: dict):
 
 def test_metadata():
     sandbox = GenericVTSandbox(
-        "tests/datasource/virustotal/test_files/example_tencent_habo_very_nested.json",
-        "tests/datasource/virustotal/test_files/example_vt3_api_results.json",
+        "tests/datasources/virustotal/test_files/example_tencent_habo_very_nested.json",
+        "tests/datasources/virustotal/test_files/example_vt3_api_results.json",
     )
 
     metadata = sandbox.metadata()
 
     assert metadata["name"] == "codexgigas_235f100673f34412b21f9f708be89384ae102db4"
     assert metadata["malicious"] == 57
-
