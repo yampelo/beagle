@@ -88,12 +88,12 @@ def test_agent_events_file(tmpdir):
     events = list(triage.parse_agent_events(p))
     assert len(events) == 1
 
-    assert events[0] == {
+    for key, value in {
         "event_type": "dnsLookupEvent",
         "hostname": "github.com",
         "pid": "25048",
         "process": "git-remote-https.exe",
         "processPath": "\\Device\\HarddiskVolume3\\Program Files\\Git\\mingw64\\libexec\\git-core",
         "username": "test",
-        "event_time": 1530148532,
-    }
+    }.items():
+        assert events[0][key] == value
