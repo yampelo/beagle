@@ -247,7 +247,7 @@ class GenericVTSandbox(DataSource):
             All parent and child combinations from the processes_tree entry.
         """
 
-        # These can be nested. See `tests/datasource/virustotal/test_files/example_drweb_nested_children.json`
+        # These can be nested. See `tests/datasources/virustotal/test_files/example_drweb_nested_children.json`
         def process_entry(entry: dict) -> Generator[dict, None, None]:
             # No need to send something that has no children
             # as it will be included in whatever launched it
