@@ -1,4 +1,4 @@
-from typing import Dict, List, Set, Tuple, Type
+from typing import Dict, Set, Tuple, Type
 
 import networkx as nx
 
@@ -10,13 +10,41 @@ from .lookups import FieldLookup
 class Statement(object):
     def __init__(self):
         # The resulting node IDs
-        self.result_nodes: List[int] = []
+        self.result_nodes: Set[int] = set()
 
         # The resulting edge IDs
-        self.result_edges: List[Tuple[int, int, int]] = []
+        self.result_edges: Set[Tuple[int, int, int]] = set()
 
     def execute_networkx(self, G: nx.Graph):  # pragma: no cover
         raise NotImplementedError(f"NetworkX not supported for {self.__class__.__name__}")
+
+    def __or__(self, other):
+        return ChainedStatement(self, other)
+
+
+class ChainedStatement(Statement):
+    def __init__(self, *args: Statement):
+        self.statements = args
+        super().__init__()
+
+    def execute_networkx(self, G: nx.Graph):
+        # Get the subgraphs
+
+        subgraphs = []
+        for statement in self.statements:
+            # Get the subgraphs
+            subgraphs.append(statement.execute_networkx(G))
+
+            # add the reuslt_nodes, result_edges.
+            self.result_edges |= statement.result_edges
+            self.result_nodes |= statement.result_nodes
+
+        # Compose the subgraphs
+        H = subgraphs[0]
+        for subgraph in subgraphs[1:]:
+            H = nx.compose(H, subgraph)
+
+        return H
 
 
 class NodeByProps(Statement):
@@ -56,6 +84,7 @@ class NodeByProps(Statement):
                 if all([lookup.test(getattr(node, prop)) for prop, lookup in self.props.items()]):
                     subgraph_nodes.append(node_id)
 
+        self.result_nodes = set(subgraph_nodes)
         return G.subgraph(subgraph_nodes)
 
 
@@ -107,6 +136,7 @@ class EdgeByProps(Statement):
                         # can stop on first match
                         break
 
+        self.result_edges = set(subgraph_edges)
         return G.edge_subgraph(subgraph_edges)
 
 
@@ -126,6 +156,7 @@ class NodeByPropsDescendents(NodeByProps):
             # Get the nodes descendants in the original graph, and add make a subgraph from those.
             subgraph_nodes |= nx.descendants(G, node_id) | {node_id}
 
+        self.result_nodes = set(subgraph_nodes)
         return G.subgraph(subgraph_nodes)
 
 
@@ -145,6 +176,7 @@ class NodeByPropsAncestors(NodeByProps):
             # Get the nodes ancestors in the original graph, and add make a subgraph from those.
             subgraph_nodes |= nx.ancestors(G, node_id) | {node_id}
 
+        self.result_nodes = set(subgraph_nodes)
         return G.subgraph(subgraph_nodes)
 
 
@@ -163,4 +195,5 @@ class NodeByPropsReachable(NodeByProps):
         for node_id in next_graph.nodes():
             subgraph_nodes |= nx.ancestors(G, node_id) | nx.descendants(G, node_id) | {node_id}
 
+        self.result_nodes = set(subgraph_nodes)
         return G.subgraph(subgraph_nodes)

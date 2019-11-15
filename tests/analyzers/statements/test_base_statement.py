@@ -183,3 +183,26 @@ def test_nodes_reachable(G5):
             Process(process_id=12, process_image="H", command_line="H"),
         ],
     )
+
+
+def test_chained_statement(G5):
+    # Both paths should show up because we use a chained statement that returns both.
+
+    Bstatement = NodeByPropsReachable(node_type=Process, props={"process_image": Exact("B")})
+    Gstatement = NodeByPropsReachable(node_type=Process, props={"process_image": Exact("G")})
+
+    chained = Bstatement | Gstatement
+
+    assert graph_nodes_match(
+        chained.execute_networkx(G5),
+        [
+            Process(process_id=10, process_image="A", command_line="A"),
+            Process(process_id=12, process_image="B", command_line="B"),
+            Process(process_id=12, process_image="C", command_line="C"),
+            Process(process_id=12, process_image="D", command_line="D"),
+            Process(process_id=10, process_image="E", command_line="E"),
+            Process(process_id=12, process_image="F", command_line="F"),
+            Process(process_id=12, process_image="G", command_line="G"),
+            Process(process_id=12, process_image="H", command_line="H"),
+        ],
+    )
