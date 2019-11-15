@@ -9,6 +9,8 @@ from beagle.analyzers.statements.lookups import (
     StartsWith,
     EndsWith,
     Regex,
+    And,
+    Or,
 )
 
 
@@ -46,3 +48,17 @@ from beagle.analyzers.statements.lookups import (
 def test_lookups(cls: FieldLookup, value: str, prop: str, result: str):
     # prop -> value being tested again, value -> the thing we're looking up
     assert cls(value).test(prop) == result
+
+
+def test_and():
+    assert And(StartsWith("foo"), EndsWith("bar")).test("foo bar") is True
+    assert And(StartsWith("foo"), EndsWith("bar")).test("foo nar bar") is True
+    assert And(StartsWith("foo"), EndsWith("bar")).test("bar foo") is False
+
+
+def test_or():
+    assert Or(StartsWith("foo"), EndsWith("bar")).test("foo bar") is True
+    assert Or(StartsWith("foo"), EndsWith("bar")).test("foo") is True
+    assert Or(StartsWith("foo"), EndsWith("bar")).test("bar") is True
+    assert Or(StartsWith("foo"), EndsWith("bar")).test("foo nar bar") is True
+    assert Or(StartsWith("foo"), EndsWith("bar")).test("bar foo") is False

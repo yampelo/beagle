@@ -24,6 +24,38 @@ class FieldLookup(object, metaclass=ABCMeta):  # pragma: no cover
         pass
 
 
+class Or(FieldLookup):
+    """Boolean OR, Meant to be used with other lookups:
+    >>> Or(Contains("foo"), StartsWith("bar"))
+    """
+
+    def __init__(self, *args: FieldLookup):
+        self.lookups = args
+
+    def test(self, prop: str):
+        for lookup in self.lookups:
+            if lookup.test(prop):
+                return True
+
+        return False
+
+
+class And(FieldLookup):
+    """Boolean And, Meant to be used with other lookups:
+    >>> And(Contains("foo"), StartsWith("bar"), EndsWith("zar"))
+    """
+
+    def __init__(self, *args: FieldLookup):
+        self.lookups = args
+
+    def test(self, prop: str):
+        for lookup in self.lookups:
+            if not lookup.test(prop):
+                return False
+
+        return True
+
+
 class Contains(FieldLookup):
     """Case sensitve contains"""
 
