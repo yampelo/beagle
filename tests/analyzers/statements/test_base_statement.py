@@ -20,7 +20,7 @@ def G1():
     return backend
 
 
-def test_one_prop_test(G1):
+def test_one_node_prop_test(G1):
     statement = NodeByProps(node_type=Process, props={"command_line": Contains("test.exe")})
 
     # Should match on `proc` from G1
@@ -46,7 +46,19 @@ def test_one_prop_test(G1):
     assert statement.execute(G1) == []
 
 
-def test_multiple_prop_test(G1):
+def test_multiple_node_prop_test(G1):
+    statement = NodeByProps(
+        node_type=Process,
+        props={"command_line": Contains("foobar"), "process_image": StartsWith("test")},
+    )
+
+    # Should match on `proc` from G1
+    assert statement.execute(G1) == [
+        Process(process_id=10, process_image="test.exe", command_line="test.exe /c foobar")
+    ]
+
+
+def test_node_conditional(G1):
     statement = NodeByProps(
         node_type=Process,
         props={"command_line": Contains("foobar"), "process_image": StartsWith("test")},

@@ -23,6 +23,16 @@ class FieldLookup(object, metaclass=ABCMeta):  # pragma: no cover
     def test(self, prop) -> bool:
         pass
 
+    def __and__(self, other) -> "FieldLookup":
+        # Contains("test.exe") & Contains("fest.exe") -> And(Contains("test.exe"), Contains("fest.exe"))
+        return And(self, other)
+
+    def __or__(self, other) -> "FieldLookup":
+        return Or(self, other)
+
+    def __invert__(self) -> "FieldLookup":
+        return Not(self)
+
 
 class Or(FieldLookup):
     """Boolean OR, Meant to be used with other lookups:
@@ -54,6 +64,18 @@ class And(FieldLookup):
                 return False
 
         return True
+
+
+class Not(FieldLookup):
+    """Boolean And, Meant to be used with other lookups:
+    >>> And(Contains("foo"), StartsWith("bar"), EndsWith("zar"))
+    """
+
+    def __init__(self, arg: FieldLookup):
+        self.lookup = arg
+
+    def test(self, prop: str):
+        return not self.lookup.test(prop)
 
 
 class Contains(FieldLookup):

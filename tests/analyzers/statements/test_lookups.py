@@ -11,6 +11,7 @@ from beagle.analyzers.statements.lookups import (
     Regex,
     And,
     Or,
+    Not,
 )
 
 
@@ -64,3 +65,14 @@ def test_or():
     assert Or(StartsWith("foo"), EndsWith("bar")).test("bar") is True
     assert Or(StartsWith("foo"), EndsWith("bar")).test("foo nar bar") is True
     assert Or(StartsWith("foo"), EndsWith("bar")).test("bar foo") is False
+
+
+def test_not():
+    assert Not(Contains("test")).test("hello") is True
+    assert Not(Not(Contains("test"))).test("hello") is False
+
+
+def test_operator_overloading():
+    assert (~Contains("test")).test("hello") is True
+    assert (Contains("test") & EndsWith("hello")).test("test my hello") is True
+    assert (Contains("test") | EndsWith("hello")).test("hello") is True
