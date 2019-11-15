@@ -25,6 +25,8 @@ from beagle.analyzers.statements.lookups import (
         (IContains, "test", "TEST", True),
         (IContains, "test", "tEsT", True),
         (IContains, "test", "worst", False),
+        # Test we reject null value.
+        (IContains, "test", None, False),
         (IContains, "test", "he is the test", True),
         (IContains, "test", "the test was bad", True),
         (Exact, "test", "test", True),

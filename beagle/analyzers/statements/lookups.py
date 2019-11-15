@@ -1,16 +1,16 @@
 import re
-from typing import Pattern, Union, cast
+from typing import Pattern, Union
 from abc import ABCMeta, abstractmethod
 import functools
 
 
 def not_null(f):
     @functools.wraps(f)
-    def wrapper(prop, *args, **kwargs):
+    def wrapper(self, prop, *args, **kwargs):
         if prop is None:
             return False
         else:
-            return f(prop, *args, **kwargs)
+            return f(self, prop, *args, **kwargs)
 
     return wrapper
 
