@@ -1,10 +1,18 @@
-import networkx as nx
+from typing import List
 
+import networkx as nx
 import pytest
 
 from beagle.backends.networkx import NetworkX
+from beagle.nodes import File, Node, Process
 
-from beagle.nodes import Node, File, Process
+
+@pytest.fixture
+def graph_nodes_match():
+    def validate_nodes_match(graph: nx.Graph, nodes: List[Node]) -> bool:
+        return [n["data"] for _, n in graph.nodes(data=True)] == nodes
+
+    return validate_nodes_match
 
 
 @pytest.fixture
@@ -89,5 +97,30 @@ def G5():
     G.launched[H]
 
     backend = NetworkX(consolidate_edges=True, nodes=[A, B, B, C, E, F, G, H])
+
+    return backend.graph()
+
+
+@pytest.fixture
+def G6():
+    parent = Process(
+        process_id=1, process_image_path="d:\\", process_image="parent.exe", user="omer"
+    )
+    child = Process(
+        process_id=2, process_image_path="d:\\users", process_image="child.exe", user="omer"
+    )
+
+    parent2 = Process(
+        process_id=4, process_image_path="c:\\", process_image="parent.exe", user="admin"
+    )
+    child2 = Process(
+        process_id=3, process_image_path="c:\\users", process_image="child.exe", user="admin"
+    )
+
+    parent.launched[child].append(timestamp=12456)
+
+    parent2.launched[child2].append(timestamp=2)
+
+    backend = NetworkX(consolidate_edges=True, nodes=[parent, parent2, child, child2])
 
     return backend.graph()

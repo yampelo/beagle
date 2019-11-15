@@ -1,23 +1,51 @@
-from typing import List
-import networkx as nx
-
+import pytest
 from beagle.analyzers.statements.base_statement import (
-    NodeByProps,
+    Statement,
+    FactoryMixin,
     EdgeByProps,
-    NodeByPropsDescendents,
+    NodeByProps,
     NodeByPropsAncestors,
+    NodeByPropsDescendents,
     NodeByPropsReachable,
 )
-from beagle.analyzers.statements.lookups import Contains, EndsWith, StartsWith, Exact
-
-from beagle.nodes import Node, File, Process
-
-
-def graph_nodes_match(graph: nx.Graph, nodes: List[Node]) -> bool:
-    return [n["data"] for _, n in graph.nodes(data=True)] == nodes
+from beagle.analyzers.statements.lookups import Contains, EndsWith, Exact, StartsWith
+from beagle.nodes import File, Process
 
 
-def test_one_node_prop_test(G1):
+def test_factory_mixin():
+    class MyFactory(FactoryMixin):
+        pass
+
+    with pytest.raises(UserWarning):
+        obj = MyFactory()
+        obj.execute_networkx(None)
+
+
+def test_test_props_nested_dict():
+    s = Statement()
+
+    assert (
+        s._test_values_with_lookups(
+            value_to_test={"hashes": {"md5": "1234"}},
+            lookup_tests={"hashes": {"md5": Exact("1234")}},
+        )
+        is True
+    )
+
+    assert (
+        s._test_values_with_lookups(value_to_test={"hashes": {}}, lookup_tests={"hashes": {"md5": Exact("1234")}})
+        is False
+    )
+
+    assert (
+        s._test_values_with_lookups(
+            value_to_test={"hashes": None}, lookup_tests={"hashes": {"md5": Exact("1234")}}
+        )
+        is False
+    )
+
+
+def test_one_node_prop_test(G1, graph_nodes_match):
     statement = NodeByProps(node_type=Process, props={"command_line": Contains("test.exe")})
 
     assert graph_nodes_match(
@@ -48,7 +76,7 @@ def test_one_node_prop_test(G1):
     assert graph_nodes_match(statement.execute_networkx(G1), [])
 
 
-def test_multiple_node_prop_test(G1):
+def test_multiple_node_prop_test(G1, graph_nodes_match):
     statement = NodeByProps(
         node_type=Process,
         props={"command_line": Contains("foobar"), "process_image": StartsWith("test")},
@@ -61,7 +89,7 @@ def test_multiple_node_prop_test(G1):
     )
 
 
-def test_node_conditional(G1):
+def test_node_conditional(G1, graph_nodes_match):
     statement = NodeByProps(
         node_type=Process,
         props={"command_line": Contains("foobar"), "process_image": StartsWith("test")},
@@ -73,8 +101,10 @@ def test_node_conditional(G1):
     )
 
 
-def test_one_edge_prop_test(G2, G3):
-    statement = EdgeByProps(edge_type="Wrote", props={"contents": Exact("foo")})
+def test_one_edge_prop_test(G2, G3, graph_nodes_match):
+
+    # String should get mapped to Exact("foo")
+    statement = EdgeByProps(edge_type="Wrote", props={"contents": "foo"})
 
     assert graph_nodes_match(
         statement.execute_networkx(G2),
@@ -99,7 +129,7 @@ def test_one_edge_prop_test(G2, G3):
     assert graph_nodes_match(statement.execute_networkx(G2), [])
 
 
-def test_node_with_descendants(G4):
+def test_node_with_descendants(G4, graph_nodes_match):
 
     # A should return A->B->C->D
     statement = NodeByPropsDescendents(node_type=Process, props={"process_image": Exact("A")})
@@ -125,7 +155,7 @@ def test_node_with_descendants(G4):
     )
 
 
-def test_node_with_ancestors(G4):
+def test_node_with_ancestors(G4, graph_nodes_match):
 
     # A should return A
     statement = NodeByPropsAncestors(node_type=Process, props={"process_image": Exact("A")})
@@ -157,7 +187,7 @@ def test_node_with_ancestors(G4):
     )
 
 
-def test_nodes_reachable(G5):
+def test_nodes_reachable(G5, graph_nodes_match):
 
     # All queries will return the full path.
     # They should only return the path this process touches, A should return A->B->C->D and not E->F->G->H
@@ -185,7 +215,7 @@ def test_nodes_reachable(G5):
     )
 
 
-def test_chained_statement(G5):
+def test_chained_statement(G5, graph_nodes_match):
     # Both paths should show up because we use a chained statement that returns both.
 
     Bstatement = NodeByPropsReachable(node_type=Process, props={"process_image": Exact("B")})
@@ -204,5 +234,24 @@ def test_chained_statement(G5):
             Process(process_id=12, process_image="F", command_line="F"),
             Process(process_id=12, process_image="G", command_line="G"),
             Process(process_id=12, process_image="H", command_line="H"),
+        ],
+    )
+
+
+def test_multiple_chained_statement(G5, graph_nodes_match):
+    # Should properly execute all three.
+
+    Bstatement = NodeByProps(node_type=Process, props={"process_image": Exact("B")})
+    Gstatement = NodeByProps(node_type=Process, props={"process_image": Exact("G")})
+    Astatement = NodeByProps(node_type=Process, props={"process_image": Exact("A")})
+
+    chained = Bstatement | Gstatement | Astatement
+
+    assert graph_nodes_match(
+        chained.execute_networkx(G5),
+        [
+            Process(process_id=12, process_image="B", command_line="B"),
+            Process(process_id=12, process_image="G", command_line="G"),
+            Process(process_id=10, process_image="A", command_line="A"),
         ],
     )
