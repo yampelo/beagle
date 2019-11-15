@@ -1,12 +1,20 @@
-from typing import Dict, Type
+from typing import Dict, List, Set, Tuple, Type
+
+import networkx as nx
 
 from beagle.nodes import Node
 
 from .lookups import FieldLookup
-import networkx as nx
 
 
 class Statement(object):
+    def __init__(self):
+        # The resulting node IDs
+        self.result_nodes: List[int] = []
+
+        # The resulting edge IDs
+        self.result_edges: List[Tuple[int, int, int]] = []
+
     def execute_networkx(self, G: nx.Graph):  # pragma: no cover
         raise NotImplementedError(f"NetworkX not supported for {self.__class__.__name__}")
 
@@ -30,6 +38,7 @@ class NodeByProps(Statement):
         """
         self.node_type = node_type
         self.props = props
+        super().__init__()
 
     def execute_networkx(self, G: nx.Graph) -> nx.Graph:
         """Searches a `nx.Graph` object for nodes that match type `node_type` and contains
@@ -99,3 +108,59 @@ class EdgeByProps(Statement):
                         break
 
         return G.edge_subgraph(subgraph_edges)
+
+
+class NodeByPropsDescendents(NodeByProps):
+    """Executes a `NodeByProps` query, and returns all descendants of the matching nodes.
+    see py:meth:`NodeByProps`"""
+
+    def execute_networkx(self, G: nx.Graph) -> nx.Graph:
+
+        # Get the next graph
+        next_graph = super().execute_networkx(G)
+
+        subgraph_nodes: Set[int] = set()
+
+        # For every node that matched `NodeByProps`
+        for node_id in next_graph.nodes():
+            # Get the nodes descendants in the original graph, and add make a subgraph from those.
+            subgraph_nodes |= nx.descendants(G, node_id) | {node_id}
+
+        return G.subgraph(subgraph_nodes)
+
+
+class NodeByPropsAncestors(NodeByProps):
+    """Executes a `NodeByProps` query, and returns all ascendants of the matching nodes.
+    see py:meth:`NodeByProps`"""
+
+    def execute_networkx(self, G: nx.Graph) -> nx.Graph:
+
+        # Get the next graph
+        next_graph = super().execute_networkx(G)
+
+        subgraph_nodes: Set[int] = set()
+
+        # For every node that matched `NodeByProps`
+        for node_id in next_graph.nodes():
+            # Get the nodes ancestors in the original graph, and add make a subgraph from those.
+            subgraph_nodes |= nx.ancestors(G, node_id) | {node_id}
+
+        return G.subgraph(subgraph_nodes)
+
+
+class NodeByPropsReachable(NodeByProps):
+    """Executes a `NodeByProps` query, and returns all ancestors and descendants of the matching nodes.
+    see py:meth:`NodeByProps`"""
+
+    def execute_networkx(self, G: nx.Graph) -> nx.Graph:
+
+        # Get the next graph
+        next_graph = super().execute_networkx(G)
+
+        subgraph_nodes: Set[int] = set()
+
+        # For every node that matched `NodeByProps`
+        for node_id in next_graph.nodes():
+            subgraph_nodes |= nx.ancestors(G, node_id) | nx.descendants(G, node_id) | {node_id}
+
+        return G.subgraph(subgraph_nodes)
