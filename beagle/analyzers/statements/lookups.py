@@ -15,7 +15,7 @@ def not_null(f):
     return wrapper
 
 
-class FieldLookup(object, metaclass=ABCMeta):
+class FieldLookup(object, metaclass=ABCMeta):  # pragma: no cover
     def __init__(self, value):
         self.value = value
 

@@ -11,7 +11,7 @@ class Statement(object):
         if isinstance(backend, NetworkX):
             return self.execute_networkx(backend)
 
-    def execute_networkx(self, backend: NetworkX):
+    def execute_networkx(self, backend: NetworkX):  # pragma: no cover
         raise NotImplementedError(f"NetworkX not supported for {self.__class__.__name__}")
 
 
@@ -22,7 +22,9 @@ class NodeByProps(Statement):
 
     def execute_networkx(self, backend: NetworkX) -> List[Node]:
         result = []
-        for node_id, node in backend.G.nodes(data=True):
+        for node_id, data in backend.G.nodes(data=True):
+            node = data["data"]
+
             if isinstance(node, self.node_type):
                 if all([lookup.test(getattr(node, prop)) for prop, lookup in self.props.items()]):
                     result.append(node)
