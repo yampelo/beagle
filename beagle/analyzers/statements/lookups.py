@@ -5,6 +5,7 @@ import functools
 
 
 def not_null(f):
+    # Ensures the passed in prop is not null
     @functools.wraps(f)
     def wrapper(self, prop, *args, **kwargs):
         if prop is None:
@@ -23,14 +24,43 @@ class FieldLookup(object, metaclass=ABCMeta):  # pragma: no cover
     def test(self, prop) -> bool:
         pass
 
-    def __and__(self, other) -> "FieldLookup":
-        # Contains("test.exe") & Contains("fest.exe") -> And(Contains("test.exe"), Contains("fest.exe"))
+    def __and__(self, other) -> "And":
+        """Combines two FieldLookups to works as a logical and
+
+        >>> Contains("test.exe") & Contains("fest.exe")
+        And(Contains("test.exe"), Contains("fest.exe"))
+
+        Returns
+        -------
+        And
+            And FieldLookup Object
+        """
         return And(self, other)
 
-    def __or__(self, other) -> "FieldLookup":
+    def __or__(self, other) -> "Or":
+        """Combines two FieldLookup objects to work as a logical Or
+
+        >>> Contains("test.exe") | Contains("fest.exe")
+        Or(Contains("test.exe"), Contains("fest.exe"))
+
+        Returns
+        -------
+        Or
+            Or FieldLookupObject
+        """
         return Or(self, other)
 
-    def __invert__(self) -> "FieldLookup":
+    def __invert__(self) -> "Not":
+        """Negates a field lookup
+
+        >>> ~Contains("test.exe")
+        Not(Contains("test.exe"))
+
+        Returns
+        -------
+        Not
+            Not FieldLookupObject
+        """
         return Not(self)
 
 
@@ -127,6 +157,8 @@ class EndsWith(FieldLookup):
 
 
 class Regex(FieldLookup):
+    """Regex Match"""
+
     def __init__(self, value: Union[str, Pattern]):
         if isinstance(value, str):
             self.value: Pattern = re.compile(value)
