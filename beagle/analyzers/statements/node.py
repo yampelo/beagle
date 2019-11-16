@@ -9,7 +9,7 @@ from .lookups import FieldLookup
 
 
 class NodeByProps(Statement):
-    def __init__(self, node_type: Type[Node], props: Dict[str, Union[str, FieldLookup, Dict]]):
+    def __init__(self, node_type: Type[Node], props: Dict[str, Union[str, FieldLookup, Dict]] = {}):
         """Searches the graph for a node of type `node_type` with properties matching `props`
 
         Parameters

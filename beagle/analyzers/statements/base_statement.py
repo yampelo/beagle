@@ -111,6 +111,11 @@ class Statement(object):
             Did all of the tests pass?
         """
 
+        # Auto pass if no tests.s
+        if not lookup_tests:
+            return True
+
+        # Auto fail on empty value (given we have tests)
         if not value_to_test:
             return False
 
@@ -192,6 +197,17 @@ class ChainedStatement(Statement):
         return H
 
 
-class InteremediateStatement(Statement):
-    def __init__(self):
-        pass
+class IntermediateStatement(Statement):
+    """An IntermediateStatement is a statement which depends on a previous initial Statement to run.
+
+    For example, you may only want to find edges connected to one of the nodes identifed in `NodeByProps`.
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.upstream_nodes: Set[int] = set()
+        self.upstream_edges: Set[Tuple[int, int, int]] = set()
+        super().__init__(*args, **kwargs)
+
+    def set_upstream_nodes(self, upstream_statement: Statement):
+        self.upstream_nodes |= upstream_statement.result_nodes
+        self.upstream_edges |= upstream_statement.result_edges

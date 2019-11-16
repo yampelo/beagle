@@ -7,7 +7,7 @@ from .base_statement import FactoryMixin
 from .lookups import FieldLookup
 
 
-class FindProcess(FactoryMixin, NodeByPropsReachable):
+class FindProcess(FactoryMixin):
     """Executes statements relevant to a Process"""
 
     @classmethod
