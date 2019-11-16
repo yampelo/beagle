@@ -38,6 +38,34 @@ class Statement(object):
         # The resulting edge IDs
         self.result_edges: Set[Tuple[int, int, int]] = set()
 
+        # Set of statements that came before or after it.
+        self.downstream_statements: List[Statement] = []
+        self.upstream_statements: List[Statement] = []
+
+    def __rshift__(self, other: "Statement") -> "Statement":
+        """Implements Self >> Other == self.downstream_statements.append(other)
+
+        Parameters
+        ----------
+        other : Statement
+            The other statement to add.
+        """
+        self.downstream_statements.append(other)
+        other.upstream_statements.append(self)
+        return other
+
+    def __lshift__(self, other: "Statement") -> "Statement":
+        """Implements Self << Other == self.upstream_statements.append(other)
+
+        Parameters
+        ----------
+        other : Statement
+            The other statement to add.
+        """
+        other.downstream_statements.append(self)
+        self.upstream_statements.append(other)
+        return other
+
     def __or__(self, other: "Statement") -> "ChainedStatement":
         """Allows statements to be combined through the `|` operator.
         The result of execution is the union of both substatements.
@@ -162,3 +190,8 @@ class ChainedStatement(Statement):
             H = nx.compose(H, subgraph)
 
         return H
+
+
+class InteremediateStatement(Statement):
+    def __init__(self):
+        pass

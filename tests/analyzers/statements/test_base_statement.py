@@ -54,3 +54,28 @@ def test_multiple_chained_statement(G5, graph_nodes_match):
             Process(process_id=10, process_image="A", command_line="A"),
         ],
     )
+
+
+def test_shift_operators():
+    Bstatement = NodeByProps(node_type=Process, props={"process_image": Exact("B")})
+    Gstatement = NodeByProps(node_type=Process, props={"process_image": Exact("G")})
+
+    Bstatement >> Gstatement
+
+    assert Bstatement.downstream_statements == [Gstatement]
+
+    Bstatement = NodeByProps(node_type=Process, props={"process_image": Exact("B")})
+    Gstatement = NodeByProps(node_type=Process, props={"process_image": Exact("G")})
+
+    Bstatement << Gstatement
+
+    assert Gstatement.downstream_statements == [Bstatement]
+
+    Bstatement = NodeByProps(node_type=Process, props={"process_image": Exact("B")})
+    Gstatement = NodeByProps(node_type=Process, props={"process_image": Exact("G")})
+    Astatement = NodeByProps(node_type=Process, props={"process_image": Exact("A")})
+
+    Bstatement >> Gstatement
+    Bstatement >> Astatement
+
+    assert Bstatement.downstream_statements == [Gstatement, Astatement]
