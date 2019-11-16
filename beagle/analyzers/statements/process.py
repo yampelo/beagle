@@ -2,7 +2,8 @@ from typing import Union, Type
 
 from beagle.nodes import Process
 
-from .base_statement import NodeByPropsReachable, FactoryMixin
+from .node import NodeByPropsReachable
+from .base_statement import FactoryMixin
 from .lookups import FieldLookup
 
 
