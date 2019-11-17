@@ -1,6 +1,6 @@
 import re
 import pytest
-from beagle.analyzers.statements.lookups import (
+from beagle.analyzers.queries.lookups import (
     FieldLookup,
     Contains,
     IContains,

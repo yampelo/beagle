@@ -2,14 +2,14 @@ from typing import Union
 
 from beagle.nodes import Process
 
-from .base_statement import FactoryMixin
+from .base_query import FactoryMixin
 from .edge import IntermediateEdgeByProps
 from .lookups import FieldLookup
 from .node import NodeByPropsReachable
 
 
 class FindProcess(FactoryMixin):
-    """Executes statements relevant to a Process"""
+    """Executes queries relevant to a Process"""
 
     @staticmethod
     def with_command_line(

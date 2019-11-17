@@ -1,15 +1,15 @@
-from beagle.analyzers.statements.process import FindProcess
+from beagle.analyzers.queries.process import FindProcess
 from beagle.nodes import Process, File
-from beagle.analyzers.statements.lookups import EndsWith
+from beagle.analyzers.queries.lookups import EndsWith
 
 
 def test_get_by_command_line_no_lookup(G5, graph_nodes_match):
 
     # Should return all nodes reachable from A
-    statement = FindProcess.with_command_line("A")
+    query = FindProcess.with_command_line("A")
 
     assert graph_nodes_match(
-        statement.execute_networkx(G5),
+        query.execute_networkx(G5),
         [
             Process(process_id=10, process_image="A", command_line="A"),
             Process(process_id=12, process_image="B", command_line="B"),
@@ -22,10 +22,10 @@ def test_get_by_command_line_no_lookup(G5, graph_nodes_match):
 def test_get_by_command_line_with_lookup(G5, graph_nodes_match):
 
     # Should return all nodes reachable from A Or G, (so all nodes)
-    statement = FindProcess.with_command_line(EndsWith("A") | EndsWith("G"))
+    query = FindProcess.with_command_line(EndsWith("A") | EndsWith("G"))
 
     assert graph_nodes_match(
-        statement.execute_networkx(G5),
+        query.execute_networkx(G5),
         [
             Process(process_id=10, process_image="A", command_line="A"),
             Process(process_id=12, process_image="B", command_line="B"),
@@ -42,12 +42,12 @@ def test_get_by_command_line_with_lookup(G5, graph_nodes_match):
 def test_get_process_name_no_lookup(G2, graph_nodes_match):
 
     # No match, since defaults to exact.
-    statement = FindProcess.with_process_name("exe")
-    assert graph_nodes_match(statement.execute_networkx(G2), [])
+    query = FindProcess.with_process_name("exe")
+    assert graph_nodes_match(query.execute_networkx(G2), [])
 
-    statement = FindProcess.with_process_name("test.exe")
+    query = FindProcess.with_process_name("test.exe")
     assert graph_nodes_match(
-        statement.execute_networkx(G2),
+        query.execute_networkx(G2),
         [
             Process(process_id=10, process_image="test.exe", command_line="test.exe /c foobar"),
             File(file_name="foo", file_path="bar"),
@@ -58,10 +58,10 @@ def test_get_process_name_no_lookup(G2, graph_nodes_match):
 def test_get_process_name_lookup(G2, graph_nodes_match):
 
     # Should return test.exe because it ends with exe
-    statement = FindProcess.with_process_name(EndsWith("exe"))
+    query = FindProcess.with_process_name(EndsWith("exe"))
 
     assert graph_nodes_match(
-        statement.execute_networkx(G2),
+        query.execute_networkx(G2),
         [
             Process(process_id=10, process_image="test.exe", command_line="test.exe /c foobar"),
             File(file_name="foo", file_path="bar"),
@@ -72,10 +72,10 @@ def test_get_process_name_lookup(G2, graph_nodes_match):
 def test_get_process_user(G6, graph_nodes_match):
 
     # Should return test.exe because it ends with exe
-    statement = FindProcess.with_user("omer")
+    query = FindProcess.with_user("omer")
 
     assert graph_nodes_match(
-        statement.execute_networkx(G6),
+        query.execute_networkx(G6),
         [
             Process(
                 process_id=1, process_image_path="d:\\", process_image="parent.exe", user="omer"
@@ -90,10 +90,10 @@ def test_get_process_user(G6, graph_nodes_match):
 def test_get_process_image_path(G6, graph_nodes_match):
 
     # Should return test.exe because it ends with exe
-    statement = FindProcess.with_process_image_path("d:\\")
+    query = FindProcess.with_process_image_path("d:\\")
 
     assert graph_nodes_match(
-        statement.execute_networkx(G6),
+        query.execute_networkx(G6),
         [
             Process(
                 process_id=1, process_image_path="d:\\", process_image="parent.exe", user="omer"

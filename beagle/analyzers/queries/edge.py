@@ -2,11 +2,11 @@ from typing import Dict, Union
 
 import networkx as nx
 
-from .base_statement import Statement, _str_to_exact, IntermediateStatement
+from .base_query import Query, _str_to_exact, IntermediateQuery
 from .lookups import FieldLookup
 
 
-class EdgeByProps(Statement):
+class EdgeByProps(Query):
     def __init__(
         self, edge_type: str, props: Dict[str, Union[str, FieldLookup]] = {}, *args, **kwargs
     ):
@@ -64,7 +64,7 @@ class EdgeByProps(Statement):
         return G.edge_subgraph(subgraph_edges)
 
 
-class IntermediateEdgeByProps(EdgeByProps, IntermediateStatement):
+class IntermediateEdgeByProps(EdgeByProps, IntermediateQuery):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

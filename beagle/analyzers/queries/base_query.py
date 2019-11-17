@@ -18,17 +18,17 @@ def _str_to_exact(props: dict) -> Dict[str, Union[FieldLookup, Dict]]:
     return props
 
 
-class Statement(object):
+class Query(object):
     def __init__(self):
-        """A statement is the base building block of a query. A statement takes as input a graph, executes,
+        """A query is the base building block of a query. A query takes as input a graph, executes,
         and returns the next graph.
 
-        >>> G2 = statement.execute_networkx(G)
+        >>> G2 = query.execute_networkx(G)
 
         Attributes
         ----------
         result_nodes: Set[int]:
-            The set of node IDs which create the subgraph returned by the statement.
+            The set of node IDs which create the subgraph returned by the query.
         result_edges: Set[Tuple[int, int, int]]:
             The set of (u, v, k) tuples representing the edges which created the subgraph.
         """
@@ -38,57 +38,57 @@ class Statement(object):
         # The resulting edge IDs
         self.result_edges: Set[Tuple[int, int, int]] = set()
 
-        # Set of statements that came before or after it.
-        self.downstream_statement: Statement = None
-        self.upstream_statement: Statement = None
+        # Set of queries that came before or after it.
+        self.downstream_query: Query = None
+        self.upstream_query: Query = None
 
-    def __rshift__(self, other: "Statement") -> "Statement":
-        """Implements Self >> Other == self.downstream_statement = other
+    def __rshift__(self, other: "Query") -> "Query":
+        """Implements Self >> Other == self.downstream_query = other
 
         Parameters
         ----------
-        other : Statement
-            The other statement to add.
+        other : Query
+            The other query to add.
         """
-        self.downstream_statement = other
-        other.upstream_statement = self
+        self.downstream_query = other
+        other.upstream_query = self
         return other
 
-    def __lshift__(self, other: "Statement") -> "Statement":
-        """Implements Self << Other == self.upstream_statement = other
+    def __lshift__(self, other: "Query") -> "Query":
+        """Implements Self << Other == self.upstream_query = other
 
         Parameters
         ----------
-        other : Statement
-            The other statement to add.
+        other : Query
+            The other query to add.
         """
-        other.downstream_statement = self
-        self.upstream_statement = other
+        other.downstream_query = self
+        self.upstream_query = other
         return other
 
-    def __or__(self, other: "Statement") -> "ChainedStatement":
-        """Allows statements to be combined through the `|` operator.
-        The result of execution is the union of both substatements.
+    def __or__(self, other: "Query") -> "ChainedQuery":
+        """Allows queries to be combined through the `|` operator.
+        The result of execution is the union of both subqueries.
 
-        >>> statement1 = Statement(...)
-        >>> statement2 = Statement(...)
-        >>> chained = statement1 | statement2
+        >>> query1 = Query(...)
+        >>> query2 = Query(...)
+        >>> chained = query1 | query2
 
 
         Parameters
         ----------
-        other: Statement
-            The statement to chain with.
+        other: Query
+            The query to chain with.
 
         Returns
         -------
-        ChainedStatement
-            A chained statement compromised of all three.
+        ChainedQuery
+            A chained query compromised of all three.
         """
-        return ChainedStatement(self, other)
+        return ChainedQuery(self, other)
 
     def execute_networkx(self, G: nx.Graph):  # pragma: no cover
-        """Execute a statement against a `networkx` graph."""
+        """Execute a query against a `networkx` graph."""
         raise NotImplementedError(f"NetworkX not supported for {self.__class__.__name__}")
 
     def _test_values_with_lookups(
@@ -146,48 +146,48 @@ class Statement(object):
 
 
 class FactoryMixin(object):
-    """Mixin to prevent Statement Factories from calling execute methods.
+    """Mixin to prevent Query Factories from calling execute methods.
     """
 
     def execute_networkx(self, G: nx.graph):
-        raise UserWarning("Statement factories cannot be called directly")
+        raise UserWarning("Query factories cannot be called directly")
 
 
-class ChainedStatement(Statement):
-    def __init__(self, *args: Statement):
-        """Executes multiple Statements, combining their outputs.
+class ChainedQuery(Query):
+    def __init__(self, *args: Query):
+        """Executes multiple Querys, combining their outputs.
 
         Parameters
         ----------
-        args: Statement
-            One ore more statements
+        args: Query
+            One ore more queries
         """
-        self.statements = args
+        self.queries = args
         super().__init__()
 
     def execute_networkx(self, G: nx.Graph) -> nx.Graph:
-        """Executes multiple statements against a `nx.Graph` object, combining their outputs into one subgraph.
+        """Executes multiple queries against a `nx.Graph` object, combining their outputs into one subgraph.
 
         Parameters
         ----------
         G : nx.Graph
-            Graph to execute statements against
+            Graph to execute queries against
 
         Returns
         -------
         nx.Graph
-            Graph composed from the output graphs of the executed statements.
+            Graph composed from the output graphs of the executed queries.
         """
         # Get the subgraphs
 
         subgraphs = []
-        for statement in self.statements:
+        for query in self.queries:
             # Get the subgraphs
-            subgraphs.append(statement.execute_networkx(G))
+            subgraphs.append(query.execute_networkx(G))
 
             # add the reuslt_nodes, result_edges.
-            self.result_edges |= statement.result_edges
-            self.result_nodes |= statement.result_nodes
+            self.result_edges |= query.result_edges
+            self.result_nodes |= query.result_nodes
 
         # Compose the subgraphs
         H = subgraphs[0]
@@ -197,8 +197,8 @@ class ChainedStatement(Statement):
         return H
 
 
-class IntermediateStatement(Statement):
-    """An IntermediateStatement is a statement which depends on a previous initial Statement to run.
+class IntermediateQuery(Query):
+    """An IntermediateQuery is a query which depends on a previous initial Query to run.
 
     For example, you may only want to find edges connected to one of the nodes identifed in `NodeByProps`.
     """
@@ -209,8 +209,8 @@ class IntermediateStatement(Statement):
         super().__init__(*args, **kwargs)
 
     def get_upstream_results(self) -> Tuple[Set[int], Set[Tuple[int, int, int]]]:
-        return self.upstream_statement.result_nodes, self.upstream_statement.result_edges
+        return self.upstream_query.result_nodes, self.upstream_query.result_edges
 
     def set_upstream_nodes(self):
-        self.upstream_nodes |= self.upstream_statement.result_nodes
-        self.upstream_edges |= self.upstream_statement.result_edges
+        self.upstream_nodes |= self.upstream_query.result_nodes
+        self.upstream_edges |= self.upstream_query.result_edges

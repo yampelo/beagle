@@ -1,15 +1,15 @@
 from beagle.analyzers.base_analyzer import Analyzer
-from beagle.analyzers.statements.process import FindProcess
+from beagle.analyzers.queries.process import FindProcess
 from beagle.nodes import Process
 
 
-def test_analyzer_two_statements(G5, graph_nodes_match):
+def test_analyzer_two_queries(G5, graph_nodes_match):
 
     analyzer = Analyzer(
-        name="test_analyzer_two_statements",
-        description="test_analyzer_two_statements",
+        name="test_analyzer_two_queries",
+        description="test_analyzer_two_queries",
         score=0,
-        statement=FindProcess.with_command_line("B") >> FindProcess.that_was_launched(),
+        query=FindProcess.with_command_line("B") >> FindProcess.that_was_launched(),
     )
 
     G = analyzer.run_networkx(G5)
@@ -23,17 +23,17 @@ def test_analyzer_two_statements(G5, graph_nodes_match):
     )
 
 
-def test_analyzer_or_statement_statements(G5, graph_nodes_match):
+def test_analyzer_or_query_queries(G5, graph_nodes_match):
 
     query = (
         FindProcess.with_command_line("B") | FindProcess.with_command_line("A")
     ) >> FindProcess.that_was_launched()
 
     analyzer = Analyzer(
-        name="test_analyzer_two_statements",
-        description="test_analyzer_two_statements",
+        name="test_analyzer_two_queries",
+        description="test_analyzer_two_queries",
         score=0,
-        statement=query,
+        query=query,
     )
 
     G = analyzer.run_networkx(G5)

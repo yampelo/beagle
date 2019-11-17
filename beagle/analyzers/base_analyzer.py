@@ -2,21 +2,21 @@ from typing import Type, cast
 
 import networkx as nx
 
-from beagle.analyzers.statements.base_statement import Statement
+from beagle.analyzers.queries.base_query import Query
 from beagle.backends import Backend, NetworkX
 
 
 class Analyzer(object):
-    def __init__(self, name: str, description: str, score: int, statement: Statement):
+    def __init__(self, name: str, description: str, score: int, query: Query):
         self.name = name
         self.description = description
         self.score = score
 
         # Make sure we get the start.
-        while statement.upstream_statement is not None:
-            statement = statement.upstream_statement
+        while query.upstream_query is not None:
+            query = query.upstream_query
 
-        self.statement: Statement = statement
+        self.query: Query = query
 
     def run(self, backend: Type[Backend]):
         if isinstance(backend, NetworkX):
@@ -28,13 +28,13 @@ class Analyzer(object):
         # H is a copy of our original graph.
         H = G.copy()
 
-        current_statement = self.statement
+        current_query = self.query
 
-        while current_statement is not None:
-            # Run the statement.
-            H = current_statement.execute_networkx(H)
+        while current_query is not None:
+            # Run the query.
+            H = current_query.execute_networkx(H)
 
-            # Get the next statement, and execute
-            current_statement = current_statement.downstream_statement
+            # Get the next query, and execute
+            current_query = current_query.downstream_query
 
         return H

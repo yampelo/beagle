@@ -1,7 +1,7 @@
 import pytest
-from beagle.analyzers.statements.base_statement import FactoryMixin
-from beagle.analyzers.statements.node import NodeByPropsReachable, NodeByProps
-from beagle.analyzers.statements.lookups import Exact
+from beagle.analyzers.queries.base_query import FactoryMixin
+from beagle.analyzers.queries.node import NodeByPropsReachable, NodeByProps
+from beagle.analyzers.queries.lookups import Exact
 from beagle.nodes import Process
 
 
@@ -14,13 +14,13 @@ def test_factory_mixin():
         obj.execute_networkx(None)
 
 
-def test_chained_statement(G5, graph_nodes_match):
-    # Both paths should show up because we use a chained statement that returns both.
+def test_chained_query(G5, graph_nodes_match):
+    # Both paths should show up because we use a chained query that returns both.
 
-    Bstatement = NodeByPropsReachable(node_type=Process, props={"process_image": Exact("B")})
-    Gstatement = NodeByPropsReachable(node_type=Process, props={"process_image": Exact("G")})
+    Bquery = NodeByPropsReachable(node_type=Process, props={"process_image": Exact("B")})
+    Gquery = NodeByPropsReachable(node_type=Process, props={"process_image": Exact("G")})
 
-    chained = Bstatement | Gstatement
+    chained = Bquery | Gquery
 
     assert graph_nodes_match(
         chained.execute_networkx(G5),
@@ -37,14 +37,14 @@ def test_chained_statement(G5, graph_nodes_match):
     )
 
 
-def test_multiple_chained_statement(G5, graph_nodes_match):
+def test_multiple_chained_query(G5, graph_nodes_match):
     # Should properly execute all three.
 
-    Bstatement = NodeByProps(node_type=Process, props={"process_image": Exact("B")})
-    Gstatement = NodeByProps(node_type=Process, props={"process_image": Exact("G")})
-    Astatement = NodeByProps(node_type=Process, props={"process_image": Exact("A")})
+    Bquery = NodeByProps(node_type=Process, props={"process_image": Exact("B")})
+    Gquery = NodeByProps(node_type=Process, props={"process_image": Exact("G")})
+    Aquery = NodeByProps(node_type=Process, props={"process_image": Exact("A")})
 
-    chained = Bstatement | Gstatement | Astatement
+    chained = Bquery | Gquery | Aquery
 
     assert graph_nodes_match(
         chained.execute_networkx(G5),
@@ -57,16 +57,16 @@ def test_multiple_chained_statement(G5, graph_nodes_match):
 
 
 def test_shift_operators():
-    Bstatement = NodeByProps(node_type=Process, props={"process_image": Exact("B")})
-    Gstatement = NodeByProps(node_type=Process, props={"process_image": Exact("G")})
+    Bquery = NodeByProps(node_type=Process, props={"process_image": Exact("B")})
+    Gquery = NodeByProps(node_type=Process, props={"process_image": Exact("G")})
 
-    Bstatement >> Gstatement
+    Bquery >> Gquery
 
-    assert Bstatement.downstream_statement == Gstatement
+    assert Bquery.downstream_query == Gquery
 
-    Bstatement = NodeByProps(node_type=Process, props={"process_image": Exact("B")})
-    Gstatement = NodeByProps(node_type=Process, props={"process_image": Exact("G")})
+    Bquery = NodeByProps(node_type=Process, props={"process_image": Exact("B")})
+    Gquery = NodeByProps(node_type=Process, props={"process_image": Exact("G")})
 
-    Bstatement << Gstatement
+    Bquery << Gquery
 
-    assert Gstatement.downstream_statement == Bstatement
+    assert Gquery.downstream_query == Bquery

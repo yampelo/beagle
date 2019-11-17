@@ -4,11 +4,11 @@ import networkx as nx
 
 from beagle.nodes import Node
 
-from .base_statement import Statement, _str_to_exact
+from .base_query import Query, _str_to_exact
 from .lookups import FieldLookup
 
 
-class NodeByProps(Statement):
+class NodeByProps(Query):
     def __init__(self, node_type: Type[Node], props: Dict[str, Union[str, FieldLookup, Dict]] = {}):
         """Searches the graph for a node of type `node_type` with properties matching `props`
 
