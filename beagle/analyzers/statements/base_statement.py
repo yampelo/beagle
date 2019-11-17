@@ -43,7 +43,7 @@ class Statement(object):
         self.upstream_statement: Statement = None
 
     def __rshift__(self, other: "Statement") -> "Statement":
-        """Implements Self >> Other == self.downstream_statements = other
+        """Implements Self >> Other == self.downstream_statement = other
 
         Parameters
         ----------
@@ -55,7 +55,7 @@ class Statement(object):
         return other
 
     def __lshift__(self, other: "Statement") -> "Statement":
-        """Implements Self << Other == self.upstream_statements = other
+        """Implements Self << Other == self.upstream_statement = other
 
         Parameters
         ----------

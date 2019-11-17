@@ -38,11 +38,10 @@ def test_intermediate_edge_by_props(G5, graph_nodes_match):
     statement1 = FindProcess.with_command_line("B")
     statement2 = IntermediateEdgeByProps(edge_type="Launched")
 
+    statement1 >> statement2
+
     # get the subgraph.
     G_s = statement1.execute_networkx(G5)
-
-    # Set the upstream nodes of our next statement
-    statement2.set_upstream_nodes(statement1)
 
     # running statement two should only give us B->C
     assert graph_nodes_match(

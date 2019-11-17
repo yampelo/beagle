@@ -62,20 +62,11 @@ def test_shift_operators():
 
     Bstatement >> Gstatement
 
-    assert Bstatement.downstream_statements == [Gstatement]
+    assert Bstatement.downstream_statement == Gstatement
 
     Bstatement = NodeByProps(node_type=Process, props={"process_image": Exact("B")})
     Gstatement = NodeByProps(node_type=Process, props={"process_image": Exact("G")})
 
     Bstatement << Gstatement
 
-    assert Gstatement.downstream_statements == [Bstatement]
-
-    Bstatement = NodeByProps(node_type=Process, props={"process_image": Exact("B")})
-    Gstatement = NodeByProps(node_type=Process, props={"process_image": Exact("G")})
-    Astatement = NodeByProps(node_type=Process, props={"process_image": Exact("A")})
-
-    Bstatement >> Gstatement
-    Bstatement >> Astatement
-
-    assert Bstatement.downstream_statements == [Gstatement, Astatement]
+    assert Gstatement.downstream_statement == Bstatement

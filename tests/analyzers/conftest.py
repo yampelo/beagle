@@ -96,7 +96,7 @@ def G5():
     F.launched[G]
     G.launched[H]
 
-    backend = NetworkX(consolidate_edges=True, nodes=[A, B, B, C, E, F, G, H])
+    backend = NetworkX(consolidate_edges=True, nodes=[A, B, C, D, E, F, G, H])
 
     return backend.graph()
 
@@ -122,5 +122,24 @@ def G6():
     parent2.launched[child2].append(timestamp=2)
 
     backend = NetworkX(consolidate_edges=True, nodes=[parent, parent2, child, child2])
+
+    return backend.graph()
+
+
+@pytest.fixture
+def G7():
+    # A graph with two, *disconnected* four process tree:
+    # A -> B -> C -> D
+    # E -> F -> G -> H
+    A = Process(process_id=10, process_image="A", command_line="A")
+    B = Process(process_id=12, process_image="B", command_line="B")
+    C = Process(process_id=12, process_image="C", command_line="C")
+    D = Process(process_id=12, process_image="D", command_line="D")
+
+    A.launched[B]
+    B.launched[C]
+    C.launched[D]
+
+    backend = NetworkX(consolidate_edges=True, nodes=[A, B, C, D])
 
     return backend.graph()
