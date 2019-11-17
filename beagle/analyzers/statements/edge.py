@@ -29,7 +29,7 @@ class EdgeByProps(Statement):
 
         self.props: Dict[str, Union[FieldLookup, Dict]] = _str_to_exact(props)
 
-        super().__init__(*args, **kwargs)
+        super().__init__()
 
     def execute_networkx(self, G: nx.Graph) -> nx.Graph:
         """Searches a `nx.Graph` object for edges that match type `edge_type` and contains
@@ -74,11 +74,15 @@ class IntermediateEdgeByProps(EdgeByProps, IntermediateStatement):
 
         Returns a subgraph with all nodes contained in match edges
         """
+
+        # Grab upstream information
+        upstream_nodes, _ = self.get_upstream_results()
+
         subgraph_edges = []
 
         for u, v, k, e_data in G.edges(
             # Only get the edges associate with nodes from the previous step.
-            self.upstream_nodes,
+            upstream_nodes,
             data=True,
             keys=True,
         ):

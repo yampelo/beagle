@@ -1,10 +1,11 @@
-from typing import Union, Type
+from typing import Union
 
 from beagle.nodes import Process
 
-from .node import NodeByPropsReachable
 from .base_statement import FactoryMixin
+from .edge import IntermediateEdgeByProps
 from .lookups import FieldLookup
+from .node import NodeByPropsReachable
 
 
 class FindProcess(FactoryMixin):
@@ -46,9 +47,7 @@ class FindProcess(FactoryMixin):
         return NodeByPropsReachable(node_type=Process, props={"user": user})
 
     @staticmethod
-    def with_md5_hash(
-        md5hash: Union[str, FieldLookup]
-    ) -> NodeByPropsReachable:  # pragma: no cover
+    def with_md5_hash(md5hash: Union[str, FieldLookup]) -> NodeByPropsReachable:  # pragma: no cover
 
         return NodeByPropsReachable(node_type=Process, props={"hashes": {"md5": md5hash}})
 
@@ -66,4 +65,6 @@ class FindProcess(FactoryMixin):
 
         return NodeByPropsReachable(node_type=Process, props={"hashes": {"sha1": sha1hash}})
 
-    def launched_by():
+    @staticmethod
+    def that_was_launched():
+        return IntermediateEdgeByProps(edge_type="Launched")

@@ -39,31 +39,31 @@ class Statement(object):
         self.result_edges: Set[Tuple[int, int, int]] = set()
 
         # Set of statements that came before or after it.
-        self.downstream_statements: List[Statement] = []
-        self.upstream_statements: List[Statement] = []
+        self.downstream_statement: Statement = None
+        self.upstream_statement: Statement = None
 
     def __rshift__(self, other: "Statement") -> "Statement":
-        """Implements Self >> Other == self.downstream_statements.append(other)
+        """Implements Self >> Other == self.downstream_statements = other
 
         Parameters
         ----------
         other : Statement
             The other statement to add.
         """
-        self.downstream_statements.append(other)
-        other.upstream_statements.append(self)
+        self.downstream_statement = other
+        other.upstream_statement = self
         return other
 
     def __lshift__(self, other: "Statement") -> "Statement":
-        """Implements Self << Other == self.upstream_statements.append(other)
+        """Implements Self << Other == self.upstream_statements = other
 
         Parameters
         ----------
         other : Statement
             The other statement to add.
         """
-        other.downstream_statements.append(self)
-        self.upstream_statements.append(other)
+        other.downstream_statement = self
+        self.upstream_statement = other
         return other
 
     def __or__(self, other: "Statement") -> "ChainedStatement":
@@ -208,6 +208,9 @@ class IntermediateStatement(Statement):
         self.upstream_edges: Set[Tuple[int, int, int]] = set()
         super().__init__(*args, **kwargs)
 
-    def set_upstream_nodes(self, upstream_statement: Statement):
-        self.upstream_nodes |= upstream_statement.result_nodes
-        self.upstream_edges |= upstream_statement.result_edges
+    def get_upstream_results(self) -> Tuple[Set[int], Set[Tuple[int, int, int]]]:
+        return self.upstream_statement.result_nodes, self.upstream_statement.result_edges
+
+    def set_upstream_nodes(self):
+        self.upstream_nodes |= self.upstream_statement.result_nodes
+        self.upstream_edges |= self.upstream_statement.result_edges
