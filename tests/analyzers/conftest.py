@@ -128,18 +128,30 @@ def G6():
 
 @pytest.fixture
 def G7():
-    # A graph with two, *disconnected* four process tree:
-    # A -> B -> C -> D
-    # E -> F -> G -> H
+    # A graph that's a tree of process launches
+    #               A
+    #              / \
+    #             B   C
+    #           /  \  / \
+    #          D   E  F  G
+
     A = Process(process_id=10, process_image="A", command_line="A")
     B = Process(process_id=12, process_image="B", command_line="B")
     C = Process(process_id=12, process_image="C", command_line="C")
     D = Process(process_id=12, process_image="D", command_line="D")
+    E = Process(process_id=10, process_image="E", command_line="E")
+    F = Process(process_id=12, process_image="F", command_line="F")
+    G = Process(process_id=12, process_image="G", command_line="G")
 
     A.launched[B]
-    B.launched[C]
-    C.launched[D]
+    A.launched[C]
 
-    backend = NetworkX(consolidate_edges=True, nodes=[A, B, C, D])
+    B.launched[D]
+    B.launched[E]
+
+    C.launched[F]
+    C.launched[G]
+
+    backend = NetworkX(consolidate_edges=True, nodes=[A, B, C, D, E, F, G])
 
     return backend.graph()

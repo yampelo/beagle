@@ -2,6 +2,7 @@ from beagle.analyzers.statements.edge import EdgeByProps, IntermediateEdgeByProp
 from beagle.analyzers.statements.lookups import Exact
 from beagle.analyzers.statements.process import FindProcess
 from beagle.nodes import File, Process
+from beagle.analyzers.base_analyzer import Analyzer
 
 
 def test_one_edge_prop_test(G2, G3, graph_nodes_match):
@@ -49,5 +50,31 @@ def test_intermediate_edge_by_props(G5, graph_nodes_match):
         [
             Process(process_id=12, process_image="B", command_line="B"),
             Process(process_id=12, process_image="C", command_line="C"),
+        ],
+    )
+
+
+def test_intermediate_edge_all_candidates_found(G7, graph_nodes_match):
+
+    analyzer = Analyzer(
+        name="test_intermediate_edge_all_candidates_found",
+        description="test_intermediate_edge_all_candidates_found",
+        score=0,
+        statement=FindProcess.with_command_line("C") >> FindProcess.that_was_launched(),
+    )
+
+    G = analyzer.run_networkx(G7)
+
+    # should return
+    #             C
+    #            / \
+    #           F  G
+
+    assert graph_nodes_match(
+        G,
+        [
+            Process(process_id=12, process_image="C", command_line="C"),
+            Process(process_id=12, process_image="F", command_line="F"),
+            Process(process_id=12, process_image="G", command_line="G"),
         ],
     )
