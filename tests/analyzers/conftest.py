@@ -10,7 +10,19 @@ from beagle.nodes import File, Node, Process
 @pytest.fixture
 def graph_nodes_match():
     def validate_nodes_match(graph: nx.Graph, nodes: List[Node]) -> bool:
-        return [n["data"] for _, n in graph.nodes(data=True)] == nodes
+
+        node_objs = [n["data"] for _, n in graph.nodes(data=True)]
+
+        length_match = len(graph.nodes()) == len(nodes)
+
+        node_match = all([n in node_objs for n in nodes])
+
+        if length_match and node_match:
+            return True
+
+        else:
+            print(f"Expected {nodes} got {node_objs}")
+            return False
 
     return validate_nodes_match
 

@@ -7,7 +7,7 @@ from beagle.backends import Backend, NetworkX
 
 
 class Analyzer(object):
-    def __init__(self, name: str, description: str, score: int, query: Query):
+    def __init__(self, name: str, query: Query, description: str = None, score: int = None):
         self.name = name
         self.description = description
         self.score = score

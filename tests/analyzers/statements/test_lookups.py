@@ -1,17 +1,20 @@
 import re
+from typing import Type
+
 import pytest
+
 from beagle.analyzers.queries.lookups import (
-    FieldLookup,
-    Contains,
-    IContains,
-    Exact,
-    IExact,
-    StartsWith,
-    EndsWith,
-    Regex,
     And,
-    Or,
+    Contains,
+    EndsWith,
+    Exact,
+    FieldLookup,
+    IContains,
+    IExact,
     Not,
+    Or,
+    Regex,
+    StartsWith,
 )
 
 
@@ -48,7 +51,7 @@ from beagle.analyzers.queries.lookups import (
         (Regex, re.compile(r"\d"), "test test", False),
     ],
 )
-def test_lookups(cls: FieldLookup, value: str, prop: str, result: str):
+def test_lookups(cls: Type[FieldLookup], value: str, prop: str, result: str):
     # prop -> value being tested again, value -> the thing we're looking up
     assert cls(value).test(prop) == result
 

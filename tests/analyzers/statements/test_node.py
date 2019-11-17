@@ -122,8 +122,7 @@ def test_node_with_ancestors(G4, graph_nodes_match):
     # A should return A
     query = NodeByPropsAncestors(node_type=Process, props={"process_image": Exact("A")})
     assert graph_nodes_match(
-        query.execute_networkx(G4),
-        [Process(process_id=10, process_image="A", command_line="A")],
+        query.execute_networkx(G4), [Process(process_id=10, process_image="A", command_line="A")]
     )
 
     # B should return A->B

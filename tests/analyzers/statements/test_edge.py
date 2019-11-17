@@ -52,29 +52,3 @@ def test_intermediate_edge_by_props(G5, graph_nodes_match):
             Process(process_id=12, process_image="C", command_line="C"),
         ],
     )
-
-
-def test_intermediate_edge_all_candidates_found(G7, graph_nodes_match):
-
-    analyzer = Analyzer(
-        name="test_intermediate_edge_all_candidates_found",
-        description="test_intermediate_edge_all_candidates_found",
-        score=0,
-        query=FindProcess.with_command_line("C") >> FindProcess.that_was_launched(),
-    )
-
-    G = analyzer.run_networkx(G7)
-
-    # should return
-    #             C
-    #            / \
-    #           F  G
-
-    assert graph_nodes_match(
-        G,
-        [
-            Process(process_id=12, process_image="C", command_line="C"),
-            Process(process_id=12, process_image="F", command_line="F"),
-            Process(process_id=12, process_image="G", command_line="G"),
-        ],
-    )

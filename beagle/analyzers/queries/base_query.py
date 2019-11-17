@@ -20,8 +20,7 @@ def _str_to_exact(props: dict) -> Dict[str, Union[FieldLookup, Dict]]:
 
 class Query(object):
     def __init__(self):
-        """A query is the base building block of a query. A query takes as input a graph, executes,
-        and returns the next graph.
+        """A query takes as input a graph, executes, and returns the next graph.
 
         >>> G2 = query.execute_networkx(G)
 
@@ -96,7 +95,7 @@ class Query(object):
         value_to_test: Union[Node, Dict[str, Any]],
         lookup_tests: Dict[str, Union[FieldLookup, Dict]],
     ) -> bool:
-        """Tests a node or dictionay against a configuration of lookup_tests.
+        """Tests a node or dictionary against a configuration of lookup_tests.
 
         Parameters
         ----------

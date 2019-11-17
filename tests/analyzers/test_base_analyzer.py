@@ -9,7 +9,7 @@ def test_analyzer_two_queries(G5, graph_nodes_match):
         name="test_analyzer_two_queries",
         description="test_analyzer_two_queries",
         score=0,
-        query=FindProcess.with_command_line("B") >> FindProcess.that_was_launched(),
+        query=FindProcess.with_command_line("B") >> FindProcess.that_was_launched(descendants=False),
     )
 
     G = analyzer.run_networkx(G5)
@@ -27,7 +27,7 @@ def test_analyzer_or_query_queries(G5, graph_nodes_match):
 
     query = (
         FindProcess.with_command_line("B") | FindProcess.with_command_line("A")
-    ) >> FindProcess.that_was_launched()
+    ) >> FindProcess.that_was_launched(descendants=False)
 
     analyzer = Analyzer(
         name="test_analyzer_two_queries",

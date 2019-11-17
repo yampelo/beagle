@@ -3,7 +3,7 @@ from typing import Union
 from beagle.nodes import Process
 
 from .base_query import FactoryMixin
-from .edge import IntermediateEdgeByProps
+from .edge import IntermediateEdgeByProps, IntermediateEdgeByPropsDescendants
 from .lookups import FieldLookup
 from .node import NodeByPropsReachable
 
@@ -66,5 +66,8 @@ class FindProcess(FactoryMixin):
         return NodeByPropsReachable(node_type=Process, props={"hashes": {"sha1": sha1hash}})
 
     @staticmethod
-    def that_was_launched():
-        return IntermediateEdgeByProps(edge_type="Launched")
+    def that_was_launched(descendants: bool = True):
+        if descendants:
+            return IntermediateEdgeByPropsDescendants(edge_type="Launched")
+        else:
+            return IntermediateEdgeByProps(edge_type="Launched")

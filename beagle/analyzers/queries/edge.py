@@ -1,4 +1,4 @@
-from typing import Dict, Union
+from typing import Dict, Union, Set
 
 import networkx as nx
 
@@ -101,9 +101,28 @@ class IntermediateEdgeByProps(EdgeByProps, IntermediateQuery):
                 for entry in data:
                     if self._test_values_with_lookups(entry, self.props):
                         subgraph_edges.append((u, v, k))
-                        # can stop on first match
                         self.result_edges |= {(u, v, k)}
                         self.result_nodes |= {u, v}
+
+                        # can stop on first match
                         break
 
         return G.edge_subgraph(subgraph_edges)
+
+
+class IntermediateEdgeByPropsDescendants(IntermediateEdgeByProps):
+    """Perform a `IntermediateEdgeByProps` query, expanding the descendants of the found edges."""
+
+    def execute_networkx(self, G: nx.Graph) -> nx.Graph:
+        next_graph = super().execute_networkx(G)
+
+        # get the nodes from the previous graph.
+        subgraph_nodes: Set[int] = {node_id for node_id in next_graph.nodes()}
+
+        # For every node that matched `in IntermediateEdgeByProps`
+        for _, v, _ in self.result_edges:
+            subgraph_nodes |= nx.descendants(G, v) | {v}
+
+        self.result_nodes |= subgraph_nodes
+
+        return G.subgraph(subgraph_nodes)

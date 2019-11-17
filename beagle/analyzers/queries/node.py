@@ -4,7 +4,7 @@ import networkx as nx
 
 from beagle.nodes import Node
 
-from .base_query import Query, _str_to_exact
+from .base_query import IntermediateQuery, Query, _str_to_exact
 from .lookups import FieldLookup
 
 
