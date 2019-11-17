@@ -7,6 +7,9 @@ from beagle.nodes import Node
 from .lookups import Exact, FieldLookup
 
 
+PropsDict = Dict[str, Union[str, FieldLookup, Dict]]
+
+
 def _str_to_exact(props: dict) -> Dict[str, Union[FieldLookup, Dict]]:
     # Ensures strings become Exact, Works on nested dicts
     for k, v in props.items():
@@ -123,7 +126,7 @@ class Query(object):
         for attr_name, lookup in lookup_tests.items():
             if isinstance(lookup, dict):
                 # recursivly check props against nested entrys (e.g is hashes dict in Process)
-                if isinstance(value_to_test, Node):
+                if isinstance(value_to_test, Node):  # pragma: no cover
                     results.append(
                         self._test_values_with_lookups(
                             value_to_test=getattr(value_to_test, attr_name), lookup_tests=lookup
@@ -210,6 +213,6 @@ class IntermediateQuery(Query):
     def get_upstream_results(self) -> Tuple[Set[int], Set[Tuple[int, int, int]]]:
         return self.upstream_query.result_nodes, self.upstream_query.result_edges
 
-    def set_upstream_nodes(self):
+    def set_upstream_nodes(self):  # pragma: no cover
         self.upstream_nodes |= self.upstream_query.result_nodes
         self.upstream_edges |= self.upstream_query.result_edges

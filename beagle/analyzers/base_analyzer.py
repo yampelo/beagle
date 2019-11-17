@@ -1,4 +1,4 @@
-from typing import Type, cast
+from typing import Type, cast, Any
 
 import networkx as nx
 
@@ -18,10 +18,10 @@ class Analyzer(object):
 
         self.query: Query = query
 
-    def run(self, backend: Type[Backend]):
+    def run(self, backend: Type[Backend]) -> Any:
         if isinstance(backend, NetworkX):
             backend = cast(NetworkX, backend)
-            self.run_networkx(backend.G)
+            return self.run_networkx(backend.G)
 
     def run_networkx(self, G: nx.Graph) -> nx.Graph:
 

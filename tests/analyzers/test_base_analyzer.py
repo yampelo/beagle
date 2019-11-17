@@ -2,6 +2,29 @@ from beagle.analyzers.base_analyzer import Analyzer
 from beagle.analyzers.queries.process import FindProcess
 from beagle.nodes import Process
 
+from beagle.backends import NetworkX
+
+
+def test_analyzer_from_networx_backed(G5, graph_nodes_match):
+    analyzer = Analyzer(
+        name="test_analyzer_two_queries",
+        description="test_analyzer_two_queries",
+        score=0,
+        query=FindProcess.with_command_line("B")
+        >> FindProcess.that_was_launched(descendants=False),
+    )
+
+    backend = NetworkX(nodes=[])
+    backend.G = G5
+
+    assert graph_nodes_match(
+        analyzer.run(backend),
+        [
+            Process(process_id=12, process_image="B", command_line="B"),
+            Process(process_id=12, process_image="C", command_line="C"),
+        ],
+    )
+
 
 def test_analyzer_two_queries(G5, graph_nodes_match):
 
@@ -9,7 +32,8 @@ def test_analyzer_two_queries(G5, graph_nodes_match):
         name="test_analyzer_two_queries",
         description="test_analyzer_two_queries",
         score=0,
-        query=FindProcess.with_command_line("B") >> FindProcess.that_was_launched(descendants=False),
+        query=FindProcess.with_command_line("B")
+        >> FindProcess.that_was_launched(descendants=False),
     )
 
     G = analyzer.run_networkx(G5)

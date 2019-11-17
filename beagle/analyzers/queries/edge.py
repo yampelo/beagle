@@ -2,14 +2,12 @@ from typing import Dict, Union, Set
 
 import networkx as nx
 
-from .base_query import Query, _str_to_exact, IntermediateQuery
+from .base_query import Query, _str_to_exact, IntermediateQuery, PropsDict
 from .lookups import FieldLookup
 
 
 class EdgeByProps(Query):
-    def __init__(
-        self, edge_type: str, props: Dict[str, Union[str, FieldLookup]] = {}, *args, **kwargs
-    ):
+    def __init__(self, edge_type: str, props: PropsDict = {}, *args, **kwargs):
         """Searches the graph for an edge of type `edge_type` with properties matching `props`
 
         Parameters

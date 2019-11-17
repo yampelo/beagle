@@ -1,5 +1,5 @@
 import pytest
-from beagle.analyzers.queries.base_query import FactoryMixin
+from beagle.analyzers.queries.base_query import FactoryMixin, _str_to_exact
 from beagle.analyzers.queries.node import NodeByPropsReachable, NodeByProps
 from beagle.analyzers.queries.lookups import Exact
 from beagle.nodes import Process
@@ -12,6 +12,18 @@ def test_factory_mixin():
     with pytest.raises(UserWarning):
         obj = MyFactory()
         obj.execute_networkx(None)
+
+
+@pytest.mark.parametrize(
+    "props,expected",
+    [
+        ({"process_image": "A"}, {"process_image": Exact("A")}),
+        ({"hashes": {"md5": "A"}}, {"hashes": {"md5": Exact("A")}}),
+        ({"hashes": {"md5": "A", "baz": {"foo": "bar"}}}, {"hashes": {"md5": Exact("A"), "baz": {"foo": Exact("bar")}}}),
+    ],
+)
+def test_str_to_exact(props, expected):
+    assert _str_to_exact(props) == expected
 
 
 def test_chained_query(G5, graph_nodes_match):

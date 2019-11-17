@@ -63,6 +63,9 @@ class FieldLookup(object, metaclass=ABCMeta):  # pragma: no cover
         """
         return Not(self)
 
+    def __eq__(self, other):
+        return (type(self) == type(other)) and (self.value == other.value)
+
 
 class Or(FieldLookup):
     """Boolean OR, Meant to be used with other lookups:
