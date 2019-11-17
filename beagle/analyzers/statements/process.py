@@ -10,54 +10,60 @@ from .lookups import FieldLookup
 class FindProcess(FactoryMixin):
     """Executes statements relevant to a Process"""
 
-    @classmethod
+    @staticmethod
     def with_command_line(
-        cls: Type["FindProcess"], command_line: Union[str, FieldLookup]
+        command_line: Union[str, FieldLookup]
     ) -> NodeByPropsReachable:  # pragma: no cover
 
         return NodeByPropsReachable(node_type=Process, props={"command_line": command_line})
 
-    @classmethod
+    @staticmethod
     def with_process_name(
-        cls: Type["FindProcess"], process_image: Union[str, FieldLookup]
+        process_image: Union[str, FieldLookup]
     ) -> NodeByPropsReachable:  # pragma: no cover
 
         return NodeByPropsReachable(node_type=Process, props={"process_image": process_image})
 
-    @classmethod
+    @staticmethod
     def with_process_path(
-        cls: Type["FindProcess"], process_path: Union[str, FieldLookup]
+        process_path: Union[str, FieldLookup]
     ) -> NodeByPropsReachable:  # pragma: no cover
 
         return NodeByPropsReachable(node_type=Process, props={"process_path": process_path})
 
-    @classmethod
+    @staticmethod
     def with_process_image_path(
-        cls: Type["FindProcess"], process_image_path: Union[str, FieldLookup]
+        process_image_path: Union[str, FieldLookup]
     ) -> NodeByPropsReachable:  # pragma: no cover
 
         return NodeByPropsReachable(
             node_type=Process, props={"process_image_path": process_image_path}
         )
 
-    @classmethod
-    def with_user(cls: Type["FindProcess"], user: Union[str, FieldLookup]) -> NodeByPropsReachable:
+    @staticmethod
+    def with_user(user: Union[str, FieldLookup]) -> NodeByPropsReachable:
+
         return NodeByPropsReachable(node_type=Process, props={"user": user})
 
-    @classmethod
+    @staticmethod
     def with_md5_hash(
-        cls: Type["FindProcess"], md5hash: Union[str, FieldLookup]
+        md5hash: Union[str, FieldLookup]
     ) -> NodeByPropsReachable:  # pragma: no cover
+
         return NodeByPropsReachable(node_type=Process, props={"hashes": {"md5": md5hash}})
 
-    @classmethod
+    @staticmethod
     def with_sha256_hash(
-        cls: Type["FindProcess"], md5hash: Union[str, FieldLookup]
+        sha256hash: Union[str, FieldLookup]
     ) -> NodeByPropsReachable:  # pragma: no cover
-        return NodeByPropsReachable(node_type=Process, props={"hashes": {"sha256": md5hash}})
 
-    @classmethod
+        return NodeByPropsReachable(node_type=Process, props={"hashes": {"sha256": sha256hash}})
+
+    @staticmethod
     def with_sha1_hash(
-        cls: Type["FindProcess"], md5hash: Union[str, FieldLookup]
+        sha1hash: Union[str, FieldLookup]
     ) -> NodeByPropsReachable:  # pragma: no cover
-        return NodeByPropsReachable(node_type=Process, props={"hashes": {"sha1": md5hash}})
+
+        return NodeByPropsReachable(node_type=Process, props={"hashes": {"sha1": sha1hash}})
+
+    def launched_by():
