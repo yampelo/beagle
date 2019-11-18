@@ -43,14 +43,40 @@ class FindFile(FactoryMixin):
     def with_props(props: PropsDict) -> NodeByPropsReachable:  # pragma: no cover
         return NodeByPropsReachable(node_type=File, props=props)
 
+    # ---- Edge methods ----- #
+
     @staticmethod
-    def that_was_written(descendants=True, ancestors=False, reachable=False):
+    def that_was_written(
+        contents: str = None, descendants=True, ancestors=False, reachable=False
+    ):  # pragma: no cover
         return make_edge_query(
-            edge_type="Wrote", descendants=descendants, ancestors=ancestors, reachable=reachable
+            edge_type="Wrote",
+            edge_props={"contents": contents},
+            descendants=descendants,
+            ancestors=ancestors,
+            reachable=reachable,
         )
 
     @staticmethod
-    def that_was_copied(descendants=True, ancestors=False, reachable=False):
+    def that_was_copied(descendants=True, ancestors=False, reachable=False):  # pragma: no cover
         return make_edge_query(
             edge_type="Copied To", descendants=descendants, ancestors=ancestors, reachable=reachable
+        )
+
+    @staticmethod
+    def that_was_loaded(descendants=True, ancestors=False, reachable=False):  # pragma: no cover
+        return make_edge_query(
+            edge_type="Loaded", descendants=descendants, ancestors=ancestors, reachable=reachable
+        )
+
+    @staticmethod
+    def that_was_accessed(descendants=True, ancestors=False, reachable=False):  # pragma: no cover
+        return make_edge_query(
+            edge_type="Accessed", descendants=descendants, ancestors=ancestors, reachable=reachable
+        )
+
+    @staticmethod
+    def that_was_deleted(descendants=True, ancestors=False, reachable=False):  # pragma: no cover
+        return make_edge_query(
+            edge_type="Deleted", descendants=descendants, ancestors=ancestors, reachable=reachable
         )

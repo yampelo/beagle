@@ -7,7 +7,7 @@ from beagle.nodes import Node
 from .lookups import Exact, FieldLookup
 
 
-PropsDict = Dict[str, Union[str, FieldLookup, Dict]]
+PropsDict = Dict[str, Union[str, FieldLookup, Dict, None]]
 
 
 def _str_to_exact(props: dict) -> Dict[str, Union[FieldLookup, Dict]]:
@@ -17,6 +17,8 @@ def _str_to_exact(props: dict) -> Dict[str, Union[FieldLookup, Dict]]:
             props[k] = Exact(v)
         elif isinstance(v, dict):
             props[k] = _str_to_exact(v)
+        elif v is None:
+            del props[k]
 
     return props
 

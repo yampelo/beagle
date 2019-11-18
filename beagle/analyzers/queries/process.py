@@ -3,6 +3,7 @@ from typing import Union
 from beagle.nodes import Process
 
 from . import FactoryMixin, make_edge_query
+from .base_query import PropsDict
 from .lookups import FieldLookup
 from .node import NodeByPropsReachable
 
@@ -63,6 +64,10 @@ class FindProcess(FactoryMixin):
     ) -> NodeByPropsReachable:  # pragma: no cover
 
         return NodeByPropsReachable(node_type=Process, props={"hashes": {"sha1": sha1hash}})
+
+    @staticmethod
+    def with_props(props: PropsDict) -> NodeByPropsReachable:  # pragma: no cover
+        return NodeByPropsReachable(node_type=Process, props=props)
 
     @staticmethod
     def that_was_launched(descendants=True, ancestors=False, reachable=False):
