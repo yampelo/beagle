@@ -44,54 +44,15 @@ class Query(object):
         self.downstream_query: Query = None
         self.upstream_query: Query = None
 
-    def __rshift__(self, other: "Query") -> "Query":
-        """Implements Self >> Other == self.downstream_query = other
+        self.upstream_nodes: Set[int] = set()
+        self.upstream_edges: Set[Tuple[int, int, int]] = set()
 
-        Parameters
-        ----------
-        other : Query
-            The other query to add.
-        """
-        self.downstream_query = other
-        other.upstream_query = self
-        return other
+    def get_upstream_results(self) -> Tuple[Set[int], Set[Tuple[int, int, int]]]:
+        return self.upstream_query.result_nodes, self.upstream_query.result_edges
 
-    def __lshift__(self, other: "Query") -> "Query":
-        """Implements Self << Other == self.upstream_query = other
-
-        Parameters
-        ----------
-        other : Query
-            The other query to add.
-        """
-        other.downstream_query = self
-        self.upstream_query = other
-        return other
-
-    def __or__(self, other: "Query") -> "ChainedQuery":
-        """Allows queries to be combined through the `|` operator.
-        The result of execution is the union of both subqueries.
-
-        >>> query1 = Query(...)
-        >>> query2 = Query(...)
-        >>> chained = query1 | query2
-
-
-        Parameters
-        ----------
-        other: Query
-            The query to chain with.
-
-        Returns
-        -------
-        ChainedQuery
-            A chained query compromised of all three.
-        """
-        return ChainedQuery(self, other)
-
-    def execute_networkx(self, G: nx.Graph):  # pragma: no cover
-        """Execute a query against a `networkx` graph."""
-        raise NotImplementedError(f"NetworkX not supported for {self.__class__.__name__}")
+    def set_upstream_nodes(self):  # pragma: no cover
+        self.upstream_nodes |= self.upstream_query.result_nodes
+        self.upstream_edges |= self.upstream_query.result_edges
 
     def _test_values_with_lookups(
         self,
@@ -146,13 +107,54 @@ class Query(object):
 
         return any(results)
 
+    def execute_networkx(self, G: nx.Graph):  # pragma: no cover
+        """Execute a query against a `networkx` graph."""
+        raise NotImplementedError(f"NetworkX not supported for {self.__class__.__name__}")
 
-class FactoryMixin(object):
-    """Mixin to prevent Query Factories from calling execute methods.
-    """
+    def __rshift__(self, other: "Query") -> "Query":
+        """Implements Self >> Other == self.downstream_query = other
 
-    def execute_networkx(self, G: nx.graph):
-        raise UserWarning("Query factories cannot be called directly")
+        Parameters
+        ----------
+        other : Query
+            The other query to add.
+        """
+        self.downstream_query = other
+        other.upstream_query = self
+        return other
+
+    def __lshift__(self, other: "Query") -> "Query":
+        """Implements Self << Other == self.upstream_query = other
+
+        Parameters
+        ----------
+        other : Query
+            The other query to add.
+        """
+        other.downstream_query = self
+        self.upstream_query = other
+        return other
+
+    def __or__(self, other: "Query") -> "ChainedQuery":
+        """Allows queries to be combined through the `|` operator.
+        The result of execution is the union of both subqueries.
+
+        >>> query1 = Query(...)
+        >>> query2 = Query(...)
+        >>> chained = query1 | query2
+
+
+        Parameters
+        ----------
+        other: Query
+            The query to chain with.
+
+        Returns
+        -------
+        ChainedQuery
+            A chained query compromised of all three.
+        """
+        return ChainedQuery(self, other)
 
 
 class ChainedQuery(Query):
@@ -197,22 +199,3 @@ class ChainedQuery(Query):
             H = nx.compose(H, subgraph)
 
         return H
-
-
-class IntermediateQuery(Query):
-    """An IntermediateQuery is a query which depends on a previous initial Query to run.
-
-    For example, you may only want to find edges connected to one of the nodes identifed in `NodeByProps`.
-    """
-
-    def __init__(self, *args, **kwargs):
-        self.upstream_nodes: Set[int] = set()
-        self.upstream_edges: Set[Tuple[int, int, int]] = set()
-        super().__init__(*args, **kwargs)
-
-    def get_upstream_results(self) -> Tuple[Set[int], Set[Tuple[int, int, int]]]:
-        return self.upstream_query.result_nodes, self.upstream_query.result_edges
-
-    def set_upstream_nodes(self):  # pragma: no cover
-        self.upstream_nodes |= self.upstream_query.result_nodes
-        self.upstream_edges |= self.upstream_query.result_edges

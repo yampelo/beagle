@@ -167,3 +167,20 @@ def G7():
     backend = NetworkX(consolidate_edges=True, nodes=[A, B, C, D, E, F, G])
 
     return backend.graph()
+
+
+@pytest.fixture
+def G8():
+    #  A launches B, B writes to F2
+
+    A = Process(process_id=10, process_image="A", command_line="A")
+
+    B = Process(process_id=12, process_image="B", command_line="B")
+    F1 = File(file_name="bar", file_path="bar")
+
+    A.launched[B]
+    B.wrote[F1].append(contents="bar")
+
+    backend = NetworkX(consolidate_edges=True, nodes=[A, B, F1])
+
+    return backend.graph()

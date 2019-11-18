@@ -2,8 +2,8 @@ from typing import Union
 
 from beagle.nodes import File
 
-from .base_query import FactoryMixin, PropsDict
-from .edge import IntermediateEdgeByProps, IntermediateEdgeByPropsDescendants
+from . import FactoryMixin, make_edge_query
+from .base_query import PropsDict
 from .lookups import FieldLookup
 from .node import NodeByPropsReachable
 
@@ -44,15 +44,13 @@ class FindFile(FactoryMixin):
         return NodeByPropsReachable(node_type=File, props=props)
 
     @staticmethod
-    def that_was_written(descendants: bool = False):
-        if descendants:
-            return IntermediateEdgeByPropsDescendants(edge_type="Wrote")
-        else:
-            return IntermediateEdgeByProps(edge_type="Wrote")
+    def that_was_written(descendants=True, ancestors=False, reachable=False):
+        return make_edge_query(
+            edge_type="Wrote", descendants=descendants, ancestors=ancestors, reachable=reachable
+        )
 
     @staticmethod
-    def that_was_copied(descendants: bool = False):
-        if descendants:
-            return IntermediateEdgeByPropsDescendants(edge_type="Copied To")
-        else:
-            return IntermediateEdgeByProps(edge_type="Copied To")
+    def that_was_copied(descendants=True, ancestors=False, reachable=False):
+        return make_edge_query(
+            edge_type="Copied To", descendants=descendants, ancestors=ancestors, reachable=reachable
+        )

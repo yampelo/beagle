@@ -1,8 +1,7 @@
-from beagle.analyzers.queries.edge import EdgeByProps, IntermediateEdgeByProps
+from beagle.analyzers.queries.edge import EdgeByProps
 from beagle.analyzers.queries.lookups import Exact
 from beagle.analyzers.queries.process import FindProcess
 from beagle.nodes import File, Process
-from beagle.analyzers.base_analyzer import Analyzer
 
 
 def test_one_edge_prop_test(G2, G3, graph_nodes_match):
@@ -37,7 +36,7 @@ def test_intermediate_edge_by_props(G5, graph_nodes_match):
 
     # Run the first query.
     query1 = FindProcess.with_command_line("B")
-    query2 = IntermediateEdgeByProps(edge_type="Launched")
+    query2 = EdgeByProps(edge_type="Launched")
 
     query1 >> query2
 

@@ -1,5 +1,6 @@
 import pytest
-from beagle.analyzers.queries.base_query import FactoryMixin, _str_to_exact
+from beagle.analyzers.queries import FactoryMixin
+from beagle.analyzers.queries.base_query import _str_to_exact
 from beagle.analyzers.queries.node import NodeByPropsReachable, NodeByProps
 from beagle.analyzers.queries.lookups import Exact
 from beagle.nodes import Process
@@ -19,7 +20,10 @@ def test_factory_mixin():
     [
         ({"process_image": "A"}, {"process_image": Exact("A")}),
         ({"hashes": {"md5": "A"}}, {"hashes": {"md5": Exact("A")}}),
-        ({"hashes": {"md5": "A", "baz": {"foo": "bar"}}}, {"hashes": {"md5": Exact("A"), "baz": {"foo": Exact("bar")}}}),
+        (
+            {"hashes": {"md5": "A", "baz": {"foo": "bar"}}},
+            {"hashes": {"md5": Exact("A"), "baz": {"foo": Exact("bar")}}},
+        ),
     ],
 )
 def test_str_to_exact(props, expected):
