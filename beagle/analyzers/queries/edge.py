@@ -62,7 +62,7 @@ class EdgeByProps(Query):
                         subgraph_edges.append((u, v, k))
                         # can stop on first match
                         self.result_edges |= {(u, v, k)}
-                        self.result_nodes |= {u, v}
+                        self.result_nodes |= {v}
                         break
 
         return G.edge_subgraph(subgraph_edges)

@@ -70,7 +70,7 @@ class FindProcess(FactoryMixin):
         return NodeByPropsReachable(node_type=Process, props=props)
 
     @staticmethod
-    def that_was_launched(descendants=True, ancestors=False, reachable=False):
+    def that_was_launched(descendants=False, ancestors=False, reachable=False):
         return make_edge_query(
             edge_type="Launched", descendants=descendants, ancestors=ancestors, reachable=reachable
         )

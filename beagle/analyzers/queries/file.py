@@ -58,25 +58,25 @@ class FindFile(FactoryMixin):
         )
 
     @staticmethod
-    def that_was_copied(descendants=True, ancestors=False, reachable=False):  # pragma: no cover
+    def that_was_copied(descendants=False, ancestors=False, reachable=False):  # pragma: no cover
         return make_edge_query(
             edge_type="Copied To", descendants=descendants, ancestors=ancestors, reachable=reachable
         )
 
     @staticmethod
-    def that_was_loaded(descendants=True, ancestors=False, reachable=False):  # pragma: no cover
+    def that_was_loaded(descendants=False, ancestors=False, reachable=False):  # pragma: no cover
         return make_edge_query(
             edge_type="Loaded", descendants=descendants, ancestors=ancestors, reachable=reachable
         )
 
     @staticmethod
-    def that_was_accessed(descendants=True, ancestors=False, reachable=False):  # pragma: no cover
+    def that_was_accessed(descendants=False, ancestors=False, reachable=False):  # pragma: no cover
         return make_edge_query(
             edge_type="Accessed", descendants=descendants, ancestors=ancestors, reachable=reachable
         )
 
     @staticmethod
-    def that_was_deleted(descendants=True, ancestors=False, reachable=False):  # pragma: no cover
+    def that_was_deleted(descendants=False, ancestors=False, reachable=False):  # pragma: no cover
         return make_edge_query(
             edge_type="Deleted", descendants=descendants, ancestors=ancestors, reachable=reachable
         )
