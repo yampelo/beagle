@@ -12,6 +12,7 @@ from .splunk_spl import SplunkSPLSearch
 from .sysmon_evtx import SysmonEVTX
 from .virustotal import GenericVTSandbox, GenericVTSandboxAPI
 from .win_evtx import WinEVTX
+from .elasticsearch_qs import ElasticSearchQSSerach
 
 __all__ = [
     "DataSource",
@@ -27,4 +28,5 @@ __all__ = [
     "GenericVTSandboxAPI",
     "WinEVTX",
     "DARPATCJson",
+    "ElasticSearchQSSerach",
 ]
