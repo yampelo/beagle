@@ -1,6 +1,3 @@
-import time
-import ssl
-import urllib
 from typing import Generator
 
 from beagle.common.logging import logger
@@ -54,9 +51,9 @@ class ElasticSearchQSSerach(ExternalDataSource):
         self.latest = latest
         self.index = index
         self.query = query
-        self.client = self.setup_session()
+        self.client = self._setup_session()
 
-    def setup_session(self):  # pragma: no cover
+    def _setup_session(self):  # pragma: no cover
         from elasticsearch import Elasticsearch
 
         client_kwargs = {
@@ -92,7 +89,6 @@ class ElasticSearchQSSerach(ExternalDataSource):
         # Number of hits to return
         size = int(Config.get("elasticsearch", "scroll_size", fallback=100))
         data = self.client.search(index=self.index, body=query, scroll="2m", size=size)
-
         # Get the scroll ID
         sid = data["_scroll_id"]
         scroll_size = len(data["hits"]["hits"])
