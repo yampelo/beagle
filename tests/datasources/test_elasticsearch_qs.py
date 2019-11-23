@@ -1,4 +1,3 @@
-import pytest
 import mock
 from beagle.datasources import ElasticSearchQSSerach
 
