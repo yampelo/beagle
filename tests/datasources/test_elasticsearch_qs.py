@@ -47,14 +47,15 @@ def test_scroll(mock_setup):
 
     ds.client.scroll.side_effect = [
         {
-            "_scroll_id": "1",
+            "_scroll_id": "2",
             "hits": {
                 "hits": [
                     {"_source": {"key": "foo"}, "_id": "bar"},
                     {"_source": {"key": "bar"}, "_id": "baz"},
                 ]
             },
-        }
+        },
+        {"_scroll_id": "3", "hits": {"hits": []}},
     ]
 
     assert len(list(ds.events())) == 4

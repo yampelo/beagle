@@ -8,6 +8,7 @@
 -   Decouples `edges` and `nodes` - [#68](https://github.com/yampelo/beagle/pull/68)
 -   Improves graph generation speed, reducing time by ~40x - [#62](https://github.com/yampelo/beagle/pull/62)
 -   Allows loading in saved JSON graphs - [#69](https://github.com/yampelo/beagle/pull/69)
+-   Adds support for ElasticSearch as a datasource (@duzvik) - [#73](https://github.com/yampelo/beagle/pull/69)
 
 ## [1.0.0] - 2019-03-24
 
