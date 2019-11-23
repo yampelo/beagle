@@ -91,7 +91,7 @@ class ElasticSearchQSSerach(ExternalDataSource):
                             "range": {
                                 "@timestamp": {
                                     "gte": "now" + self.earliest,
-                                    "lte": "now"
+                                    "lte": self.latest
                                 }
                             }
                         }
