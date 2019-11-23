@@ -65,7 +65,6 @@ class ElasticSearchQSSerach(ExternalDataSource):
                 Config.get("elasticsearch", "username"),             
                 Config.get("elasticsearch", "password"),
             )
-        logger.info(client_kwargs)
 
         logger.info(f"Creating Elasticsearch client for host={client_kwargs['host']}")
         return Elasticsearch(**client_kwargs)
