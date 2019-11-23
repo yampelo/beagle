@@ -19,9 +19,10 @@ EMAIL = None
 splunk = ["splunk-sdk==1.6.6"]
 rekall = ["rekall==1.7.2rc1"]
 pcap = ["scapy==2.4.3"]
+elasticsearch = ["elasticsearch==7.1.0"]
 
-_all = splunk + rekall + pcap
-EXTRAS = {"all": _all, "rekall": rekall, "splunk": splunk, "pcap": pcap}
+_all = splunk + rekall + pcap + elasticsearch
+EXTRAS = {"all": _all, "rekall": rekall, "splunk": splunk, "pcap": pcap, "elasticsearch": elasticsearch}
 REQUIRED = [
     "ansimarkup==1.4.0",
     "atomicwrites==1.3.0",

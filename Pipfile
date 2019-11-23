@@ -18,6 +18,7 @@ pydgraph = "*"
 pandas = "*"
 graphistry = {extras = ["networkx"],version = "==0.9.63"}
 splunk-sdk = "*"
+elasticsearch = "*"
 flask-cors = "*"
 
 [dev-packages]
