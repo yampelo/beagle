@@ -92,7 +92,9 @@ class ElasticSearchQSSerach(ExternalDataSource):
             }
         }
         
-        data = self.client.search(index=self.index, body=query, scroll='2m', size=100)
+        #Number of hits to return
+        size = int(Config.get("elasticsearch", "scroll_size", fallback=100))
+        data = self.client.search(index=self.index, body=query, scroll='2m', size=size)
 
         # Get the scroll ID
         sid = data['_scroll_id']
