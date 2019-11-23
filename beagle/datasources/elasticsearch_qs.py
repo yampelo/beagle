@@ -54,14 +54,7 @@ class ElasticSearchQSSerach(ExternalDataSource):
 
     def setup_session(self):  # pragma: no cover
         from elasticsearch import Elasticsearch
-        logger.info("CONFIG:")
-        logger.info(Config.get("elasticsearch", "host"))
-        logger.info(Config.get("elasticsearch", "scheme"))
-        logger.info(Config.get("elasticsearch", "username"))    
-        logger.info(Config.get("elasticsearch", "password"))
-        logger.info(int(Config.get("elasticsearch", "port", fallback=9200)))
-
-
+        
         client_kwargs = {
             "host": Config.get("elasticsearch", "host"),
             "scheme": Config.get("elasticsearch", "scheme"), 
