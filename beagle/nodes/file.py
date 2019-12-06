@@ -5,7 +5,7 @@ from beagle.nodes.node import Node
 from beagle.edges import FileOf, CopiedTo
 
 # mypy type hinting
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from beagle.nodes import Process  # noqa: F401
 
 

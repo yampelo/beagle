@@ -60,6 +60,28 @@ class Transformer(object, metaclass=ABCMeta):
         backend = backend(nodes=nodes, metadata=self.datasource.metadata(), *args, **kwargs)
         return backend.graph()
 
+    def to_backend(self, backend: "Backend" = NetworkX, graph=False, *args, **kwargs) -> Any:
+        """Graphs the nodes created by :py:meth:`run`. If no backend is specific,
+        the default used is NetworkX.
+
+        Parameters
+        ----------
+        backend : [type], optional
+            [description] (the default is NetworkX, which [default_description])
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
+
+        nodes = self.run()
+
+        backend = backend(nodes=nodes, metadata=self.datasource.metadata(), *args, **kwargs)
+        if graph:
+            backend.graph()
+        return backend
+
     def run(self) -> List[Node]:
         """Generates the list of nodes from the datasource.
 

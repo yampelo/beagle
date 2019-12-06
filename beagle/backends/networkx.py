@@ -190,10 +190,7 @@ class NetworkX(Backend):
         # Otherwise, they key is assigned from NetworkX, and we add the edge type as a label:
         else:
             self.G.add_edges_from(
-                [
-                    (u_id, v_id, {"key": edge_name, "data": entry, "edge_name": edge_name})
-                    for entry in instances
-                ]
+                [(u_id, v_id, {"data": entry, "edge_name": edge_name}) for entry in instances]
             )
 
     def update_node(self, node: Node, node_id: int) -> None:  # pragma: no cover

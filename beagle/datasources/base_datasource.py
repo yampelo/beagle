@@ -112,6 +112,28 @@ class DataSource(object, metaclass=ABCMeta):
 
         return self.to_transformer(self.transformers[0]).to_graph(*args, **kwargs)  # type: ignore
 
+    def to_backend(self, graph=False, *args, **kwargs) -> Any:
+        """Allows to hop immediatly from a datasource to a backend.
+
+        Supports parameters for the to_graph() function of the transformer.
+
+        see :py:method:`beagle.transformers.base_transformer.Transformer.to_graph`
+
+        Examples
+        --------
+        >>> SysmonEVTX('data/sysmon/autoruns-sysmon.evtx').to_backend(Graphistry, render=True)
+        <Graphistry object>
+
+        Returns
+        -------
+        Any
+            Returns a backend, prior to being graphed.
+        """
+
+        return self.to_transformer(self.transformers[0]).to_backend(
+            graph=graph, *args, **kwargs
+        )  # type: ignore
+
     def _convert_to_parent_fields(self, process: dict) -> dict:
         """Converts a process to represent a child process.
 
