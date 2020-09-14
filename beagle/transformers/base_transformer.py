@@ -34,6 +34,8 @@ class Transformer(object, metaclass=ABCMeta):
 
     def __init__(self, datasource: DataSource) -> None:
 
+        logger.debug(f"Transforer init")
+
         self.count = 0
         self._queue: Queue = Queue()
         self.datasource = datasource
@@ -78,6 +80,7 @@ class Transformer(object, metaclass=ABCMeta):
 
         threads: List[Thread] = []
 
+        
         producer_thread = Thread(target=self._producer_thread)
         producer_thread.start()
         threads.append(producer_thread)
@@ -121,6 +124,7 @@ class Transformer(object, metaclass=ABCMeta):
         for element in self.datasource.events():
             self._queue.put(element, block=True)
             i += 1
+            
 
         logger.debug(f"Producer Thread {current_thread().name} finished after {i} events")
         return

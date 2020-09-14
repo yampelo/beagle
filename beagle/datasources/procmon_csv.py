@@ -31,15 +31,19 @@ class ProcmonCSV(DataSource):
 
         for _, row in self._df.iterrows():
             # Get times
-            hr_min_sec = row["Time of Day"].split(".")[0]
+
+            if ',' in row["Time of Day"]:
+                hr_min_sec = row["Time of Day"].split(",")[0]
+            else:
+                hr_min_sec = row["Time of Day"].split(".")[0]
 
             # Check if AM
-            in_am = "AM" in row["Time of Day"]
+            in_pm = "PM" in row["Time of Day"]
 
             # set the hours/min/sec
             date = self.now.replace(
                 second=int(hr_min_sec.split(":")[-1]),
-                hour=int(hr_min_sec.split(":")[0]) + (0 if in_am else 12),
+                hour=int(hr_min_sec.split(":")[0]) + (12 if in_pm else 0),
                 minute=int(hr_min_sec.split(":")[1]),
             )
 
