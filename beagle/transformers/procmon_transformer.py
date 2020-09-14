@@ -2,6 +2,7 @@ import re
 from typing import Optional, Tuple
 
 from beagle.common import split_path
+from beagle.common.logging import logger
 from beagle.nodes import File, Process, RegistryKey
 from beagle.nodes.ip_address import IPAddress
 from beagle.transformers.base_transformer import Transformer

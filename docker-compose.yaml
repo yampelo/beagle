@@ -1,0 +1,13 @@
+version: "3"
+services:
+    beagle:
+        image: 
+            johan/beagle
+        volumes:
+            - /home/jpm/src/beagle/beagle/beagle/mkdir data/beagle:/data/beagle
+            - /opt/beagle:/home/jpm/src/beagle/beagle/beagle
+        ports:
+            - "8000:8000"
+        
+        
+             
