@@ -44,7 +44,7 @@ REQUIRED = [
     "hexdump==3.3",
     "idna==2.8",
     "itsdangerous==1.1.0",
-    "jinja2==2.10.1",
+    "jinja2==2.11.3",
     "loguru==0.2.5",
     "lxml==4.3.3",
     "markupsafe==1.1.1",
