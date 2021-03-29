@@ -59,7 +59,7 @@ REQUIRED = [
     "protobuf==3.6.1",
     "py==1.8.0",
     "pydgraph==1.0.3",
-    "pygments==2.3.1",
+    "pygments==2.7.4",
     "pytest-cov==2.6.1",
     "pytest==4.4.0",
     "python-dateutil==2.8.0",
