@@ -57,7 +57,7 @@ REQUIRED = [
     "pandas==0.24.2",
     "pluggy==0.9.0",
     "protobuf==3.6.1",
-    "py==1.8.0",
+    "py==1.10.0",
     "pydgraph==1.0.3",
     "pygments==2.3.1",
     "pytest-cov==2.6.1",
