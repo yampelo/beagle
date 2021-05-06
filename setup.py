@@ -36,7 +36,7 @@ REQUIRED = [
     "decorator==4.4.0",
     "flask-sqlalchemy==2.3.2",
     "flask==1.0.2",
-    "Flask-Cors==3.0.8",
+    "Flask-Cors==3.0.9",
     "future==0.16.0",
     "graphistry[networkx]==0.9.63",
     "grpcio==1.20.0rc3",
