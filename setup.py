@@ -68,7 +68,7 @@ REQUIRED = [
     "requests==2.21.0",
     "six==1.12.0",
     "sqlalchemy==1.3.2",
-    "urllib3==1.24.1",
+    "urllib3==1.26.5",
     "werkzeug==0.15.3",
     "mock==3.0.5",
 ]
