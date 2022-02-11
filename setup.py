@@ -56,7 +56,7 @@ REQUIRED = [
     "numpy==1.16.2",
     "pandas==0.24.2",
     "pluggy==0.9.0",
-    "protobuf==3.6.1",
+    "protobuf==3.15.0",
     "py==1.8.0",
     "pydgraph==1.0.3",
     "pygments==2.3.1",
