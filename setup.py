@@ -46,7 +46,7 @@ REQUIRED = [
     "itsdangerous==1.1.0",
     "jinja2==2.10.1",
     "loguru==0.2.5",
-    "lxml==4.3.3",
+    "lxml==4.9.1",
     "markupsafe==1.1.1",
     "more-itertools==7.0.0 ; python_version > '2.7'",
     "neo4j==1.7.2",
