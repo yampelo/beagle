@@ -28,7 +28,7 @@ REQUIRED = [
     "atomicwrites==1.3.0",
     "attrs==19.1.0",
     "better-exceptions-fork==0.2.1.post6",
-    "certifi==2019.3.9",
+    "certifi==2022.12.7",
     "chardet==3.0.4",
     "click==7.0",
     "colorama==0.4.1",
